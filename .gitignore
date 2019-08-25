@@ -1,0 +1,9 @@
+.DS_Store
+.*.swp
+.idea
+.vscode
+node_modules
+bower_components
+npm-debug.log
+old-mock
+package-lock.json

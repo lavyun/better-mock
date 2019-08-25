@@ -1,0 +1,70 @@
+{
+  "name": "better-mock",
+  "description": "Forked from Mockjs. Generate random data & Intercept ajax request",
+  "author": "lavyun@163.com",
+  "version": "0.0.1",
+  "homepage": "",
+  "main": "./dist/mock.common.js",
+  "module": "./dist/mock.esm.js",
+  "scripts": {
+    "test": "gulp mocha",
+    "coveralls": "gulp coveralls",
+    "clear": "rimraf dist && rimraf typings",
+    "build": "npm run clear && tsc && node build/build.js && rimraf ts-dist"
+  },
+  "keywords": [
+    "mock",
+    "mockJSON",
+    "mockAjax",
+    "mockjs",
+    "javascript mocking",
+    "intercept request",
+    "ajax"
+  ],
+  "devDependencies": {
+    "@babel/core": "^7.4.5",
+    "@babel/preset-env": "^7.4.5",
+    "@types/mustache": "^0.8.32",
+    "@types/node": "^12.7.2",
+    "chai": "^4.2.0",
+    "commander": "^3.0.0",
+    "gulp": "^3.9.0",
+    "gulp-connect": "*",
+    "gulp-coveralls": "^0.1.4",
+    "gulp-istanbul": "^0.10.3",
+    "gulp-jshint": "^2.0.0",
+    "gulp-mocha": "^2.2.0",
+    "gulp-mocha-phantomjs": "^0.12.2",
+    "jquery": "^3.4.1",
+    "jshint": "^2.8.0",
+    "jshint-stylish": "^2.1.0",
+    "mocha": "^6.2.0",
+    "requirejs": "^2.3.6",
+    "rimraf": "^2.6.3",
+    "rollup": "^1.14.4",
+    "rollup-plugin-babel": "^4.3.2",
+    "rollup-plugin-node-resolve": "^5.0.1",
+    "rollup-plugin-replace": "^2.2.0",
+    "typescript": "^3.5.1",
+    "uglify-js": "^3.6.0",
+    "underscore": "^1.9.1",
+    "webpack": "^1.12.9",
+    "zlib": "^1.0.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "bin": {
+    "random": "bin/random"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/nuysoft/Mock/blob/master/LICENSE"
+    }
+  ],
+  "spm": {
+    "main": "dist/mock.js"
+  }
+}
