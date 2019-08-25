@@ -211,7 +211,7 @@ const Diff = {
     const length = result.length
     
     const rule = schema.rule
-    const keys = Object.keys(data)
+    const keys = util.keys(data)
     if (!schema.properties) {
       return
     }

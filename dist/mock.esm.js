@@ -2,23 +2,6 @@
  * better-mock v0.0.1
  * (c) 2019-2019 lavyun@163.com * Released under the MIT License.
  */
-import 'core-js/modules/es6.regexp.split';
-import 'core-js/modules/es6.regexp.match';
-import 'core-js/modules/web.dom.iterable';
-import 'core-js/modules/es6.array.iterator';
-import 'core-js/modules/es6.object.to-string';
-import 'core-js/modules/es6.function.name';
-import 'core-js/modules/es6.object.assign';
-import 'core-js/modules/es6.regexp.replace';
-import 'core-js/modules/es6.regexp.to-string';
-import 'core-js/modules/es6.date.to-string';
-import 'core-js/modules/es6.regexp.constructor';
-import 'core-js/modules/es6.object.keys';
-import 'core-js/modules/es6.array.index-of';
-import 'core-js/modules/es6.number.constructor';
-import 'core-js/modules/es6.array.sort';
-import 'core-js/modules/es6.array.filter';
-
 function _typeof(obj) {
   if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
     _typeof = function (obj) {
@@ -57,6 +40,30 @@ var constant = {
   RE_PLACEHOLDER: /\\*@([^@#%&()\?\s]+)(?:\((.*?)\))?/g
 };
 
+var objectAssign = function objectAssign(target, varArgs) {
+  // TypeError if undefined or null
+  if (target == null) {
+    throw new TypeError('Cannot convert undefined or null to object');
+  }
+
+  var to = Object(target);
+
+  for (var index = 1; index < arguments.length; index++) {
+    var nextSource = arguments[index];
+
+    if (nextSource != null) {
+      // Skip over if undefined or null
+      for (var nextKey in nextSource) {
+        // Avoid bugs when hasOwnProperty is shadowed
+        if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+          to[nextKey] = nextSource[nextKey];
+        }
+      }
+    }
+  }
+
+  return to;
+};
 var each = function each(obj, iterator, context) {
   var i, key;
 
@@ -145,6 +152,7 @@ var heredoc = function heredoc(fn) {
 var noop = function noop() {};
 
 var Util = /*#__PURE__*/Object.freeze({
+  objectAssign: objectAssign,
   each: each,
   type: type,
   isString: isString,
@@ -162,7 +170,7 @@ var Util = /*#__PURE__*/Object.freeze({
 
 // Basics
 // 返回一个随机的布尔值。
-var _boolean = function _boolean(min, max, cur) {
+var boolean = function boolean(min, max, cur) {
   if (cur !== undefined) {
     min = typeof min !== 'undefined' && !isNaN(min) ? parseInt(min, 10) : 1;
     max = typeof max !== 'undefined' && !isNaN(max) ? parseInt(max, 10) : 1;
@@ -172,7 +180,7 @@ var _boolean = function _boolean(min, max, cur) {
   return Math.random() >= 0.5;
 };
 var bool = function bool(min, max, cur) {
-  return _boolean(min, max, cur);
+  return boolean(min, max, cur);
 }; // 返回一个随机的自然数（大于等于 0 的整数）。
 
 var natural = function natural(min, max) {
@@ -188,12 +196,11 @@ var integer = function integer(min, max) {
 
   return Math.round(Math.random() * (max - min)) + min;
 };
-
-var _int = function _int(min, max) {
+var int = function int(min, max) {
   return integer(min, max);
 }; // 返回一个随机的浮点数。
 
-var _float = function _float(min, max, dmin, dmax) {
+var float = function float(min, max, dmin, dmax) {
   dmin = dmin === undefined ? 0 : dmin;
   dmin = Math.max(Math.min(dmin, 17), 0);
   dmax = dmax === undefined ? 17 : dmax;
@@ -207,6 +214,7 @@ var _float = function _float(min, max, dmin, dmax) {
 
   return parseFloat(ret);
 }; // 返回一个随机字符。
+
 var character = function character(pool) {
   var lower = 'abcdefghijklmnopqrstuvwxyz';
   var upper = lower.toUpperCase();
@@ -223,10 +231,10 @@ var character = function character(pool) {
   pool = pools[('' + pool).toLowerCase()] || pool;
   return pool.charAt(natural(0, pool.length - 1));
 };
-
-var _char = function _char(pool) {
+var char = function char(pool) {
   return character(pool);
 }; // 返回一个随机字符串。
+
 var string = function string(pool, min, max) {
   var len;
 
@@ -296,14 +304,14 @@ var range = function range(start, stop, step) {
 };
 
 var basic = /*#__PURE__*/Object.freeze({
-  boolean: _boolean,
+  boolean: boolean,
   bool: bool,
   natural: natural,
   integer: integer,
-  int: _int,
-  float: _float,
+  int: int,
+  float: float,
   character: character,
-  char: _char,
+  char: char,
   string: string,
   str: str,
   range: range
@@ -526,6 +534,8 @@ var helper = /*#__PURE__*/Object.freeze({
   pick: pick,
   shuffle: shuffle
 });
+
+// image
 
 var _adSize = ['300x250', '250x250', '240x400', '336x280', '180x150', '720x300', '468x60', '234x60', '88x31', '120x90', '120x60', '120x240', '125x125', '728x90', '160x600', '120x600', '300x600']; // BrandColors
 // http://brandcolors.net/
@@ -778,6 +788,7 @@ var image$1 = /*#__PURE__*/Object.freeze({
   dataImage: dataImage
 });
 
+// 颜色空间RGB与HSV(HSL)的转换
 var hsv2rgb = function hsv2rgb(hsv) {
   var h = hsv[0] / 60;
   var s = hsv[1] / 100;
@@ -902,6 +913,8 @@ var dict = {
     nicer: '#FFFFFF'
   }
 };
+
+// ## Color
 
 var color = function color(name) {
   if (name || dict[name]) return dict[name].nicer;
@@ -5304,6 +5317,7 @@ var address = /*#__PURE__*/Object.freeze({
   zip: zip
 });
 
+// Miscellaneous
 var d4 = function d4() {
   return natural(1, 4);
 };
@@ -5387,6 +5401,7 @@ var __assign = undefined && undefined.__assign || function () {
 }; // Mock.Random
 var Random = __assign({}, basic, date$1, image$1, color$1, text, name$1, web, address, helper, misc);
 
+// 解析数据模板（属性名部分）。
 var parse = function parse(name) {
   name = name == undefined ? '' : name + '';
   var parameters = (name || '').match(constant.RE_KEY);
@@ -5428,7 +5443,7 @@ var parse = function parse(name) {
   return {};
 };
 
-var handler = {}; // http://en.wikipedia.org/wiki/ASCII#ASCII_printable_code_chart
+// ## RegExp Handler
 
 /*var ASCII_CONTROL_CODE_CHART = {
  '@': ['\u0000'],
@@ -5498,17 +5513,16 @@ function ascii(from, to) {
   }
 
   return result;
-} // var ast = RegExpParser.parse(regexp.source)
+}
 
-
-handler.gen = function (node, result, cache) {
-  cache = cache || {
-    guid: 1
-  };
-  return handler[node.type] ? handler[node.type](node, result, cache) : handler.token(node, result, cache);
-};
-
-Object.assign(handler, {
+var handler = {
+  // var ast = RegExpParser.parse(regexp.source)
+  gen: function gen(node, result, cache) {
+    cache = cache || {
+      guid: 1
+    };
+    return handler[node.type] ? handler[node.type](node, result, cache) : handler.token(node, result, cache);
+  },
   token: function token(node) {
     switch (node.type) {
       case 'start':
@@ -5583,7 +5597,7 @@ Object.assign(handler, {
   // }
   alternate: function alternate(node, result, cache) {
     // node.left/right {}
-    return handler.gen(Random["boolean"]() ? node.left : node.right, result, cache);
+    return handler.gen(Random.boolean() ? node.left : node.right, result, cache);
   },
   // {
   //   type: 'match',
@@ -5750,7 +5764,7 @@ Object.assign(handler, {
   'control-character': function controlCharacter(node) {
     return this.CONTROL_CHARACTER_MAP[node.code];
   }
-});
+};
 
 // https://github.com/nuysoft/regexp
 // forked from https://github.com/ForbesLindesay/regexp
@@ -6459,54 +6473,52 @@ var RE = {
   Handler: handler
 };
 
-var handler$1 = {}; // template        属性值（即数据模板）
-// name            属性名
-// context         数据上下文，生成后的数据
-// templateContext 模板上下文，
-//
-// Handle.gen(template, name, options)
-// context
-//     currentContext, templateCurrentContext,
-//     path, templatePath
-//     root, templateRoot
+var handler$1 = {
+  // template        属性值（即数据模板）
+  // name            属性名
+  // context         数据上下文，生成后的数据
+  // templateContext 模板上下文，
+  //
+  // Handle.gen(template, name, options)
+  // context
+  //     currentContext, templateCurrentContext,
+  //     path, templatePath
+  //     root, templateRoot
+  gen: function gen(template, name, context) {
+    /* jshint -W041 */
+    name = name == undefined ? '' : name + '';
+    context = context || {};
+    context = {
+      // 当前访问路径，只有属性名，不包括生成规则
+      path: context.path || [constant.GUID],
+      templatePath: context.templatePath || [constant.GUID++],
+      currentContext: context.currentContext,
+      templateCurrentContext: context.templateCurrentContext || template,
+      root: context.root || context.currentContext,
+      templateRoot: context.templateRoot || context.templateCurrentContext || template
+    }; // console.log('path:', context.path.join('.'), template)
 
-handler$1.gen = function (template, name, context) {
-  /* jshint -W041 */
-  name = name == undefined ? '' : name + '';
-  context = context || {};
-  context = {
-    // 当前访问路径，只有属性名，不包括生成规则
-    path: context.path || [constant.GUID],
-    templatePath: context.templatePath || [constant.GUID++],
-    currentContext: context.currentContext,
-    templateCurrentContext: context.templateCurrentContext || template,
-    root: context.root || context.currentContext,
-    templateRoot: context.templateRoot || context.templateCurrentContext || template
-  }; // console.log('path:', context.path.join('.'), template)
+    var rule = parse(name);
+    var type$1 = type(template);
+    var data;
 
-  var rule = parse(name);
-  var type$1 = type(template);
-  var data;
+    if (handler$1[type$1]) {
+      data = handler$1[type$1]({
+        // 属性值类型
+        type: type$1,
+        template: template,
+        name: name,
+        parsedName: name ? name.replace(constant.RE_KEY, '$1') : name,
+        // 解析后的生成规则
+        rule: rule,
+        context: context
+      });
+      if (!context.root) context.root = data;
+      return data;
+    }
 
-  if (handler$1[type$1]) {
-    data = handler$1[type$1]({
-      // 属性值类型
-      type: type$1,
-      template: template,
-      name: name,
-      parsedName: name ? name.replace(constant.RE_KEY, '$1') : name,
-      // 解析后的生成规则
-      rule: rule,
-      context: context
-    });
-    if (!context.root) context.root = data;
-    return data;
-  }
-
-  return template;
-};
-
-Object.assign(handler$1, {
+    return template;
+  },
   array: function array(options) {
     var result = [],
         i,
@@ -6598,8 +6610,6 @@ Object.assign(handler$1, {
         inc,
         i; // 'obj|min-max': {}
 
-    /* jshint -W041 */
-
     if (options.rule.min != undefined) {
       keys$1 = keys(options.template);
       keys$1 = Random.shuffle(keys$1);
@@ -6627,7 +6637,8 @@ Object.assign(handler$1, {
       fnKeys = []; // #25 改变了非函数属性的顺序，查找起来不方便
 
       for (key in options.template) {
-        (typeof options.template[key] === 'function' ? fnKeys : keys$1).push(key);
+        var target = typeof options.template[key] === 'function' ? fnKeys : keys$1;
+        target.push(key);
       }
 
       keys$1 = keys$1.concat(fnKeys); // 会改变非函数属性的顺序
@@ -6694,7 +6705,7 @@ Object.assign(handler$1, {
 
     return result;
   },
-  "boolean": function boolean(options) {
+  boolean: function boolean(options) {
     var result; // 'prop|multiple': false, 当前值是相反值的概率倍数
     // 'prop|probability-probability': false, 当前值与相反值的概率
 
@@ -6761,7 +6772,7 @@ Object.assign(handler$1, {
 
     return result;
   },
-  "function": function _function(options) {
+  function: function _function(options) {
     // ( context, options )
     return options.template.call(options.context.currentContext, options);
   },
@@ -6938,7 +6949,9 @@ Object.assign(handler$1, {
 
     return parts;
   }
-});
+};
+
+// 把 Mock.js 风格的数据模板转换成 JSON Schema。
 
 function toJSONSchema(template, name, path
 /* Internal Use Only */
@@ -6973,6 +6986,7 @@ function toJSONSchema(template, name, path
   return result;
 }
 
+// ## valid(template, data)
 //     有生成规则：比较解析后的 name
 //     无生成规则：直接比较
 // ## type
@@ -7170,7 +7184,7 @@ var Diff = {
   properties: function properties(schema, data, name, result) {
     var length = result.length;
     var rule = schema.rule;
-    var keys = Object.keys(data);
+    var keys$1 = keys(data);
 
     if (!schema.properties) {
       return;
@@ -7178,20 +7192,20 @@ var Diff = {
 
 
     if (!schema.rule.parameters) {
-      Assert.equal('properties length', schema.path, keys.length, schema.properties.length, result);
+      Assert.equal('properties length', schema.path, keys$1.length, schema.properties.length, result);
     } else {
       // 有生成规则
       // |min-max
       if (rule.min !== undefined && rule.max !== undefined) {
-        Assert.greaterThanOrEqualTo('properties length', schema.path, keys.length, Math.min(rule.min, rule.max), result);
-        Assert.lessThanOrEqualTo('properties length', schema.path, keys.length, Math.max(rule.min, rule.max), result);
+        Assert.greaterThanOrEqualTo('properties length', schema.path, keys$1.length, Math.min(rule.min, rule.max), result);
+        Assert.lessThanOrEqualTo('properties length', schema.path, keys$1.length, Math.max(rule.min, rule.max), result);
       } // |count
 
 
       if (rule.min !== undefined && rule.max === undefined) {
         // |1, |>1
         if (rule.count !== 1) {
-          Assert.equal('properties length', schema.path, keys.length, rule.min, result);
+          Assert.equal('properties length', schema.path, keys$1.length, rule.min, result);
         }
       }
     }
@@ -7205,17 +7219,17 @@ var Diff = {
       each(schema.properties, function (item
       /*, index*/
       ) {
-        if (item.name === keys[i]) {
+        if (item.name === keys$1[i]) {
           property = item;
         }
       });
       property = property || schema.properties[i];
-      result.push.apply(result, this_1.diff(property, data[keys[i]], keys[i]));
+      result.push.apply(result, this_1.diff(property, data[keys$1[i]], keys$1[i]));
     };
 
     var this_1 = this;
 
-    for (var i = 0; i < keys.length; i++) {
+    for (var i = 0; i < keys$1.length; i++) {
       _loop_1(i);
     }
 
@@ -7420,6 +7434,8 @@ var valid = function valid(template, data) {
 valid.Diff = Diff;
 valid.Assert = Assert;
 
+// ## MockXMLHttpRequest
+
 var _XMLHttpRequest = XMLHttpRequest;
 var _ActiveXObject = window.ActiveXObject; // PhantomJS
 // TypeError: '[object EventConstructor]' is not a constructor (evaluating 'new Event("readystatechange")')
@@ -7529,7 +7545,7 @@ function () {
 
   MockXMLHttpRequest.prototype.open = function (method, url, async, username, password) {
     var that = this;
-    Object.assign(this.custom, {
+    objectAssign(this.custom, {
       method: method,
       url: url,
       async: typeof async === 'boolean' ? async : true,
@@ -7646,8 +7662,14 @@ function () {
     this.dispatchEvent(new Event('loadstart'
     /*, false, false, this*/
     ));
-    if (this.custom.async) setTimeout(done, this.custom.timeout); // 异步
-    else done(); // 同步
+
+    if (this.custom.async) {
+      // 异步
+      setTimeout(done, this.custom.timeout);
+    } else {
+      // 同步
+      done();
+    }
 
     function done() {
       that.readyState = XHR_STATES.HEADERS_RECEIVED;
@@ -7757,7 +7779,7 @@ function () {
   };
 
   MockXMLHttpRequest.setup = function (settings) {
-    Object.assign(MockXMLHttpRequest._settings, settings);
+    objectAssign(MockXMLHttpRequest._settings, settings);
     return MockXMLHttpRequest._settings;
   };
 

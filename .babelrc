@@ -2,10 +2,12 @@
   "presets": [
     [
       "@babel/preset-env",
-
       {
         "modules": false,
-        "useBuiltIns": "usage"
+        "targets": {
+          "browsers": "ie >= 9, not dead",
+          "node": "6.9.1"
+        }
       }
     ]
   ]

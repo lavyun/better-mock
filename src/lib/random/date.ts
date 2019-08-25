@@ -1,4 +1,6 @@
 // Date
+import * as utils from '../util'
+
 const patternLetters = {
   yyyy: 'getFullYear', yy: function (date) {
     return ('' + date.getFullYear()).slice(2)
@@ -71,7 +73,7 @@ const patternLetters = {
 }
 
 const _createFormatRE = function () {
-  const re: string[] = Object.keys(patternLetters)
+  const re: string[] = utils.keys(patternLetters)
   return '(' + re.join('|') + ')'
 }
 

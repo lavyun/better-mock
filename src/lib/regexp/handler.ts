@@ -52,8 +52,6 @@
 //     null-character      \o      NUL 字符
 import random from '../random'
 
-const handler: any = {}
-
 // http://en.wikipedia.org/wiki/ASCII#ASCII_printable_code_chart
 /*var ASCII_CONTROL_CODE_CHART = {
  '@': ['\u0000'],
@@ -116,15 +114,15 @@ function ascii (from, to) {
   return result
 }
 
-// var ast = RegExpParser.parse(regexp.source)
-handler.gen = function (node, result, cache) {
-  cache = cache || {
-    guid: 1
-  }
-  return handler[node.type] ? handler[node.type](node, result, cache) : handler.token(node, result, cache)
-}
-
-Object.assign(handler, {
+const handler: any = {
+  // var ast = RegExpParser.parse(regexp.source)
+  gen: function (node, result, cache) {
+    cache = cache || {
+      guid: 1
+    }
+    return handler[node.type] ? handler[node.type](node, result, cache) : handler.token(node, result, cache)
+  },
+  
   token: function (node) {
     switch (node.type) {
       case 'start':
@@ -350,6 +348,6 @@ Object.assign(handler, {
   'control-character': function (node) {
     return this.CONTROL_CHARACTER_MAP[node.code]
   }
-})
+}
 
 export default handler

@@ -1,5 +1,6 @@
 // image
 import * as helper from './helper'
+import * as utils from '../util'
 
 // 常见的广告宽高
 const _adSize = ['300x250', '250x250', '240x400', '336x280', '180x150', '720x300', '468x60', '234x60', '88x31', '120x90', '120x60', '120x240', '125x125', '728x90', '160x600', '120x600', '300x600']
@@ -231,7 +232,7 @@ export const dataImage = function (size, text) {
   
   const width = parseInt(size[0], 10)
   const height = parseInt(size[1], 10)
-  const background = _brandColors[helper.pick(Object.keys(_brandColors))]
+  const background = _brandColors[helper.pick(utils.keys(_brandColors))]
   const foreground = '#FFF'
   const text_height = 14
   const font = 'sans-serif'

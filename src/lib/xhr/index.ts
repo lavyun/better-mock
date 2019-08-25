@@ -178,8 +178,8 @@ class MockXMLHttpRequest {
 
   open (method, url, async, username, password) {
     var that = this
-
-    Object.assign(this.custom, {
+    
+    util.objectAssign(this.custom, {
       method: method,
       url: url,
       async: typeof async === 'boolean' ? async : true,
@@ -290,10 +290,14 @@ class MockXMLHttpRequest {
 
     // loadstart The fetch initiates.
     this.dispatchEvent(new Event('loadstart' /*, false, false, this*/))
-
-    if (this.custom.async) setTimeout(done, this.custom.timeout)
-    // 异步
-    else done() // 同步
+  
+    if (this.custom.async) {
+      // 异步
+      setTimeout(done, this.custom.timeout)
+    } else {
+      // 同步
+      done()
+    }
 
     function done() {
       that.readyState = XHR_STATES.HEADERS_RECEIVED
@@ -389,7 +393,7 @@ class MockXMLHttpRequest {
   }
 
   static setup = function(settings) {
-    Object.assign(MockXMLHttpRequest._settings, settings)
+    util.objectAssign(MockXMLHttpRequest._settings, settings)
     return MockXMLHttpRequest._settings
   }
 

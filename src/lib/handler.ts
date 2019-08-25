@@ -31,58 +31,57 @@ import * as parser from './parser'
 import random from './random'
 import RE from './regexp/index'
 
-const handler: any = {}
-
-// template        属性值（即数据模板）
-// name            属性名
-// context         数据上下文，生成后的数据
-// templateContext 模板上下文，
-//
-// Handle.gen(template, name, options)
-// context
-//     currentContext, templateCurrentContext,
-//     path, templatePath
-//     root, templateRoot
-handler.gen = function (template, name, context) {
-  /* jshint -W041 */
-  name = name == undefined ? '' : name + ''
-  
-  context = context || {}
-  context = {
-    // 当前访问路径，只有属性名，不包括生成规则
-    path: context.path || [constant.GUID], templatePath: context.templatePath || [constant.GUID++], // 最终属性值的上下文
-    currentContext: context.currentContext, // 属性值模板的上下文
-    templateCurrentContext: context.templateCurrentContext || template, // 最终值的根
-    root: context.root || context.currentContext, // 模板的根
-    templateRoot: context.templateRoot || context.templateCurrentContext || template
-  }
-  // console.log('path:', context.path.join('.'), template)
-  
-  var rule = parser.parse(name)
-  var type = utils.type(template)
-  var data
-  
-  if (handler[type]) {
-    data = handler[type]({
-      // 属性值类型
-      type: type, // 属性值模板
-      template: template, // 属性名 + 生成规则
-      name: name, // 属性名
-      parsedName: name ? name.replace(constant.RE_KEY, '$1') : name,
-      
-      // 解析后的生成规则
-      rule: rule, // 相关上下文
-      context: context
-    })
+const handler: any = {
+  // template        属性值（即数据模板）
+  // name            属性名
+  // context         数据上下文，生成后的数据
+  // templateContext 模板上下文，
+  //
+  // Handle.gen(template, name, options)
+  // context
+  //     currentContext, templateCurrentContext,
+  //     path, templatePath
+  //     root, templateRoot
+  gen: function (template, name, context) {
+    /* jshint -W041 */
+    name = name === undefined ? '' : name.toString()
     
-    if (!context.root) context.root = data
-    return data
-  }
+    context = context || {}
+    context = {
+      // 当前访问路径，只有属性名，不包括生成规则
+      path: context.path || [constant.GUID],
+      templatePath: context.templatePath || [constant.GUID++], // 最终属性值的上下文
+      currentContext: context.currentContext, // 属性值模板的上下文
+      templateCurrentContext: context.templateCurrentContext || template, // 最终值的根
+      root: context.root || context.currentContext, // 模板的根
+      templateRoot: context.templateRoot || context.templateCurrentContext || template
+    }
+    // console.log('path:', context.path.join('.'), template)
+    
+    var rule = parser.parse(name)
+    var type = utils.type(template)
+    var data
+    
+    if (handler[type]) {
+      data = handler[type]({
+        // 属性值类型
+        type: type, // 属性值模板
+        template: template, // 属性名 + 生成规则
+        name: name, // 属性名
+        parsedName: name ? name.replace(constant.RE_KEY, '$1') : name,
+        
+        // 解析后的生成规则
+        rule: rule, // 相关上下文
+        context: context
+      })
+      
+      if (!context.root) context.root = data
+      return data
+    }
+    
+    return template
+  },
   
-  return template
-}
-
-Object.assign(handler, {
   array: function (options) {
     var result: any[] = [], i, ii
     
@@ -172,7 +171,6 @@ Object.assign(handler, {
     var result = {}, keys, fnKeys, key, parsedKey, inc, i
     
     // 'obj|min-max': {}
-    /* jshint -W041 */
     if (options.rule.min != undefined) {
       keys = utils.keys(options.template)
       keys = random.shuffle(keys)
@@ -198,10 +196,11 @@ Object.assign(handler, {
       keys = []
       fnKeys = [] // #25 改变了非函数属性的顺序，查找起来不方便
       for (key in options.template) {
-        ;(typeof options.template[key] === 'function' ? fnKeys : keys).push(key)
+        const target = typeof options.template[key] === 'function' ? fnKeys : keys
+        target.push(key)
       }
       keys = keys.concat(fnKeys)
-  
+      
       // 会改变非函数属性的顺序
       // keys = Util.keys(options.template)
       // keys.sort(function(a, b) {
@@ -355,11 +354,8 @@ Object.assign(handler, {
     // console.log(options.context.path)
     // 1 key, 2 params
     constant.RE_PLACEHOLDER.exec('')
-    var parts = constant.RE_PLACEHOLDER.exec(placeholder),
-      key = parts && parts[1],
-      lkey = key && key.toLowerCase(),
-      okey = this._all()[lkey!],
-      params: any = (parts && parts[2]) || ''
+    var parts = constant.RE_PLACEHOLDER.exec(placeholder), key = parts && parts[1], lkey = key && key.toLowerCase(),
+      okey = this._all()[lkey!], params: any = (parts && parts[2]) || ''
     var pathParts = this.splitPathToArray(key)
     
     // 解析占位符的参数
@@ -487,6 +483,6 @@ Object.assign(handler, {
     }
     return parts
   }
-})
+}
 
 export default handler

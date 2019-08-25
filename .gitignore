@@ -7,3 +7,4 @@ bower_components
 npm-debug.log
 old-mock
 package-lock.json
+ts-dist
