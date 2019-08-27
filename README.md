@@ -1,6 +1,7 @@
 # Mock.js
 <!-- 模拟请求 & 模拟数据 -->
-[![Build Status](https://travis-ci.org/nuysoft/Mock.svg?branch=refactoring)](https://travis-ci.org/nuysoft/Mock)
+[![Build Status](https://travis-ci.org/lavyun/better-mock.svg?branch=master)](https://travis-ci.org/lavyun/better-mock)
+[![Coverage Status](https://coveralls.io/repos/github/lavyun/better-mock/badge.svg?branch=master)](https://coveralls.io/github/lavyun/better-mock?branch=master)
 
 <!-- [![Coverage Status](https://coveralls.io/repos/nuysoft/Mock/badge.png?branch=refactoring)](https://coveralls.io/r/nuysoft/Mock?branch=refactoring)
 [![NPM version](https://badge.fury.io/js/mockjs.svg)](http://badge.fury.io/js/mockjs)
