@@ -1,11 +1,12 @@
 language: node_js
 node_js:
-  - 6
+  - 10.15.0
 branches:
   only:
     - master
 install:
   - npm install
+  - npm build
 script:
   - npm test -- --allow-chrome-as-root
 after_success:
