@@ -8,3 +8,5 @@ npm-debug.log
 old-mock
 package-lock.json
 ts-dist
+.nyc_output
+coverage
