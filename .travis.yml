@@ -7,7 +7,7 @@ branches:
 install:
   - npm install
 script:
-  - npm build
-  - npm cover -- --allow-chrome-as-root
+  - npm run build
+  - npm run cover -- --allow-chrome-as-root
 after_success:
   - npm run coveralls
