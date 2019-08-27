@@ -2,8 +2,8 @@ language: node_js
 node_js:
   - 10.15.0
 branches:
-  only:
-    - master
+  - master
+  - ci
 install:
   - npm install
   - npm build
