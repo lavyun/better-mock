@@ -6,8 +6,8 @@ branches:
     - master
 install:
   - npm install
-  - npm build
 script:
-  - npm test -- --allow-chrome-as-root
+  - npm build
+  - npm cover -- --allow-chrome-as-root
 after_success:
   - npm run coveralls
