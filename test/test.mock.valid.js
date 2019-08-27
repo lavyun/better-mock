@@ -1,33 +1,13 @@
-/* global require, chai, describe, before, it */
-/* global window */
-var expect = chai.expect
-var Mock, Random, $, _
+const Mock = require('../dist/mock')
+const expect = require('chai').expect
 
 describe('Mock.valid', function () {
-  before(function (done) {
-    require(['mock', 'underscore', 'jquery'], function () {
-      Mock = arguments[0]
-      window.Random = Random = Mock.Random
-      _ = arguments[1]
-      $ = arguments[2]
-      expect(Mock).to.not.equal(undefined)
-      expect(_).to.not.equal(undefined)
-      expect($).to.not.equal(undefined)
-      done()
-    })
-  })
-
   function stringify (json) {
     return JSON.stringify(json /*, null, 4*/)
   }
 
   function title (tpl, data, result, test) {
     test.title = stringify(tpl) + ' VS ' + stringify(data) + '\n\tresult: ' + stringify(result)
-
-    // if (result.length) test.title += '\n\tresult: '
-    // for (var i = 0; i < result.length; i++) {
-    //     test.title += '\n\t' + result[i].message // stringify(result)
-    // }
   }
 
   function doit (tpl, data, len) {

@@ -1,20 +1,8 @@
-/* global require, chai, describe, before, it */
-// 数据占位符定义（Data Placeholder Definition，DPD）
-var expect = chai.expect
-var Mock, $, _
+const Mock = require('../dist/mock')
+const expect = require('chai').expect
+const $ = require('jquery')
 
 describe('DPD', function () {
-  before(function (done) {
-    require(['mock', 'underscore', 'jquery'], function () {
-      Mock = arguments[0]
-      _ = arguments[1]
-      $ = arguments[2]
-      expect(Mock).to.not.equal(undefined)
-      expect(_).to.not.equal(undefined)
-      expect($).to.not.equal(undefined)
-      done()
-    })
-  })
   describe('Reference', function () {
     it('@EMAIL', function () {
       var data = Mock.mock(this.test.title)

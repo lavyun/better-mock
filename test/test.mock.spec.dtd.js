@@ -1,5 +1,3 @@
-/* global require, chai, describe, before, it */
-// 数据模板定义（Data Temaplte Definition，DTD）
 /*
  ## BDD
  1. 结构
@@ -24,21 +22,11 @@
  75 / 2 < medium < 75
  fast < 75 / 2
  */
-var expect = chai.expect
-var Mock, $, _
+const Mock = require('../dist/mock')
+const expect = require('chai').expect
+const _ = require('underscore')
 
 describe('DTD', function () {
-  before(function (done) {
-    require(['mock', 'underscore', 'jquery'], function () {
-      Mock = arguments[0]
-      _ = arguments[1]
-      $ = arguments[2]
-      expect(Mock).to.not.equal(undefined)
-      expect(_).to.not.equal(undefined)
-      expect($).to.not.equal(undefined)
-      done()
-    })
-  })
   describe('Literal', function () {
     it('', function () {
       var data = Mock.mock(this.test.title)

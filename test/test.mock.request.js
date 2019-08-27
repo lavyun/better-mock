@@ -1,21 +1,9 @@
-/* global console, require, chai, describe, before, it */
-// 数据占位符定义（Data Placeholder Definition，DPD）
-var expect = chai.expect
-var Mock, $, _
+const Mock = require('../dist/mock')
+const expect = require('chai').expect
+const _ = require('underscore')
+const $ = require('jquery')
 
 describe('Request', function () {
-  before(function (done) {
-    require(['mock', 'underscore', 'jquery'], function () {
-      Mock = arguments[0]
-      _ = arguments[1]
-      $ = arguments[2]
-      expect(Mock).to.not.equal(undefined)
-      expect(_).to.not.equal(undefined)
-      expect($).to.not.equal(undefined)
-      done()
-    })
-  })
-
   function stringify (json) {
     return JSON.stringify(json /*, null, 4*/)
   }
@@ -34,28 +22,6 @@ describe('Request', function () {
         expect([404, 0]).to.include(jqXHR.status)
         that.test.title += url + ' => ' + jqXHR.status
       }).always(function () {
-        done()
-      })
-    })
-  })
-  describe('jQuery.getScript()', function () {
-    it('', function (done) {
-      var that = this
-      var url = 'http://127.0.0.1:5656/files/noop.js'
-      $.getScript(url, function (script, textStatus, jqXHR) {
-        expect(textStatus).to.be.equal('success')
-        that.test.title += url + ' => ' + jqXHR.status + ' ' + textStatus
-        done()
-      })
-    })
-  })
-  describe('jQuery.load()', function () {
-    it('', function (done) {
-      var that = this
-      var url = 'http://127.0.0.1:5656/files/noop.html'
-      $('<div>').load(url, function (responseText /*, textStatus, jqXHR*/) {
-        expect(responseText).to.be.ok
-        that.test.title += url + ' => ' + responseText
         done()
       })
     })
