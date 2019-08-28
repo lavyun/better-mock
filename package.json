@@ -10,7 +10,9 @@
     "cover": "nyc --reporter=lcov --instrument false mochify --transform [ babelify --ignore [ test ] --plugins [ babel-plugin-istanbul ] ]",
     "coveralls": "cat ./coverage/lcov.info | coveralls",
     "clear": "rimraf dist && rimraf typings",
-    "build": "npm run clear && tsc && node build/build.js && rimraf ts-dist"
+    "build": "npm run clear && tsc && node build/build.js && rimraf ts-dist",
+    "doc:dev": "vuepress dev doc",
+    "doc:build": "vuepress build doc"
   },
   "keywords": [
     "mock",
@@ -31,14 +33,7 @@
     "chai": "^4.2.0",
     "commander": "^3.0.0",
     "coveralls": "^3.0.6",
-    "gulp": "^3.9.0",
-    "gulp-connect": "*",
-    "gulp-coveralls": "^0.1.4",
-    "gulp-istanbul": "^0.10.3",
-    "gulp-jshint": "^2.0.0",
     "jquery": "^3.4.1",
-    "jshint": "^2.8.0",
-    "jshint-stylish": "^2.1.0",
     "mocha": "^6.2.0",
     "mochify": "^6.4.1",
     "nyc": "^14.1.1",
@@ -51,7 +46,7 @@
     "typescript": "^3.5.1",
     "uglify-js": "^3.6.0",
     "underscore": "^1.9.1",
-    "webpack": "^1.12.9",
+    "vuepress": "^1.0.3",
     "zlib": "^1.0.5"
   },
   "repository": {
