@@ -1,8 +1,6 @@
 ## mock
 
-根据数据模板生成模拟数据。
-
-<!-- 共有 5 种参数格式。 -->
+根据数据模板生成模拟数据，共有 5 种参数格式。
 
 ### Mock.mock( template )
 
@@ -34,32 +32,24 @@
 
 [JSFiddle](http://jsfiddle.net/nuysoft/6dpV5/5/)
 
-<!-- **参数的含义和默认值**如下所示： -->
+### 参数的含义和默认值如下所示:
 
-### rurl
-
-可选。
+#### rurl `可选`
 
 表示需要拦截的 URL，可以是 URL 字符串或 URL 正则。例如 `/\/domain\/list\.json/`、`'/domian/list.json'`。
 
-### rtype
-
-可选。
+#### rtype `可选`
 
 表示需要拦截的 Ajax 请求类型。例如 `GET`、`POST`、`PUT`、`DELETE` 等。
 
-### template
-
-可选。
+#### template `可选`
 
 表示数据模板，可以是对象或字符串。例如 `{ 'data|1-10':[{}] }`、`'@EMAIL'`。
 
-### function(options)
-
-可选。
-
+#### function(options) `可选`
+ 
 表示用于生成响应数据的函数。
 
-#### options
+##### options
 
 指向本次请求的 Ajax 选项集，含有 `url`、`type` 和 `body` 三个属性，参见 [XMLHttpRequest 规范](https://xhr.spec.whatwg.org/)。

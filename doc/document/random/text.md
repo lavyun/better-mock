@@ -1,6 +1,4 @@
-<!-- ### Text -->
-
-## Random.paragraph( min?, max? )
+## Random.paragraph
 
 * Random.paragraph()
 * Random.paragraph( len )
@@ -8,28 +6,18 @@
 
 随机生成一段文本。
 
-<!-- **参数的含义和默认值**如下所示： -->
-
-### len
-
-可选。
+### len `可选`
 
 指示文本中句子的个数。默认值为 3 到 7 之间的随机数。
 
-### min
-
-可选。
+### min `可选`
 
 指示文本中句子的最小个数。默认值为 3。
 
-### max
-
-可选。
+### max `可选`
 
 指示文本中句子的最大个数。默认值为 7。
 
-
-<!-- **使用示例**如下所示： -->
 
 ```js
 Random.paragraph()
@@ -42,7 +30,7 @@ Random.paragraph(1, 3)
 // => "Qdgfqm puhxle twi lbeqjqfi bcxeeecu pqeqr srsx tjlnew oqtqx zhxhkvq pnjns eblxhzzta hifj csvndh ylechtyu."
 ```
 
-## Random.cparagraph( min?, max? )
+## Random.cparagraph
 
 * Random.cparagraph()
 * Random.cparagraph( len )
@@ -50,9 +38,7 @@ Random.paragraph(1, 3)
 
 随机生成一段中文文本。
 
-参数的含义和默认值同 [Random.paragraph( min?, max? )](#Random.paragraph( min?, max? ))
-
-<!-- **使用示例**如下所示： -->
+参数的含义和默认值同 **Random.paragraph**
 
 ```js
 Random.cparagraph()
@@ -65,7 +51,7 @@ Random.cparagraph(1, 3)
 // => "候无部社心性有构员其深例矿取民为。须被亲需报每完认支这明复几下在铁需连。省备可离展五斗器就石正队除解动。"
 ```
 
-## Random.sentence( min?, max? )
+## Random.sentence
 
 * Random.sentence()
 * Random.sentence( len )
@@ -73,27 +59,17 @@ Random.cparagraph(1, 3)
 
 随机生成一个句子，第一个单词的首字母大写。
 
-<!-- **参数的含义和默认值**如下所示： -->
-
-### len
-
-可选。
+### len `可选`
 
 指示句子中单词的个数。默认值为 12 到 18 之间的随机数。
 
-### min
-
-可选。
+### min `可选`
 
 指示句子中单词的最小个数。默认值为 12。
 
-### max
-
-可选。
+### max `可选`
 
 指示句子中单词的最大个数。默认值为 18。
-
-<!-- **使用示例**如下所示： -->
 
 ```js
 Random.sentence()
@@ -104,7 +80,7 @@ Random.sentence(3, 5)
 // => "Mgl qhrprwkhb etvwfbixm jbqmg."
 ```
 
-## Random.csentence( min?, max? )
+## Random.csentence
 
 * Random.csentence()
 * Random.csentence( len )
@@ -112,9 +88,7 @@ Random.sentence(3, 5)
 
 随机生成一段中文文本。
 
-参数的含义和默认值同 [Random.sentence( min?, max? )](#Random.sentence( min?, max? ))
-
-<!-- **使用示例**如下所示： -->
+参数的含义和默认值同 **Random.sentence**
 
 ```js
 Random.csentence()
@@ -127,7 +101,7 @@ Random.csentence(1, 3)
 // => "厂存。"
 ```
 
-## Random.word( min?, max? )
+## Random.word
 
 * Random.word()
 * Random.word( len )
@@ -135,27 +109,17 @@ Random.csentence(1, 3)
 
 随机生成一个单词。
 
-<!-- **参数的含义和默认值**如下所示： -->
-
-### len
-
-可选。
+### len `可选`
 
 指示单词中字符的个数。默认值为 3 到 10 之间的随机数。
 
-### min
-
-可选。
+### min `可选`
 
 指示单词中字符的最小个数。默认值为 3。
 
-### max
-
-可选。
+### max `可选`
 
 指示单词中字符的最大个数。默认值为 10。
-
-<!-- **使用示例**如下所示： -->
 
 ```js
 Random.word()
@@ -166,9 +130,7 @@ Random.word(3, 5)
 // => "kemh"
 ```
 
-> 目前单词中的字符是随机的小写字母，未来会根据词法生成『可读』的单词。
-
-## Random.cword( pool?, min?, max? )
+## Random.cword
 
 * Random.cword()
 * Random.cword( pool )
@@ -179,27 +141,17 @@ Random.word(3, 5)
 
 随机生成一个汉字。
 
-<!-- **参数的含义和默认值**如下所示： -->
-
-### pool
-
-可选。
+### pool `可选`
 
 汉字字符串。表示汉字字符池，将从中选择一个汉字字符返回。
 
-### min
-
-可选。
+### min `可选`
 
 随机汉字字符串的最小长度。默认值为 1。
 
-### max
-
-可选。
+### max `可选`
 
 随机汉字字符串的最大长度。默认值为 1。
-
-<!-- **使用示例**如下所示： -->
 
 ```js
 Random.cword()
@@ -216,7 +168,7 @@ Random.cword('零一二三四五六七八九十', 5, 7)
 // => "九七七零四"
 ```
 
-## Random.title( min?, max? )
+## Random.title
 
 * Random.title()
 * Random.title( len )
@@ -224,27 +176,17 @@ Random.cword('零一二三四五六七八九十', 5, 7)
 
 随机生成一句标题，其中每个单词的首字母大写。
 
-<!-- **参数的含义和默认值**如下所示： -->
-
-### len
-
-可选。
+### len `可选`
 
 指示单词中字符的个数。默认值为 3 到 7 之间的随机数。
 
-### min
-
-可选。
+### min `可选`
 
 指示单词中字符的最小个数。默认值为 3。
 
-### max
-
-可选。
+### max `可选`
 
 指示单词中字符的最大个数。默认值为 7。
-
-<!-- **使用示例**如下所示： -->
 
 ```js
 Random.title()
@@ -255,7 +197,7 @@ Random.title(3, 5)
 // => "Hvjexiondr Pyickubll Owlorjvzys Xfnfwbfk"
 ```
 
-## Random.ctitle( min?, max? )
+## Random.ctitle
 
 * Random.ctitle()
 * Random.ctitle( len )
@@ -263,29 +205,19 @@ Random.title(3, 5)
 
 随机生成一句中文标题。
 
-参数的含义和默认值同 [Random.title( min?, max? )](#Random.title( min?, max? ))
+参数的含义和默认值同 **Random.title**
 
-<!-- **参数的含义和默认值**如下所示： -->
-
-### len
-
-可选。
+### len `可选`
 
 指示单词中字符的个数。默认值为 3 到 7 之间的随机数。
 
-### min
-
-可选。
+### min `可选`
 
 指示单词中字符的最小个数。默认值为 3。
 
-### max
-
-可选。
+### max `可选`
 
 指示单词中字符的最大个数。默认值为 7。
-
-<!-- **使用示例**如下所示： -->
 
 ```js
 Random.ctitle()

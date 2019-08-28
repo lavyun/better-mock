@@ -1,6 +1,10 @@
 module.exports = {
   title: 'Better-Mock',
   description: 'Mock.js plus',
+  base: '/better-mock/',
+  markdown: {
+    lineNumbers: true
+  },
   themeConfig: {
     nav: [
       { text: '文档', link: '/document/' },

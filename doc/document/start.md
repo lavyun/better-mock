@@ -39,7 +39,7 @@ console.log(data)
 ### 在浏览器中直接引用
 
 ```html
-<script type="text/javascript" src="./bower_components/mockjs/dist/mock.js"></script>
+<script type="text/javascript" src="./bower_components/better-mock/dist/mock.js"></script>
 ```
 
 ### RequireJS (AMD)

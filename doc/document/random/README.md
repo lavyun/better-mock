@@ -1,5 +1,3 @@
-<!-- ## Mock.Random -->
-
 Mock.Random 是一个工具类，用于生成各种随机数据。
 
 **Mock.Random 的方法在数据模板中称为『占位符』，书写格式为 `@占位符(参数 [, 参数])` 。**
@@ -18,7 +16,7 @@ Mock.mock( { email: '@email' } )
 
 <!-- 1. 在上面的例子中看到，直接调用 `Random.email()` 时方法名 `email()` 是小写的，而数据模板中的 `@EMAIL` 却是大写。这是建议的编码风格，以便在阅读时从视觉上提高占位符的识别度，快速识别占位符和普通字符（并非强制的编写方式，在数据模板中使用小写的 `@email` 也可以达到同样的效果）。 -->
 
-<!-- 在浏览器中，为了减少需要拼写的字符，Mock.js 把 Mock.Random 暴露给了 window 对象，使之成为全局变量，从而可以直接访问 Random。因此上面例子中的 `var Random = Mock.Random` 可以省略。在后面的例子中，也将做同样的处理。 -->
+<!-- 在浏览器中，为了减少需要拼写的字符，Better-Mock 把 Mock.Random 暴露给了 window 对象，使之成为全局变量，从而可以直接访问 Random。因此上面例子中的 `var Random = Mock.Random` 可以省略。在后面的例子中，也将做同样的处理。 -->
 
 <!-- > 在 Node.js 中，仍然需要通过 `Mock.Random` 访问。 -->
 
@@ -38,6 +36,7 @@ Mock.Random 提供的完整方法（占位符）如下：
 | Helper        | capitalize, upper, lower, pick, shuffle
 | Miscellaneous | guid, id
 
+```js
 <script id="fixPlaceholderLink" type="text/javascript">
     $('#fixPlaceholderLink').prev('table')
         .find('td:nth-child(1)').each(function(index, td) {
@@ -63,6 +62,7 @@ Mock.Random 提供的完整方法（占位符）如下：
         })
         .end()
 </script>
+```
 
 ### 扩展
 
