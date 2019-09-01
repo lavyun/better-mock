@@ -2,9 +2,6 @@ module.exports = {
   title: 'Better-Mock',
   description: 'Mock.js plus',
   base: '/better-mock/',
-  markdown: {
-    lineNumbers: true
-  },
   themeConfig: {
     nav: [
       { text: '文档', link: '/document/' },
@@ -14,7 +11,6 @@ module.exports = {
     sidebar: {
       '/document/': [
         ['/document/', '介绍'],
-        ['/document/start', '开始 & 安装'],
         ['/document/syntax-specification', '语法规范'],
         ['/document/mock/', 'Mock.mock()'],
         ['/document/setup/', 'Mock.setup()'],

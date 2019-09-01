@@ -2,7 +2,7 @@
 home: true
 heroImage: /images/logo-hor.png
 actionText: 快速上手 →
-actionLink: /zh/guide/
+actionLink: /document/
 features:
 - title: 100% 兼容 Mock.js
   details: 基于 Mock.js，使用 typescript 重构成更加现代化的 javascript 库。
