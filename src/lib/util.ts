@@ -39,7 +39,11 @@ export const each = function (obj, iterator, context?) {
 }
 
 export const type = function (obj) {
-  return obj === null || obj === undefined ? String(obj) : Object.prototype.toString.call(obj).match(/\[object (\w+)\]/)![1].toLowerCase()
+  return isDef(obj) ? Object.prototype.toString.call(obj).match(/\[object (\w+)\]/)![1].toLowerCase() : String(obj)
+}
+
+export const isDef = function (value: any): boolean {
+  return value !== undefined && value !== null
 }
 
 export const isString = function (value) {
