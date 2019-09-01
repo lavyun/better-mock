@@ -82,7 +82,10 @@ var each = function each(obj, iterator, context) {
   }
 };
 var type = function type(obj) {
-  return obj === null || obj === undefined ? String(obj) : Object.prototype.toString.call(obj).match(/\[object (\w+)\]/)[1].toLowerCase();
+  return isDef(obj) ? Object.prototype.toString.call(obj).match(/\[object (\w+)\]/)[1].toLowerCase() : String(obj);
+};
+var isDef = function isDef(value) {
+  return value !== undefined && value !== null;
 };
 var isString = function isString(value) {
   return type(value) === 'string';
@@ -155,6 +158,7 @@ var Util = /*#__PURE__*/Object.freeze({
   objectAssign: objectAssign,
   each: each,
   type: type,
+  isDef: isDef,
   isString: isString,
   isObject: isObject,
   isArray: isArray,
@@ -168,54 +172,84 @@ var Util = /*#__PURE__*/Object.freeze({
   noop: noop
 });
 
-// Basics
-// 返回一个随机的布尔值。
-var boolean = function boolean(min, max, cur) {
-  if (cur !== undefined) {
-    min = typeof min !== 'undefined' && !isNaN(min) ? parseInt(min, 10) : 1;
-    max = typeof max !== 'undefined' && !isNaN(max) ? parseInt(max, 10) : 1;
-    return Math.random() > 1.0 / (min + max) * min ? !cur : cur;
+var MAX_NATURE_NUMBER = 9007199254740992;
+var MIN_NATURE_NUMBER = -9007199254740992; // 返回一个随机的布尔值。
+
+var boolean = function boolean(min, max, current) {
+  if (min === void 0) {
+    min = 1;
+  }
+
+  if (max === void 0) {
+    max = 1;
+  }
+
+  if (isDef(current)) {
+    if (isDef(min)) {
+      min = !isNaN(min) ? parseInt(min.toString(), 10) : 1;
+    }
+
+    if (isDef(max)) {
+      max = !isNaN(max) ? parseInt(max.toString(), 10) : 1;
+    }
+
+    return Math.random() > 1.0 / (min + max) * min ? !current : current;
   }
 
   return Math.random() >= 0.5;
 };
-var bool = function bool(min, max, cur) {
-  return boolean(min, max, cur);
-}; // 返回一个随机的自然数（大于等于 0 的整数）。
+var bool = boolean; // 返回一个随机的自然数（大于等于 0 的整数）。
 
 var natural = function natural(min, max) {
-  min = typeof min !== 'undefined' ? parseInt(min, 10) : 0;
-  max = typeof max !== 'undefined' ? parseInt(max, 10) : 9007199254740992; // 2^53
+  if (min === void 0) {
+    min = 0;
+  }
 
+  if (max === void 0) {
+    max = MAX_NATURE_NUMBER;
+  }
+
+  min = parseInt(min.toString(), 10);
+  max = parseInt(max.toString(), 10);
   return Math.round(Math.random() * (max - min)) + min;
 }; // 返回一个随机的整数。
 
 var integer = function integer(min, max) {
-  min = typeof min !== 'undefined' ? parseInt(min, 10) : -9007199254740992;
-  max = typeof max !== 'undefined' ? parseInt(max, 10) : 9007199254740992; // 2^53
+  if (min === void 0) {
+    min = MIN_NATURE_NUMBER;
+  }
 
+  if (max === void 0) {
+    max = MAX_NATURE_NUMBER;
+  }
+
+  min = parseInt(min.toString(), 10);
+  max = parseInt(max.toString(), 10);
   return Math.round(Math.random() * (max - min)) + min;
 };
-var int = function int(min, max) {
-  return integer(min, max);
-}; // 返回一个随机的浮点数。
+var int = integer; // 返回一个随机的浮点数。
 
 var float = function float(min, max, dmin, dmax) {
-  dmin = dmin === undefined ? 0 : dmin;
+  dmin = isDef(dmin) ? dmin : 0;
   dmin = Math.max(Math.min(dmin, 17), 0);
-  dmax = dmax === undefined ? 17 : dmax;
+  dmax = isDef(dmax) ? dmax : 17;
   dmax = Math.max(Math.min(dmax, 17), 0);
   var ret = integer(min, max) + '.';
 
   for (var i = 0, dcount = natural(dmin, dmax); i < dcount; i++) {
-    ret += // 最后一位不能为 0：如果最后一位为 0，会被 JS 引擎忽略掉。
-    i < dcount - 1 ? character('number') : character('123456789');
+    // 最后一位不能为 0：如果最后一位为 0，会被 JS 引擎忽略掉。
+    var num = i < dcount - 1 ? character('number') : character('123456789');
+    ret += num;
   }
 
   return parseFloat(ret);
 }; // 返回一个随机字符。
 
 var character = function character(pool) {
+  if (pool === void 0) {
+    pool = '';
+  }
+
   var lower = 'abcdefghijklmnopqrstuvwxyz';
   var upper = lower.toUpperCase();
   var number = '0123456789';
@@ -225,15 +259,18 @@ var character = function character(pool) {
     upper: upper,
     number: number,
     symbol: symbol,
-    alpha: lower + upper,
-    'undefined': lower + upper + number + symbol
+    alpha: lower + upper
   };
-  pool = pools[('' + pool).toLowerCase()] || pool;
+
+  if (!pool) {
+    pool = lower + upper + number + symbol;
+  } else {
+    pool = pools[pool.toLowerCase()] || pool;
+  }
+
   return pool.charAt(natural(0, pool.length - 1));
 };
-var char = function char(pool) {
-  return character(pool);
-}; // 返回一个随机字符串。
+var char = character; // 返回一个随机字符串。
 
 var string = function string(pool, min, max) {
   var len;
@@ -275,24 +312,24 @@ var string = function string(pool, min, max) {
 
   return text;
 };
-var str = function str(pool, min, max) {
-  return string(pool, min, max);
-}; // 返回一个整型数组。
+var str = string; // 返回一个整型数组。
 
 var range = function range(start, stop, step) {
-  // range( stop )
+  if (step === void 0) {
+    step = 1;
+  } // range( stop )
+
+
   if (arguments.length <= 1) {
     stop = start || 0;
     start = 0;
-  } // range( start, stop )
+  }
 
-
-  step = arguments[2] || 1;
   start = +start;
   stop = +stop;
   step = +step;
-  var len = Math.max(Math.ceil((stop - start) / step), 0);
   var idx = 0;
+  var len = Math.max(Math.ceil((stop - start) / step), 0);
   var range = new Array(len);
 
   while (idx < len) {
@@ -373,7 +410,7 @@ var patternLetters = {
 };
 
 var _createFormatRE = function _createFormatRE() {
-  var re = Object.keys(patternLetters);
+  var re = keys(patternLetters);
   return '(' + re.join('|') + ')';
 };
 
@@ -765,7 +802,7 @@ var dataImage = function dataImage(size, text) {
   var width = parseInt(size[0], 10);
   var height = parseInt(size[1], 10);
 
-  var background = _brandColors[pick(Object.keys(_brandColors))];
+  var background = _brandColors[pick(keys(_brandColors))];
 
   var foreground = '#FFF';
   var text_height = 14;
@@ -1120,10 +1157,24 @@ var text = /*#__PURE__*/Object.freeze({
   ctitle: ctitle
 });
 
+var __spreadArrays = undefined && undefined.__spreadArrays || function () {
+  for (var s = 0, i = 0, il = arguments.length; i < il; i++) {
+    s += arguments[i].length;
+  }
+
+  for (var r = Array(s), k = 0, i = 0; i < il; i++) {
+    for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) {
+      r[k] = a[j];
+    }
+  }
+
+  return r;
+};
+
 var first = function first() {
   var male = ["James", "John", "Robert", "Michael", "William", "David", "Richard", "Charles", "Joseph", "Thomas", "Christopher", "Daniel", "Paul", "Mark", "Donald", "George", "Kenneth", "Steven", "Edward", "Brian", "Ronald", "Anthony", "Kevin", "Jason", "Matthew", "Gary", "Timothy", "Jose", "Larry", "Jeffrey", "Frank", "Scott", "Eric"];
   var female = ["Mary", "Patricia", "Linda", "Barbara", "Elizabeth", "Jennifer", "Maria", "Susan", "Margaret", "Dorothy", "Lisa", "Nancy", "Karen", "Betty", "Helen", "Sandra", "Donna", "Carol", "Ruth", "Sharon", "Michelle", "Laura", "Sarah", "Kimberly", "Deborah", "Jessica", "Shirley", "Cynthia", "Angela", "Melissa", "Brenda", "Amy", "Anna"];
-  return pick(male.concat(female));
+  return pick(__spreadArrays(male, female));
 }; // 随机生成一个常见的英文姓。
 
 var last = function last() {
@@ -5282,27 +5333,51 @@ var region = function region() {
 
 var province = function province() {
   return pick(dict$1).name;
-}; // 随机生成一个（中国）市。
+};
+/**
+ * 随机生成一个（中国）市。
+ * @param prefix 是否有省前缀
+ */
 
 var city = function city(prefix) {
+  if (prefix === void 0) {
+    prefix = false;
+  }
+
   var province = pick(dict$1);
   var city = pick(province.children);
   return prefix ? [province.name, city.name].join(' ') : city.name;
-}; // 随机生成一个（中国）县。
+};
+/**
+ * 随机生成一个（中国）县。
+ * @param prefix 是否有省/市前缀
+ */
 
 var county = function county(prefix) {
+  if (prefix === void 0) {
+    prefix = false;
+  }
+
   var province = pick(dict$1);
   var city = pick(province.children);
   var county = pick(city.children) || {
     name: '-'
   };
   return prefix ? [province.name, city.name, county.name].join(' ') : county.name;
-}; // 随机生成一个邮政编码（六位数字）。
+};
+/**
+ * 随机生成一个邮政编码（默认6位数字）。
+ * @param len
+ */
 
 var zip = function zip(len) {
+  if (len === void 0) {
+    len = 6;
+  }
+
   var zip = '';
 
-  for (var i = 0; i < (len || 6); i++) {
+  for (var i = 0; i < len; i++) {
     zip += natural(0, 9);
   }
 
@@ -5399,7 +5474,7 @@ var __assign = undefined && undefined.__assign || function () {
 
   return __assign.apply(this, arguments);
 }; // Mock.Random
-var Random = __assign({}, basic, date$1, image$1, color$1, text, name$1, web, address, helper, misc);
+var Random = __assign(__assign(__assign(__assign(__assign(__assign(__assign(__assign(__assign(__assign({}, basic), date$1), image$1), color$1), text), name$1), web), address), helper), misc);
 
 // 解析数据模板（属性名部分）。
 var parse = function parse(name) {
@@ -6486,7 +6561,7 @@ var handler$1 = {
   //     root, templateRoot
   gen: function gen(template, name, context) {
     /* jshint -W041 */
-    name = name == undefined ? '' : name + '';
+    name = name === undefined ? '' : name.toString();
     context = context || {};
     context = {
       // 当前访问路径，只有属性名，不包括生成规则
