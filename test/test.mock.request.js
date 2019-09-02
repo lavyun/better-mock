@@ -1,6 +1,5 @@
 const Mock = require('../dist/mock')
 const expect = require('chai').expect
-const _ = require('underscore')
 const $ = require('jquery')
 
 describe('Request', function () {
@@ -77,10 +76,9 @@ describe('Request', function () {
         dataType: 'json'
       }).done(function (data /*, textStatus, jqXHR*/) {
         that.test.title += url + ' => ' + stringify(data)
-        expect(data).to.have.property('list')
-          .that.be.an('array').with.length.within(1, 10)
-        _.each(data.list, function (item, index, list) {
-          if (index > 0) expect(item.id).to.be.equal(list[index - 1].id + 1)
+        expect(data).to.have.property('list').that.be.an('array').with.length.within(1, 10)
+        data.list.forEach(function (item, index) {
+          if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
         })
       }).fail(function (jqXHR, textStatus, errorThrown) {
         console.log(jqXHR, textStatus, errorThrown)
@@ -113,10 +111,9 @@ describe('Request', function () {
         dataType: 'json'
       }).done(function (data /*, status, jqXHR*/) {
         that.test.title += url + ' => ' + stringify(data)
-        expect(data).to.have.property('list')
-          .that.be.an('array').with.length.within(1, 10)
-        _.each(data.list, function (item, index, list) {
-          if (index > 0) expect(item.id).to.be.equal(list[index - 1].id + 1)
+        expect(data).to.have.property('list').that.be.an('array').with.length.within(1, 10)
+        data.list.forEach(function (item, index) {
+          if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
         })
       }).fail(function (jqXHR, textStatus, errorThrown) {
         console.log(jqXHR, textStatus, errorThrown)
@@ -154,8 +151,8 @@ describe('Request', function () {
         that.test.title += url + ' => ' + stringify(data)
         expect(data).to.have.property('list')
           .that.be.an('array').with.length.within(1, 10)
-        _.each(data.list, function (item, index, list) {
-          if (index > 0) expect(item.id).to.be.equal(list[index - 1].id + 1)
+        data.list.forEach(function (item, index) {
+          if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
         })
       }).fail(function (jqXHR, textStatus, errorThrown) {
         console.log(jqXHR, textStatus, errorThrown)
@@ -194,8 +191,8 @@ describe('Request', function () {
         that.test.title += url + ' => ' + stringify(data)
         expect(data).to.have.property('list')
           .that.be.an('array').with.length.within(1, 10)
-        _.each(data.list, function (item, index, list) {
-          if (index > 0) expect(item.id).to.be.equal(list[index - 1].id + 1)
+        data.list.forEach(function (item, index) {
+          if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
         })
       }).fail(function (jqXHR, textStatus, errorThrown) {
         console.log(jqXHR, textStatus, errorThrown)
@@ -234,8 +231,8 @@ describe('Request', function () {
         that.test.title += 'GET ' + url + ' => ' + stringify(data) + ' '
         expect(data).to.have.property('list')
           .that.be.an('array').with.length.within(1, 10)
-        _.each(data.list, function (item, index, list) {
-          if (index > 0) expect(item.id).to.be.equal(list[index - 1].id + 1)
+        data.list.forEach(function (item, index) {
+          if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
           expect(item).to.have.property('type').equal('get')
         })
       }).done(success).always(complete)
@@ -248,8 +245,8 @@ describe('Request', function () {
         that.test.title += 'POST ' + url + ' => ' + stringify(data) + ' '
         expect(data).to.have.property('list')
           .that.be.an('array').with.length.within(1, 10)
-        _.each(data.list, function (item, index, list) {
-          if (index > 0) expect(item.id).to.be.equal(list[index - 1].id + 1)
+        data.list.forEach(function (item, index) {
+          if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
           expect(item).to.have.property('type').equal('post')
         })
       }).done(success).always(complete)

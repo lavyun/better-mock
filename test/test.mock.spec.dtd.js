@@ -1,30 +1,5 @@
-/*
- ## BDD
- 1. 结构
- describe suite
- [ describe ]
- before after beforeEach afterEach
- it test
- done
- 搜索 this.async = fn && fn.length
- 2. 常用 expect
- expect().to
- .equal .deep.equal .not.equal
- .match
- .have.length .with.length
- .have.property .have.deep.property
- .to.be.a .to.be.an
- .that
- .least .most .within
- 3. 速度
- 搜索 test.speed
- slow > 75
- 75 / 2 < medium < 75
- fast < 75 / 2
- */
 const Mock = require('../dist/mock')
 const expect = require('chai').expect
-const _ = require('underscore')
 
 describe('DTD', function () {
   describe('Literal', function () {
@@ -91,7 +66,7 @@ describe('DTD', function () {
         }]
       })
       expect(data.list).to.be.an('array').with.length(10)
-      _.each(data.list, function (item, index) {
+      data.list.forEach(function (item, index) {
         expect(item).to.have.property('name')
           .that.be.a('number')
         if (index === 0) expect(item.name).to.equal(100)
@@ -226,7 +201,7 @@ describe('DTD', function () {
 
     // `'name|min-max': {}`
     it('name|min-max', function () {
-      methodCount = _.keys(methods).length // 5
+      methodCount = Object.keys(methods).length // 5
       for (var min = 0, max; min <= methodCount + 1; min++) {
         tpl = {}
         max = Mock.Random.integer(0, methodCount)
@@ -234,19 +209,19 @@ describe('DTD', function () {
         // methods|0-? |1-? |2-? |3-? |4-? |5-? |6-?
         tpl['methods|' + min + '-' + max] = methods
         data = Mock.mock(tpl)
-        expect(_.keys(data.methods)).to.have.length
+        expect(Object.keys(data.methods)).to.have.length
           .that.within(Math.min(min, max), Math.max(min, max))
       }
     })
 
     // `'name|count': {}`
     it('name|count', function () {
-      methodCount = _.keys(methods).length // 5
+      methodCount = Object.keys(methods).length // 5
       for (var count = 0; count <= methodCount + 1; count++) {
         tpl = {}
         tpl['methods|' + count] = methods
         data = Mock.mock(tpl)
-        expect(_.keys(data.methods)).to.have.length(
+        expect(Object.keys(data.methods)).to.have.length(
           Math.min(count, methodCount)
         )
       }
@@ -335,7 +310,10 @@ describe('DTD', function () {
         .that.be.a('object')
         .that.have.property('method')
         .that.be.a('string')
-      expect(_.pluck(value, 'method')).include(data.name.method)
+      const methods = value.map(function (item) {
+        return item.method
+      })
+      expect(methods).include(data.name.method)
     })
 
     // `'name|+1': [{}, {} ...]`
@@ -374,7 +352,7 @@ describe('DTD', function () {
         'name|1-1': [{}]
       })
       expect(data.name).to.be.an('array').with.length(1)
-      _.each(data.name, function (item /*, index*/) {
+      data.name.forEach(function (item) {
         expect(item).to.deep.equal({})
       })
     })
@@ -383,7 +361,7 @@ describe('DTD', function () {
         'name|1-10': [{}]
       })
       expect(data.name).to.be.an('array').with.length.within(1, 10)
-      _.each(data.name, function (item /*, index*/) {
+      data.name.forEach(function (item) {
         expect(item).to.deep.equal({})
       })
     })
@@ -392,7 +370,7 @@ describe('DTD', function () {
         'name|10-1': [{}]
       })
       expect(data.name).to.be.an('array').with.length.within(1, 10)
-      _.each(data.name, function (item /*, index*/) {
+      data.name.forEach(function (item) {
         expect(item).to.deep.equal({})
       })
     })
@@ -401,7 +379,7 @@ describe('DTD', function () {
         'name|1-10': [{}, {}]
       })
       expect(data.name).to.be.an('array').with.length.within(2, 20)
-      _.each(data.name, function (item /*, index*/) {
+      data.name.forEach( function (item) {
         expect(item).to.deep.equal({})
       })
     })
@@ -410,7 +388,7 @@ describe('DTD', function () {
         'name|10-1': [{}, {}]
       })
       expect(data.name).to.be.an('array').with.length.within(2, 20)
-      _.each(data.name, function (item /*, index*/) {
+      data.name.forEach(function (item) {
         expect(item).to.deep.equal({})
       })
     })
@@ -421,7 +399,7 @@ describe('DTD', function () {
         'name|10': [{}]
       })
       expect(data.name).to.be.an('array').with.length(10)
-      _.each(data.name, function (item /*, index*/) {
+      data.name.forEach( function (item) {
         expect(item).to.deep.equal({})
       })
     })
@@ -430,7 +408,7 @@ describe('DTD', function () {
         'name|10': [{}, {}]
       })
       expect(data.name).to.be.an('array').with.length(20)
-      _.each(data.name, function (item /*, index*/) {
+      data.name.forEach(function (item) {
         expect(item).to.deep.equal({})
       })
     })
@@ -471,7 +449,7 @@ describe('DTD', function () {
         second: '',
         third: ''
       })
-      var keys = _.keys(data)
+      var keys = Object.keys(data)
       expect(keys[0]).equal('first')
       expect(keys[1]).equal('second')
       expect(keys[2]).equal('third')

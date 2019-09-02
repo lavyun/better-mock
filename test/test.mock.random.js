@@ -1,7 +1,6 @@
 // 数据占位符定义（Data Placeholder Definition，DPD）
 const Random = require('../dist/mock').Random
 const expect = require('chai').expect
-const _ = require('underscore')
 
 describe('Random', function () {
   function stringify (json) {
@@ -280,21 +279,21 @@ describe('Random', function () {
 
     doit('Random.title()', function (data) {
       var words = data.split(' ')
-      _.each(words, function (word) {
+      words.forEach(function (word) {
         expect(word[0]).to.equal(word[0].toUpperCase())
       })
       expect(words).to.have.length.within(3, 7)
     })
     doit('Random.title(4)', function (data) {
       var words = data.split(' ')
-      _.each(words, function (word) {
+      words.forEach(function (word) {
         expect(word[0]).to.equal(word[0].toUpperCase())
       })
       expect(words).to.have.length(4)
     })
     doit('Random.title(3, 5)', function (data) {
       var words = data.split(' ')
-      _.each(words, function (word) {
+      words.forEach(function (word) {
         expect(word[0]).to.equal(word[0].toUpperCase())
       })
       expect(words).to.have.length.within(3, 5)

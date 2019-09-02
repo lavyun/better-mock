@@ -1,7 +1,6 @@
 // 数据占位符定义（Data Placeholder Definition，DPD）
 const Mock = require('../dist/mock')
 const expect = require('chai').expect
-const _ = require('underscore')
 
 describe('Mock.mock', function () {
   describe('Mock.mock( String )', function () {
@@ -21,10 +20,9 @@ describe('Mock.mock', function () {
       }
       var data = Mock.mock(tpl)
       this.test.title = JSON.stringify(tpl /*, null, 4*/) + ' => ' + JSON.stringify(data /*, null, 4*/)
-      expect(data).to.have.property('list')
-        .that.be.an('array').with.length.within(1, 10)
-      _.each(data.list, function (item, index, list) {
-        if (index > 0) expect(item.id).to.equal(list[index - 1].id + 1)
+      expect(data).to.have.property('list').that.be.an('array').with.length.within(1, 10)
+      data.list.forEach(function (item, index) {
+        if (index > 0) expect(item.id).to.equal(data.list[index - 1].id + 1)
       })
     })
   })
@@ -41,8 +39,8 @@ describe('Mock.mock', function () {
       var data = Mock.mock(fn)
       this.test.title = fn.toString() + ' => ' + JSON.stringify(data /*, null, 4*/)
       expect(data).to.have.property('list').that.be.an('array').with.length.within(1, 10)
-      _.each(data.list, function (item, index, list) {
-        if (index > 0) expect(item.id).to.equal(list[index - 1].id + 1)
+      data.list.forEach(function (item, index) {
+        if (index > 0) expect(item.id).to.equal(data.list[index - 1].id + 1)
       })
     })
   })

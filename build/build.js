@@ -38,14 +38,7 @@ function buildEntry (config) {
         if (!chunkOrAssert.isAsset) {
           const code = chunkOrAssert.code
           if (isProd) {
-            var minified = (banner ? banner + '\n' : '') + uglify.minify(code, {
-              output: {
-                ascii_only: true
-              },
-              compress: {
-                pure_funcs: ['makeMap']
-              }
-            }).code
+            var minified = (banner ? banner + '\n' : '') + uglify.minify(code).code
             return write(file, minified, true)
           } else {
             return write(file, code)
