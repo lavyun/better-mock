@@ -3,17 +3,11 @@ import * as helper from './helper'
 import * as utils from '../util'
 
 // 常见的广告宽高
-const _adSize = ['300x250', '250x250', '240x400', '336x280', '180x150', '720x300', '468x60', '234x60', '88x31', '120x90', '120x60', '120x240', '125x125', '728x90', '160x600', '120x600', '300x600']
+const _adSize: string[] = ['300x250', '250x250', '240x400', '336x280', '180x150', '720x300', '468x60', '234x60', '88x31', '120x90', '120x60', '120x240', '125x125', '728x90', '160x600', '120x600', '300x600']
 
 // BrandColors
 // http://brandcolors.net/
 // 大牌公司的颜色集合
-//
-// // 获取品牌和颜色
-// $('h2').each(function(index, item){
-//     item = $(item)
-//     console.log('\'' + item.text() + '\'', ':', '\'' + item.next().text() + '\'', ',')
-// })
 const _brandColors = {
   '4ormat': '#fb0a2a',
   '500px': '#02adea',
@@ -165,15 +159,12 @@ const _brandColors = {
   'Zootool': '#5e8b1d'
 }
 
-/*
-  生成一个随机的图片地址。
-
-  替代图片源
-    http://fpoimg.com/
-  参考自
-    http://rensanning.iteye.com/blog/1933310
-    http://code.tutsplus.com/articles/the-top-8-placeholders-for-web-designers--net-19485
-*/
+// 生成一个随机的图片地址。
+// 替代图片源
+//   http://fpoimg.com/
+// 参考自
+//   http://rensanning.iteye.com/blog/1933310
+//   http://code.tutsplus.com/articles/the-top-8-placeholders-for-web-designers--net-19485
 export const image = function (size, background, foreground, format, text) {
   // Random.image( size, background, foreground, text )
   if (arguments.length === 4) {
@@ -204,16 +195,13 @@ export const dataImage = function (size, text) {
   if (typeof document !== 'undefined') {
     canvas = document.createElement('canvas')
   } else {
-    /*
-      https://github.com/Automattic/node-canvas
-          npm install canvas --save
-      安装问题：
-      * http://stackoverflow.com/questions/22953206/gulp-issues-with-cario-install-command-not-found-when-trying-to-installing-canva
-      * https://github.com/Automattic/node-canvas/issues/415
-      * https://github.com/Automattic/node-canvas/wiki/_pages
-
-      PS：node-canvas 的安装过程实在是太繁琐了，所以不放入 package.json 的 dependencies。
-    */
+    // https://github.com/Automattic/node-canvas
+    //   npm install canvas --save
+    // 安装问题：
+    // * http://stackoverflow.com/questions/22953206/gulp-issues-with-cario-install-command-not-found-when-trying-to-installing-canva
+    // * https://github.com/Automattic/node-canvas/issues/415
+    // * https://github.com/Automattic/node-canvas/wiki/_pages
+    // PS：node-canvas 的安装过程实在是太繁琐了，所以不放入 package.json 的 dependencies。
     const Canvas = module.require('canvas')
     canvas = new Canvas()
   }

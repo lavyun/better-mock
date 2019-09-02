@@ -73,8 +73,10 @@ import * as convert from './color_convert'
 import dict from './color_dict'
 
 // 随机生成一个有吸引力的颜色，格式为 '#RRGGBB'。
-export const color = function(name) {
-  if (name || dict[name]) return dict[name].nicer
+export const color = function(name: string = '') {
+  if (name || dict[name]) {
+    return dict[name].nicer
+  }
   return hex()
 }
 

@@ -361,49 +361,48 @@
   });
 
   // Date
+
+  var _padZero = function _padZero(value) {
+    return value < 10 ? '0' + value : value.toString();
+  };
+
   var patternLetters = {
     yyyy: 'getFullYear',
     yy: function yy(date) {
-      return ('' + date.getFullYear()).slice(2);
+      return date.getFullYear().toString().slice(2);
     },
     y: 'yy',
     MM: function MM(date) {
-      var m = date.getMonth() + 1;
-      return m < 10 ? '0' + m : m;
+      return _padZero(date.getMonth() + 1);
     },
     M: function M(date) {
-      return date.getMonth() + 1;
+      return (date.getMonth() + 1).toString();
     },
     dd: function dd(date) {
-      var d = date.getDate();
-      return d < 10 ? '0' + d : d;
+      return _padZero(date.getDate());
     },
     d: 'getDate',
     HH: function HH(date) {
-      var h = date.getHours();
-      return h < 10 ? '0' + h : h;
+      return _padZero(date.getHours());
     },
     H: 'getHours',
     hh: function hh(date) {
-      var h = date.getHours() % 12;
-      return h < 10 ? '0' + h : h;
+      return _padZero(date.getHours() % 12);
     },
     h: function h(date) {
-      return date.getHours() % 12;
+      return (date.getHours() % 12).toString();
     },
     mm: function mm(date) {
-      var m = date.getMinutes();
-      return m < 10 ? '0' + m : m;
+      return _padZero(date.getMinutes());
     },
     m: 'getMinutes',
     ss: function ss(date) {
-      var s = date.getSeconds();
-      return s < 10 ? '0' + s : s;
+      return _padZero(date.getSeconds());
     },
     s: 'getSeconds',
     SS: function SS(date) {
       var ms = date.getMilliseconds();
-      return ms < 10 && '00' + ms || ms < 100 && '0' + ms || ms;
+      return ms < 10 && '00' + ms || ms < 100 && '0' + ms || ms.toString();
     },
     S: 'getMilliseconds',
     A: function A(date) {
@@ -420,34 +419,49 @@
     return '(' + re.join('|') + ')';
   };
 
-  var _rformat = new RegExp(_createFormatRE(), 'g');
-
   var _formatDate = function _formatDate(date, format) {
-    return format.replace(_rformat, function createNewSubString($0, flag) {
+    var formatRE = new RegExp(_createFormatRE(), 'g');
+    return format.replace(formatRE, function createNewSubString($0, flag) {
       return typeof patternLetters[flag] === 'function' ? patternLetters[flag](date) : patternLetters[flag] in patternLetters ? createNewSubString($0, patternLetters[flag]) : date[patternLetters[flag]]();
     });
   }; // 生成一个随机的 Date 对象。
 
 
   var _randomDate = function _randomDate(min, max) {
-    min = min === undefined ? new Date(0) : min;
-    max = max === undefined ? new Date() : max;
-    return new Date(Math.random() * (max.getTime() - min.getTime()));
+    if (min === void 0) {
+      min = new Date(0);
+    }
+
+    if (max === void 0) {
+      max = new Date();
+    }
+
+    var randomTS = Math.random() * (max.getTime() - min.getTime());
+    return new Date(randomTS);
   }; // 返回一个随机的日期字符串。
 
 
   var date = function date(format) {
-    format = format || 'yyyy-MM-dd';
+    if (format === void 0) {
+      format = 'yyyy-MM-dd';
+    }
+
     return _formatDate(_randomDate(), format);
   }; // 返回一个随机的时间字符串。
 
   var time = function time(format) {
-    format = format || 'HH:mm:ss';
+    if (format === void 0) {
+      format = 'HH:mm:ss';
+    }
+
     return _formatDate(_randomDate(), format);
   }; // 返回一个随机的日期和时间字符串。
 
   var datetime = function datetime(format) {
-    format = format || 'yyyy-MM-dd HH:mm:ss';
+    if (format === void 0) {
+      format = 'yyyy-MM-dd HH:mm:ss';
+    }
+
     return _formatDate(_randomDate(), format);
   }; // 返回当前的日期和时间字符串。
 
@@ -505,7 +519,8 @@
   });
 
   var capitalize = function capitalize(word) {
-    return (word + '').charAt(0).toUpperCase() + (word + '').substr(1);
+    word = word + '';
+    return word.charAt(0).toUpperCase() + word.substr(1);
   }; // 把字符串转换为大写。
 
   var upper = function upper(str) {
@@ -524,22 +539,23 @@
       max = 1;
     } else {
       // pick( [ item1, item2 ... ] )
-      if (min === undefined) min = 1; // pick( [ item1, item2 ... ], count )
+      if (!isDef(min)) {
+        min = 1;
+      } // pick( [ item1, item2 ... ], count )
 
-      if (max === undefined) max = min;
+
+      if (!isDef(max)) {
+        max = min;
+      }
     }
 
-    if (min === 1 && max === 1) return arr[natural(0, arr.length - 1)]; // pick( [ item1, item2 ... ], min, max )
+    if (min === 1 && max === 1) {
+      return arr[natural(0, arr.length - 1)];
+    } // pick( [ item1, item2 ... ], min, max )
+
 
     return shuffle(arr, min, max);
   }; // 打乱数组中元素的顺序，并返回。
-  // Given an array, scramble the order and return it.
-  //
-  // 其他的实现思路：
-  // // https://code.google.com/p/jslibs/wiki/JavascriptTips
-  // result = result.sort(function() {
-  //   return Math.random() - 0.5
-  // })
 
   var shuffle = function shuffle(arr, min, max) {
     arr = arr || [];
@@ -564,8 +580,8 @@
       // falls through
 
       case 3:
-        min = parseInt(min, 10);
-        max = parseInt(max, 10);
+        min = parseInt(min.toString(), 10);
+        max = parseInt(max.toString(), 10);
         return result.slice(0, natural(min, max));
     }
   };
@@ -583,12 +599,6 @@
   var _adSize = ['300x250', '250x250', '240x400', '336x280', '180x150', '720x300', '468x60', '234x60', '88x31', '120x90', '120x60', '120x240', '125x125', '728x90', '160x600', '120x600', '300x600']; // BrandColors
   // http://brandcolors.net/
   // 大牌公司的颜色集合
-  //
-  // // 获取品牌和颜色
-  // $('h2').each(function(index, item){
-  //     item = $(item)
-  //     console.log('\'' + item.text() + '\'', ':', '\'' + item.next().text() + '\'', ',')
-  // })
 
   var _brandColors = {
     '4ormat': '#fb0a2a',
@@ -739,16 +749,12 @@
     'Zendesk': '#78a300',
     'Zerply': '#9dcc7a',
     'Zootool': '#5e8b1d'
-  };
-  /*
-    生成一个随机的图片地址。
-
-    替代图片源
-      http://fpoimg.com/
-    参考自
-      http://rensanning.iteye.com/blog/1933310
-      http://code.tutsplus.com/articles/the-top-8-placeholders-for-web-designers--net-19485
-  */
+  }; // 生成一个随机的图片地址。
+  // 替代图片源
+  //   http://fpoimg.com/
+  // 参考自
+  //   http://rensanning.iteye.com/blog/1933310
+  //   http://code.tutsplus.com/articles/the-top-8-placeholders-for-web-designers--net-19485
 
   var image = function image(size, background, foreground, format, text) {
     // Random.image( size, background, foreground, text )
@@ -779,15 +785,13 @@
     if (typeof document !== 'undefined') {
       canvas = document.createElement('canvas');
     } else {
-      /*
-        https://github.com/Automattic/node-canvas
-            npm install canvas --save
-        安装问题：
-        * http://stackoverflow.com/questions/22953206/gulp-issues-with-cario-install-command-not-found-when-trying-to-installing-canva
-        * https://github.com/Automattic/node-canvas/issues/415
-        * https://github.com/Automattic/node-canvas/wiki/_pages
-             PS：node-canvas 的安装过程实在是太繁琐了，所以不放入 package.json 的 dependencies。
-      */
+      // https://github.com/Automattic/node-canvas
+      //   npm install canvas --save
+      // 安装问题：
+      // * http://stackoverflow.com/questions/22953206/gulp-issues-with-cario-install-command-not-found-when-trying-to-installing-canva
+      // * https://github.com/Automattic/node-canvas/issues/415
+      // * https://github.com/Automattic/node-canvas/wiki/_pages
+      // PS：node-canvas 的安装过程实在是太繁琐了，所以不放入 package.json 的 dependencies。
       var Canvas = module.require('canvas');
 
       canvas = new Canvas();
@@ -960,7 +964,14 @@
   // ## Color
 
   var color = function color(name) {
-    if (name || dict[name]) return dict[name].nicer;
+    if (name === void 0) {
+      name = '';
+    }
+
+    if (name || dict[name]) {
+      return dict[name].nicer;
+    }
+
     return hex();
   }; // #DAC0DE
 
@@ -5399,24 +5410,6 @@
   });
 
   // Miscellaneous
-  var d4 = function d4() {
-    return natural(1, 4);
-  };
-  var d6 = function d6() {
-    return natural(1, 6);
-  };
-  var d8 = function d8() {
-    return natural(1, 8);
-  };
-  var d12 = function d12() {
-    return natural(1, 12);
-  };
-  var d20 = function d20() {
-    return natural(1, 20);
-  };
-  var d100 = function d100() {
-    return natural(1, 100);
-  }; // 随机生成一个 guid
   // http://www.broofa.com/2008/09/javascript-uuid-function/
 
   var guid = function guid() {
@@ -5452,12 +5445,6 @@
   var inc = increment;
 
   var misc = /*#__PURE__*/Object.freeze({
-    d4: d4,
-    d6: d6,
-    d8: d8,
-    d12: d12,
-    d20: d20,
-    d100: d100,
     guid: guid,
     uuid: uuid,
     id: id$1,

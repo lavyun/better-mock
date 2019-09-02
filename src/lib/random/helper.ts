@@ -1,51 +1,51 @@
-import * as util from '../util'
+import { isArray, isDef } from '../util'
 import * as basic from './basic'
 
 // 把字符串的第一个字母转换为大写。
-export const capitalize = function(word) {
-  return (word + '').charAt(0).toUpperCase() + (word + '').substr(1)
+export const capitalize = function(word: string): string {
+  word = word + ''
+  return word.charAt(0).toUpperCase() + word.substr(1)
 }
 
 // 把字符串转换为大写。
-export const upper = function(str) {
+export const upper = function(str: string): string {
   return (str + '').toUpperCase()
 }
 
 // 把字符串转换为小写。
-export const lower = function(str) {
+export const lower = function(str: string): string {
   return (str + '').toLowerCase()
 }
 
 // 从数组中随机选取一个元素，并返回。
-export const pick = function pick(arr, min?, max?) {
+export const pick = function pick(arr: any[], min?: number, max?: number) {
   // pick( item1, item2 ... )
-  if (!util.isArray(arr)) {
+  if (!isArray(arr)) {
     arr = [].slice.call(arguments)
     min = 1
     max = 1
   } else {
     // pick( [ item1, item2 ... ] )
-    if (min === undefined) min = 1
+    if (!isDef(min)) {
+      min = 1
+    }
     
     // pick( [ item1, item2 ... ], count )
-    if (max === undefined) max = min
+    if (!isDef(max)) {
+      max = min
+    }
   }
   
-  if (min === 1 && max === 1) return arr[basic.natural(0, arr.length - 1)]
+  if (min === 1 && max === 1) {
+    return arr[basic.natural(0, arr.length - 1)]
+  }
   
   // pick( [ item1, item2 ... ], min, max )
   return shuffle(arr, min, max)
 }
 
 // 打乱数组中元素的顺序，并返回。
-// Given an array, scramble the order and return it.
-//
-// 其他的实现思路：
-// // https://code.google.com/p/jslibs/wiki/JavascriptTips
-// result = result.sort(function() {
-//   return Math.random() - 0.5
-// })
-export const shuffle = function shuffle(arr, min?, max?) {
+export const shuffle = function shuffle(arr: any[], min?: number, max?: number): any {
   arr = arr || []
   let old = arr.slice(0)
   let result: any = []
@@ -64,8 +64,8 @@ export const shuffle = function shuffle(arr, min?, max?) {
       max = min
     // falls through
     case 3:
-      min = parseInt(min, 10)
-      max = parseInt(max, 10)
+      min = parseInt(min!.toString(), 10)
+      max = parseInt(max!.toString(), 10)
       return result.slice(0, basic.natural(min, max))
   }
 }

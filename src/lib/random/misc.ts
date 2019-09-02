@@ -4,33 +4,9 @@ import * as basic from './basic'
 import * as helper from './helper'
 import * as date from './date'
 
-export const d4 = function () {
-  return basic.natural(1, 4)
-}
-
-export const d6 = function () {
-  return basic.natural(1, 6)
-}
-
-export const d8 = function () {
-  return basic.natural(1, 8)
-}
-
-export const d12 = function () {
-  return basic.natural(1, 12)
-}
-
-export const d20 = function () {
-  return basic.natural(1, 20)
-}
-
-export const d100 = function () {
-  return basic.natural(1, 100)
-}
-
 // 随机生成一个 guid
 // http://www.broofa.com/2008/09/javascript-uuid-function/
-export const guid = function () {
+export const guid = function (): string {
   const pool = 'abcdefABCDEF1234567890'
   return basic.string(pool, 8) + '-' + basic.string(pool, 4) + '-' + basic.string(pool, 4) + '-' + basic.string(pool, 4) + '-' + basic.string(pool, 12)
 }
@@ -42,11 +18,11 @@ export const uuid = guid
 // [身份证](http://baike.baidu.com/view/1697.htm#4)
 // 地址码 6 + 出生日期码 8 + 顺序码 3 + 校验码 1
 // [《中华人民共和国行政区划代码》国家标准(GB/T2260)](http://zhidao.baidu.com/question/1954561.html)
-export const id = function () {
+export const id = function (): string {
   let id
   let sum = 0
-  let rank: string[] = ['7', '9', '10', '5', '8', '4', '2', '1', '6', '3', '7', '9', '10', '5', '8', '4', '2']
-  let last: string[] = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2']
+  const rank: string[] = ['7', '9', '10', '5', '8', '4', '2', '1', '6', '3', '7', '9', '10', '5', '8', '4', '2']
+  const last: string[] = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2']
   
   id = helper.pick(dict).id + date.date('yyyyMMdd') + basic.string('number', 3)
   
