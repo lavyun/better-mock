@@ -4,7 +4,7 @@
 //
 // 实现思路：
 // 1. 解析规则。
-//     先把数据模板 template 解析为更方便机器解析的 JSON-Schame
+//     先把数据模板 template 解析为更方便机器解析的 JSON-Schema
 //     name               属性名
 //     type               属性值类型
 //     template           属性值模板
@@ -16,7 +16,7 @@
 //
 // 提示信息
 // https://github.com/fge/json-schema-validator/blob/master/src/main/resources/com/github/fge/jsonschema/validator/validation.properties
-// [JSON-Schama validator](http://json-schema-validator.herokuapp.com/)
+// [JSON-Schema validator](http://json-schema-validator.herokuapp.com/)
 // [Regexp Demo](http://demos.forbeslindesay.co.uk/regexp/)
 import constant from '../constant'
 import * as util from '../util'
@@ -321,14 +321,16 @@ const Diff = {
 //   Expect path.name is greater than or equal to expected, but path.name is actual.
 const Assert = {
   message: function(item) {
-    return (item.message ||
-      '[{utype}] Expect {path}\'{ltype} {action} {expected}, but is {actual}')
-      .replace('{utype}', item.type.toUpperCase())
-      .replace('{ltype}', item.type.toLowerCase())
-      .replace('{path}', util.isArray(item.path) && item.path.join('.') || item.path)
-      .replace('{action}', item.action)
-      .replace('{expected}', item.expected)
-      .replace('{actual}', item.actual)
+    if (item.message) {
+      return item.message
+    }
+    const upperType = item.type.toUpperCase()
+    const lowerType = item.type.toLowerCase()
+    const path = util.isArray(item.path) && item.path.join('.') || item.path
+    const action = item.action
+    const expected = item.expected
+    const actual = item.actual
+    return `[${upperType}] Expect ${path}\'${lowerType} ${action} ${expected}, but is ${actual}`
   },
   equal: function(type, path, actual, expected, result, message?) {
     if (actual === expected) {

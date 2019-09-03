@@ -7543,14 +7543,21 @@
     };
   }
 
-  var XHR_STATES = {
+  var XHR_STATES;
+
+  (function (XHR_STATES) {
     // The object has been constructed.
-    UNSENT: 0,
-    OPENED: 1,
-    HEADERS_RECEIVED: 2,
-    LOADING: 3,
-    DONE: 4
-  };
+    XHR_STATES[XHR_STATES["UNSENT"] = 0] = "UNSENT"; // The open() method has been successfully invoked.
+
+    XHR_STATES[XHR_STATES["OPENED"] = 1] = "OPENED"; // All redirects (if any) have been followed and all HTTP headers of the response have been received.
+
+    XHR_STATES[XHR_STATES["HEADERS_RECEIVED"] = 2] = "HEADERS_RECEIVED"; // The response's body is being received.
+
+    XHR_STATES[XHR_STATES["LOADING"] = 3] = "LOADING"; // The data transfer has been completed or something went wrong during the transfer (e.g. infinite redirects).
+
+    XHR_STATES[XHR_STATES["DONE"] = 4] = "DONE";
+  })(XHR_STATES || (XHR_STATES = {}));
+
   var XHR_EVENTS = ['readystatechange', 'loadstart', 'progress', 'abort', 'error', 'load', 'timeout', 'loadend'];
   var XHR_REQUEST_PROPERTIES = ['timeout', 'withCredentials'];
   var XHR_RESPONSE_PROPERTIES = ['readyState', 'responseURL', 'status', 'statusText', 'responseType', 'response', 'responseText', 'responseXML']; // https://github.com/trek/FakeXMLHttpRequest/blob/master/fake_xml_http_request.js#L32
@@ -7608,7 +7615,7 @@
 
       this.match = false;
       this.timeout = 0;
-      this.readyState = 0;
+      this.readyState = XHR_STATES.UNSENT;
       this.withCredentials = false; // https://xhr.spec.whatwg.org/#the-send()-method
 
       this.upload = {};
@@ -7629,12 +7636,22 @@
       this.custom = {
         events: {},
         requestHeaders: {},
-        responseHeaders: {}
+        responseHeaders: {},
+        timeout: 0,
+        options: {},
+        xhr: null,
+        template: null,
+        async: true
       };
     }
 
     MockXMLHttpRequest.prototype.open = function (method, url, async, username, password) {
-      var that = this;
+      var _this = this;
+
+      if (async === void 0) {
+        async = true;
+      }
+
       objectAssign(this.custom, {
         method: method,
         url: url,
@@ -7662,46 +7679,43 @@
           var max = parseInt(tmp[1], 10);
           return Math.round(Math.random() * (max - min)) + min;
         }
-      }(MockXMLHttpRequest._settings.timeout); // 查找与请求参数匹配的数据模板
+
+        return 0;
+      }(MockXMLHttpRequest.settings.timeout); // 查找与请求参数匹配的数据模板
 
 
-      var item = find(this.custom.options);
-
-      function handle(event) {
-        // 同步属性 NativeXMLHttpRequest => MockXMLHttpRequest
-        for (var i = 0; i < XHR_RESPONSE_PROPERTIES.length; i++) {
-          try {
-            that[XHR_RESPONSE_PROPERTIES[i]] = xhr[XHR_RESPONSE_PROPERTIES[i]];
-          } catch (e) {}
-        } // 触发 MockXMLHttpRequest 上的同名事件
-
-
-        that.dispatchEvent(new Event(event.type
-        /*, false, false, that*/
-        ));
-      } // 如果未找到匹配的数据模板，则采用原生 XHR 发送请求。
-
+      var item = find(this.custom.options); // 如果未找到匹配的数据模板，则采用原生 XHR 发送请求。
 
       if (!item) {
         // 创建原生 XHR 对象，调用原生 open()，监听所有原生事件
-        var xhr = createNativeXMLHttpRequest();
-        this.custom.xhr = xhr; // 初始化所有事件，用于监听原生 XHR 对象的事件
+        var xhr_1 = createNativeXMLHttpRequest();
+        this.custom.xhr = xhr_1; // 初始化所有事件，用于监听原生 XHR 对象的事件
 
         for (var i = 0; i < XHR_EVENTS.length; i++) {
-          xhr.addEventListener(XHR_EVENTS[i], handle);
+          xhr_1.addEventListener(XHR_EVENTS[i], function (event) {
+            // 同步属性 NativeXMLHttpRequest => MockXMLHttpRequest
+            for (var i_1 = 0; i_1 < XHR_RESPONSE_PROPERTIES.length; i_1++) {
+              try {
+                _this[XHR_RESPONSE_PROPERTIES[i_1]] = xhr_1[XHR_RESPONSE_PROPERTIES[i_1]];
+              } catch (e) {}
+            } // 触发 MockXMLHttpRequest 上的同名事件
+
+
+            _this.dispatchEvent(new Event(event.type));
+          });
         } // xhr.open()
 
 
         if (username) {
-          xhr.open(method, url, async, username, password);
+          xhr_1.open(method, url, async, username, password);
         } else {
-          xhr.open(method, url, async);
+          xhr_1.open(method, url, async);
         } // 同步属性 MockXMLHttpRequest => NativeXMLHttpRequest
 
 
-        for (var j = 0; j < XHR_REQUEST_PROPERTIES.length; j++) {
+        for (var i = 0; i < XHR_REQUEST_PROPERTIES.length; i++) {
           try {
-            xhr[XHR_REQUEST_PROPERTIES[j]] = that[XHR_REQUEST_PROPERTIES[j]];
+            xhr_1[XHR_REQUEST_PROPERTIES[i]] = this[XHR_REQUEST_PROPERTIES[i]];
           } catch (e) {}
         }
 
@@ -7712,9 +7726,7 @@
       this.match = true;
       this.custom.template = item;
       this.readyState = XHR_STATES.OPENED;
-      this.dispatchEvent(new Event('readystatechange'
-      /*, false, false, this*/
-      ));
+      this.dispatchEvent(new Event('readystatechange'));
     }; // Combines a header in author request headers.
 
 
@@ -7737,7 +7749,8 @@
 
 
     MockXMLHttpRequest.prototype.send = function (data) {
-      var that = this;
+      var _this = this;
+
       this.custom.options.body = data; // 原生 XHR
 
       if (!this.match) {
@@ -7749,9 +7762,29 @@
 
       this.setRequestHeader('X-Requested-With', 'MockXMLHttpRequest'); // loadstart The fetch initiates.
 
-      this.dispatchEvent(new Event('loadstart'
-      /*, false, false, this*/
-      ));
+      this.dispatchEvent(new Event('loadstart'));
+
+      var done = function done() {
+        _this.readyState = XHR_STATES.HEADERS_RECEIVED;
+
+        _this.dispatchEvent(new Event('readystatechange'));
+
+        _this.readyState = XHR_STATES.LOADING;
+
+        _this.dispatchEvent(new Event('readystatechange'));
+
+        _this.status = 200;
+        _this.statusText = HTTP_STATUS_CODES[200]; // fix #92 #93 by @qddegtya
+
+        _this.response = _this.responseText = JSON.stringify(convert(_this.custom.template, _this.custom.options), null, 4);
+        _this.readyState = XHR_STATES.DONE;
+
+        _this.dispatchEvent(new Event('readystatechange'));
+
+        _this.dispatchEvent(new Event('load'));
+
+        _this.dispatchEvent(new Event('loadend'));
+      };
 
       if (this.custom.async) {
         // 异步
@@ -7759,31 +7792,6 @@
       } else {
         // 同步
         done();
-      }
-
-      function done() {
-        that.readyState = XHR_STATES.HEADERS_RECEIVED;
-        that.dispatchEvent(new Event('readystatechange'
-        /*, false, false, that*/
-        ));
-        that.readyState = XHR_STATES.LOADING;
-        that.dispatchEvent(new Event('readystatechange'
-        /*, false, false, that*/
-        ));
-        that.status = 200;
-        that.statusText = HTTP_STATUS_CODES[200]; // fix #92 #93 by @qddegtya
-
-        that.response = that.responseText = JSON.stringify(convert(that.custom.template, that.custom.options), null, 4);
-        that.readyState = XHR_STATES.DONE;
-        that.dispatchEvent(new Event('readystatechange'
-        /*, false, false, that*/
-        ));
-        that.dispatchEvent(new Event('load'
-        /*, false, false, that*/
-        ));
-        that.dispatchEvent(new Event('loadend'
-        /*, false, false, that*/
-        ));
       }
     }; // https://xhr.spec.whatwg.org/#the-abort()-method
     // Cancels any network activity.
@@ -7826,20 +7834,25 @@
       var headers = '';
 
       for (var h in responseHeaders) {
-        if (!responseHeaders.hasOwnProperty(h)) continue;
+        if (!responseHeaders.hasOwnProperty(h)) {
+          continue;
+        }
+
         headers += h + ': ' + responseHeaders[h] + '\r\n';
       }
 
       return headers;
     };
 
-    MockXMLHttpRequest.prototype.overrideMimeType = function ()
-    /*mime*/
-    {};
+    MockXMLHttpRequest.prototype.overrideMimeType = function () {};
 
     MockXMLHttpRequest.prototype.addEventListener = function (type, handle) {
       var events = this.custom.events;
-      if (!events[type]) events[type] = [];
+
+      if (!events[type]) {
+        events[type] = [];
+      }
+
       events[type].push(handle);
     };
 
@@ -7860,17 +7873,20 @@
         handles[i].call(this, event);
       }
 
-      var ontype = 'on' + event.type;
-      if (this[ontype]) this[ontype](event);
+      var onType = 'on' + event.type;
+
+      if (this[onType]) {
+        this[onType](event);
+      }
     };
 
-    MockXMLHttpRequest._settings = {
+    MockXMLHttpRequest.settings = {
       timeout: '10-100'
     };
 
     MockXMLHttpRequest.setup = function (settings) {
-      objectAssign(MockXMLHttpRequest._settings, settings);
-      return MockXMLHttpRequest._settings;
+      objectAssign(MockXMLHttpRequest.settings, settings);
+      return MockXMLHttpRequest.settings;
     };
 
     MockXMLHttpRequest.Mock = {};
@@ -7885,11 +7901,11 @@
 
   function createNativeXMLHttpRequest() {
     var isLocal = function () {
-      var rlocalProtocol = /^(?:about|app|app-storage|.+-extension|file|res|widget):$/;
-      var rurl = /^([\w.+-]+:)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/;
+      var rLocalProtocol = /^(?:about|app|app-storage|.+-extension|file|res|widget):$/;
+      var rUrl = /^([\w.+-]+:)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/;
       var ajaxLocation = location.href;
-      var ajaxLocParts = rurl.exec(ajaxLocation.toLowerCase()) || [];
-      return rlocalProtocol.test(ajaxLocParts[1]);
+      var ajaxLocParts = rUrl.exec(ajaxLocation.toLowerCase()) || [];
+      return rLocalProtocol.test(ajaxLocParts[1]);
     }();
 
     return window.ActiveXObject ? !isLocal && createStandardXHR() || createActiveXHR() : createStandardXHR();
@@ -7909,8 +7925,8 @@
 
 
   function find(options) {
-    for (var sUrlType in MockXMLHttpRequest.Mock._mocked) {
-      var item = MockXMLHttpRequest.Mock._mocked[sUrlType];
+    for (var sUrlType in MockXMLHttpRequest.Mock.mocked) {
+      var item = MockXMLHttpRequest.Mock.mocked[sUrlType];
 
       if ((!item.rurl || match(item.rurl, options.url)) && (!item.rtype || match(item.rtype, options.type.toLowerCase()))) {
         // console.log('[mock]', options.url, '>', item.rurl)
@@ -7947,7 +7963,7 @@
     setup: function setup(settings) {
       return MockXMLHttpRequest.setup(settings);
     },
-    _mocked: {},
+    mocked: {},
     version: '0.0.1'
   }; // 避免循环依赖
 
@@ -7979,7 +7995,7 @@
       window.XMLHttpRequest = MockXMLHttpRequest;
     }
 
-    Mock._mocked[rurl + (rtype || '')] = {
+    Mock.mocked[rurl + (rtype || '')] = {
       rurl: rurl,
       rtype: rtype,
       template: template

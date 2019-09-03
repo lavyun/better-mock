@@ -1,10 +1,9 @@
 // 把 Mock.js 风格的数据模板转换成 JSON Schema。
-// http://json-schema.org
 import constant from '../constant'
 import * as util from '../util'
 import * as parser from '../parser'
 
-function toJSONSchema(template, name?, path? /* Internal Use Only */ ) {
+function toJSONSchema(template: object, name?, path? /* Internal Use Only */ ) {
   // type rule properties items
   path = path || []
   const result: any = {
@@ -27,9 +26,9 @@ function toJSONSchema(template, name?, path? /* Internal Use Only */ ) {
       break
     case 'object':
       result.properties = []
-      util.each(template, function(value, name) {
+      util.each(template, function(value, key) {
         result.properties.push(
-          toJSONSchema(value, name, result.path)
+          toJSONSchema(value, key, result.path)
         )
       })
       break

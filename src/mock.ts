@@ -17,7 +17,7 @@ const Mock: any = {
   valid,
   heredoc: Util.heredoc,
   setup: (settings) => XHR.setup(settings),
-  _mocked: {},
+  mocked: {},
   version: '__VERSION__'
 }
 
@@ -47,7 +47,7 @@ Mock.mock = function(rurl, rtype, template) {
   if (XHR) {
     (window.XMLHttpRequest as any) = XHR
   }
-  Mock._mocked[rurl + (rtype || '')] = {
+  Mock.mocked[rurl + (rtype || '')] = {
     rurl: rurl,
     rtype: rtype,
     template: template

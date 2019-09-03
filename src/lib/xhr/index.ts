@@ -1,5 +1,3 @@
-// ## MockXMLHttpRequest
-//
 // 期望的功能：
 // 1. 完整地覆盖原生 XHR 的行为
 // 2. 完整地模拟原生 XHR 的行为
@@ -11,9 +9,9 @@
 //     new window.ActiveXObject("Microsoft.XMLHTTP")
 //
 // 关键方法的逻辑：
-// * new   此时尚无法确定是否需要拦截，所以创建原生 XHR 对象是必须的。
-// * open  此时可以取到 URL，可以决定是否进行拦截。
-// * send  此时已经确定了请求方式。
+//   new   此时尚无法确定是否需要拦截，所以创建原生 XHR 对象是必须的。
+//   open  此时可以取到 URL，可以决定是否进行拦截。
+//   send  此时已经确定了请求方式。
 //
 // 规范：
 // http://xhr.spec.whatwg.org/
@@ -26,12 +24,12 @@
 // https://github.com/firebug/firebug-lite/blob/master/content/lite/xhr.js
 // https://github.com/thx/RAP/blob/master/lab/rap.plugin.xinglie.js
 //
-// **需不需要全面重写 XMLHttpRequest？**
-//     http://xhr.spec.whatwg.org/#interface-xmlhttprequest
-//     关键属性 readyState、status、statusText、response、responseText、responseXML 是 readonly，所以，试图通过修改这些状态，来模拟响应是不可行的。
-//     因此，唯一的办法是模拟整个 XMLHttpRequest，就像 jQuery 对事件模型的封装。
+// 需不需要全面重写 XMLHttpRequest？
+//   http://xhr.spec.whatwg.org/#interface-xmlhttprequest
+//   关键属性 readyState、status、statusText、response、responseText、responseXML 是 readonly，所以，试图通过修改这些状态，来模拟响应是不可行的。
+//   因此，唯一的办法是模拟整个 XMLHttpRequest，就像 jQuery 对事件模型的封装。
 //
-// // Event handlers
+// Event handlers:
 // onloadstart         loadstart
 // onprogress          progress
 // onabort             abort
@@ -40,7 +38,6 @@
 // ontimeout           timeout
 // onloadend           loadend
 // onreadystatechange  readystatechange
-
 import * as util from '../util'
 
 // 备份原生 XMLHttpRequest
@@ -61,13 +58,17 @@ try {
   }
 }
 
-const XHR_STATES = {
+enum XHR_STATES {
   // The object has been constructed.
-  UNSENT: 0, // The open() method has been successfully invoked.
-  OPENED: 1, // All redirects (if any) have been followed and all HTTP headers of the response have been received.
-  HEADERS_RECEIVED: 2, // The response's body is being received.
-  LOADING: 3, // The data transfer has been completed or something went wrong during the transfer (e.g. infinite redirects).
-  DONE: 4
+  UNSENT = 0,
+  // The open() method has been successfully invoked.
+  OPENED = 1,
+  // All redirects (if any) have been followed and all HTTP headers of the response have been received.
+  HEADERS_RECEIVED = 2,
+  // The response's body is being received.
+  LOADING = 3,
+  // The data transfer has been completed or something went wrong during the transfer (e.g. infinite redirects).
+  DONE = 4,
 }
 
 const XHR_EVENTS = ['readystatechange', 'loadstart', 'progress', 'abort', 'error', 'load', 'timeout', 'loadend']
@@ -129,7 +130,7 @@ const HTTP_STATUS_CODES = {
 }
 
 class MockXMLHttpRequest {
-  custom: any
+  custom: MockCustom
 
   // 标记当前对象为 MockXMLHttpRequest
   mock: boolean = true
@@ -139,7 +140,7 @@ class MockXMLHttpRequest {
 
   timeout: number = 0
 
-  readyState: number = 0
+  readyState: number = XHR_STATES.UNSENT
 
   withCredentials: boolean = false
 
@@ -172,13 +173,16 @@ class MockXMLHttpRequest {
     this.custom = {
       events: {},
       requestHeaders: {},
-      responseHeaders: {}
+      responseHeaders: {},
+      timeout: 0,
+      options: {},
+      xhr: null,
+      template: null,
+      async: true
     }
   }
 
-  open (method, url, async, username, password) {
-    var that = this
-    
+  open (method: string, url: string, async: boolean = true, username?: string, password?: string) {
     util.objectAssign(this.custom, {
       method: method,
       url: url,
@@ -204,31 +208,30 @@ class MockXMLHttpRequest {
         const max = parseInt(tmp[1], 10)
         return Math.round(Math.random() * (max - min)) + min
       }
-    })(MockXMLHttpRequest._settings.timeout)
+      return 0
+    })(MockXMLHttpRequest.settings.timeout)
 
     // 查找与请求参数匹配的数据模板
-    var item = find(this.custom.options)
-
-    function handle(event) {
-      // 同步属性 NativeXMLHttpRequest => MockXMLHttpRequest
-      for (var i = 0; i < XHR_RESPONSE_PROPERTIES.length; i++) {
-        try {
-          that[XHR_RESPONSE_PROPERTIES[i]] = xhr[XHR_RESPONSE_PROPERTIES[i]]
-        } catch (e) {}
-      }
-      // 触发 MockXMLHttpRequest 上的同名事件
-      that.dispatchEvent(new Event(event.type /*, false, false, that*/))
-    }
+    const item = find(this.custom.options)
 
     // 如果未找到匹配的数据模板，则采用原生 XHR 发送请求。
     if (!item) {
       // 创建原生 XHR 对象，调用原生 open()，监听所有原生事件
-      var xhr = createNativeXMLHttpRequest()
+      const xhr = createNativeXMLHttpRequest()
       this.custom.xhr = xhr
 
       // 初始化所有事件，用于监听原生 XHR 对象的事件
-      for (var i = 0; i < XHR_EVENTS.length; i++) {
-        xhr.addEventListener(XHR_EVENTS[i], handle)
+      for (let i = 0; i < XHR_EVENTS.length; i++) {
+        xhr.addEventListener(XHR_EVENTS[i], (event) => {
+          // 同步属性 NativeXMLHttpRequest => MockXMLHttpRequest
+          for (let i = 0; i < XHR_RESPONSE_PROPERTIES.length; i++) {
+            try {
+              this[XHR_RESPONSE_PROPERTIES[i]] = xhr[XHR_RESPONSE_PROPERTIES[i]]
+            } catch (e) {}
+          }
+          // 触发 MockXMLHttpRequest 上的同名事件
+          this.dispatchEvent(new Event(event.type))
+        })
       }
 
       // xhr.open()
@@ -239,9 +242,9 @@ class MockXMLHttpRequest {
       }
 
       // 同步属性 MockXMLHttpRequest => NativeXMLHttpRequest
-      for (let j = 0; j < XHR_REQUEST_PROPERTIES.length; j++) {
+      for (let i = 0; i < XHR_REQUEST_PROPERTIES.length; i++) {
         try {
-          xhr[XHR_REQUEST_PROPERTIES[j]] = that[XHR_REQUEST_PROPERTIES[j]]
+          xhr[XHR_REQUEST_PROPERTIES[i]] = this[XHR_REQUEST_PROPERTIES[i]]
         } catch (e) {}
       }
 
@@ -252,19 +255,19 @@ class MockXMLHttpRequest {
     this.match = true
     this.custom.template = item
     this.readyState = XHR_STATES.OPENED
-    this.dispatchEvent(new Event('readystatechange' /*, false, false, this*/))
+    this.dispatchEvent(new Event('readystatechange'))
   }
 
   // Combines a header in author request headers.
-  setRequestHeader (name, value) {
+  setRequestHeader (name: string, value: string): void {
     // 原生 XHR
     if (!this.match) {
-      this.custom.xhr.setRequestHeader(name, value)
+      this.custom.xhr!.setRequestHeader(name, value)
       return
     }
 
     // 拦截 XHR
-    var requestHeaders = this.custom.requestHeaders
+    const requestHeaders = this.custom.requestHeaders
     if (requestHeaders[name]) {
       requestHeaders[name] += ',' + value
     } else {
@@ -273,24 +276,40 @@ class MockXMLHttpRequest {
   }
 
   // Initiates the request.
-  send (data) {
-    var that = this
+  send (data: any): void {
     this.custom.options.body = data
 
     // 原生 XHR
     if (!this.match) {
-      this.custom.xhr.send(data)
+      this.custom.xhr!.send(data)
       return
     }
 
     // 拦截 XHR
-
     // X-Requested-With header
     this.setRequestHeader('X-Requested-With', 'MockXMLHttpRequest')
 
     // loadstart The fetch initiates.
-    this.dispatchEvent(new Event('loadstart' /*, false, false, this*/))
+    this.dispatchEvent(new Event('loadstart'))
   
+    const done = () => {
+      this.readyState = XHR_STATES.HEADERS_RECEIVED
+      this.dispatchEvent(new Event('readystatechange'))
+      this.readyState = XHR_STATES.LOADING
+      this.dispatchEvent(new Event('readystatechange'))
+
+      this.status = 200
+      this.statusText = HTTP_STATUS_CODES[200]
+
+      // fix #92 #93 by @qddegtya
+      this.response = this.responseText = JSON.stringify(convert(this.custom.template, this.custom.options), null, 4)
+
+      this.readyState = XHR_STATES.DONE
+      this.dispatchEvent(new Event('readystatechange'))
+      this.dispatchEvent(new Event('load'))
+      this.dispatchEvent(new Event('loadend'))
+    }
+
     if (this.custom.async) {
       // 异步
       setTimeout(done, this.custom.timeout)
@@ -298,31 +317,13 @@ class MockXMLHttpRequest {
       // 同步
       done()
     }
-
-    function done() {
-      that.readyState = XHR_STATES.HEADERS_RECEIVED
-      that.dispatchEvent(new Event('readystatechange' /*, false, false, that*/))
-      that.readyState = XHR_STATES.LOADING
-      that.dispatchEvent(new Event('readystatechange' /*, false, false, that*/))
-
-      that.status = 200
-      that.statusText = HTTP_STATUS_CODES[200]
-
-      // fix #92 #93 by @qddegtya
-      that.response = that.responseText = JSON.stringify(convert(that.custom.template, that.custom.options), null, 4)
-
-      that.readyState = XHR_STATES.DONE
-      that.dispatchEvent(new Event('readystatechange' /*, false, false, that*/))
-      that.dispatchEvent(new Event('load' /*, false, false, that*/))
-      that.dispatchEvent(new Event('loadend' /*, false, false, that*/))
-    }
   }
   // https://xhr.spec.whatwg.org/#the-abort()-method
   // Cancels any network activity.
-  abort () {
+  abort (): void {
     // 原生 XHR
     if (!this.match) {
-      this.custom.xhr.abort()
+      this.custom.xhr!.abort()
       return
     }
 
@@ -333,10 +334,10 @@ class MockXMLHttpRequest {
   }
 
   // https://xhr.spec.whatwg.org/#the-getresponseheader()-method
-  getResponseHeader (name) {
+  getResponseHeader (name: string): string {
     // 原生 XHR
     if (!this.match) {
-      return this.custom.xhr.getResponseHeader(name)
+      return this.custom.xhr!.getResponseHeader(name)
     }
 
     // 拦截 XHR
@@ -348,53 +349,59 @@ class MockXMLHttpRequest {
   getAllResponseHeaders () {
     // 原生 XHR
     if (!this.match) {
-      return this.custom.xhr.getAllResponseHeaders()
+      return this.custom.xhr!.getAllResponseHeaders()
     }
 
     // 拦截 XHR
-    var responseHeaders = this.custom.responseHeaders
-    var headers = ''
-    for (var h in responseHeaders) {
-      if (!responseHeaders.hasOwnProperty(h)) continue
+    const responseHeaders = this.custom.responseHeaders
+    let headers = ''
+    for (let h in responseHeaders) {
+      if (!responseHeaders.hasOwnProperty(h)) {
+        continue
+      }
       headers += h + ': ' + responseHeaders[h] + '\r\n'
     }
     return headers
   }
 
-  overrideMimeType (/*mime*/) {}
+  overrideMimeType () {}
 
-  addEventListener (type, handle) {
-    var events = this.custom.events
-    if (!events[type]) events[type] = []
+  addEventListener (type: string, handle: Function): void {
+    const events = this.custom.events
+    if (!events[type]) {
+      events[type] = []
+    }
     events[type].push(handle)
   }
 
-  removeEventListener (type, handle) {
-    var handles = this.custom.events[type] || []
-    for (var i = 0; i < handles.length; i++) {
+  removeEventListener (type: string, handle: Function) {
+    const handles = this.custom.events[type] || []
+    for (let i = 0; i < handles.length; i++) {
       if (handles[i] === handle) {
         handles.splice(i--, 1)
       }
     }
   }
 
-  dispatchEvent (event) {
-    var handles = this.custom.events[event.type] || []
-    for (var i = 0; i < handles.length; i++) {
+  dispatchEvent (event: Event) {
+    const handles = this.custom.events[event.type] || []
+    for (let i = 0; i < handles.length; i++) {
       handles[i].call(this, event)
     }
 
-    var ontype = 'on' + event.type
-    if (this[ontype]) this[ontype](event)
+    const onType = 'on' + event.type
+    if (this[onType]) {
+      this[onType](event)
+    }
   }
 
-  static _settings: any = {
+  static settings: any = {
     timeout: '10-100'
   }
 
-  static setup = function(settings) {
-    util.objectAssign(MockXMLHttpRequest._settings, settings)
-    return MockXMLHttpRequest._settings
+  static setup = function(settings: object) {
+    util.objectAssign(MockXMLHttpRequest.settings, settings)
+    return MockXMLHttpRequest.settings
   }
 
   static Mock: any = {}
@@ -408,12 +415,12 @@ class MockXMLHttpRequest {
 
 // Inspired by jQuery
 function createNativeXMLHttpRequest() {
-  var isLocal = (function() {
-    var rlocalProtocol = /^(?:about|app|app-storage|.+-extension|file|res|widget):$/
-    var rurl = /^([\w.+-]+:)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/
+  var isLocal: boolean = (function() {
+    var rLocalProtocol = /^(?:about|app|app-storage|.+-extension|file|res|widget):$/
+    var rUrl = /^([\w.+-]+:)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/
     var ajaxLocation = location.href
-    var ajaxLocParts = rurl.exec(ajaxLocation.toLowerCase()) || []
-    return rlocalProtocol.test(ajaxLocParts[1])
+    var ajaxLocParts = rUrl.exec(ajaxLocation.toLowerCase()) || []
+    return rLocalProtocol.test(ajaxLocParts[1])
   })()
 
   return window.ActiveXObject ? (!isLocal && createStandardXHR()) || createActiveXHR() : createStandardXHR()
@@ -433,8 +440,8 @@ function createNativeXMLHttpRequest() {
 
 // 查找与请求参数匹配的数据模板：URL，Type
 function find(options) {
-  for (var sUrlType in MockXMLHttpRequest.Mock._mocked) {
-    var item = MockXMLHttpRequest.Mock._mocked[sUrlType]
+  for (let sUrlType in MockXMLHttpRequest.Mock.mocked) {
+    const item = MockXMLHttpRequest.Mock.mocked[sUrlType]
     if (
       (!item.rurl || match(item.rurl, options.url)) &&
       (!item.rtype || match(item.rtype, options.type.toLowerCase()))
@@ -460,6 +467,23 @@ function convert(item, options) {
 }
 
 export default MockXMLHttpRequest
+
+interface MockCustom {
+  events: {
+    [event: string]: Function[]
+  }
+  requestHeaders: {
+    [name: string]: string
+  }
+  responseHeaders: {
+    [name: string]: string
+  }
+  timeout: number
+  options: any,
+  xhr: XMLHttpRequest | null
+  template: any
+  async: boolean
+}
 
 declare global {
   interface Window {
