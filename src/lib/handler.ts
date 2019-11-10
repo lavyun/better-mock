@@ -1,13 +1,10 @@
 // 处理数据模板。
-//
-// * handler.gen( template, name?, context? )
+// handler.gen( template, name?, context? )
 //
 // 入口方法。
 //
 // * Data Template Definition, DTD
-//
 //     处理数据模板定义。
-//
 //     * handler.array( options )
 //     * handler.object( options )
 //     * handler.number( options )
@@ -17,13 +14,10 @@
 //     * handler.regexp( options )
 //
 //     处理路径（相对和绝对）。
-//
 //     * handler.getValueByKeyPath( key, options )
 //
 // * Data Placeholder Definition, DPD
-//
 //     处理数据占位符定义
-//
 //     * handler.placeholder( placeholder, context, templateContext, options )
 import constant from './constant'
 import * as utils from './util'
@@ -31,7 +25,7 @@ import * as parser from './parser'
 import random from './random'
 import RE from './regexp/index'
 
-const handler: any = {
+const handler = {
   // template        属性值（即数据模板）
   // name            属性名
   // context         数据上下文，生成后的数据
@@ -42,10 +36,8 @@ const handler: any = {
   //     currentContext, templateCurrentContext,
   //     path, templatePath
   //     root, templateRoot
-  gen: function (template, name, context) {
-    /* jshint -W041 */
+  gen: function (template, name?, context?: Partial<GenerateContext>) {
     name = name === undefined ? '' : name.toString()
-    
     context = context || {}
     context = {
       // 当前访问路径，只有属性名，不包括生成规则
@@ -56,34 +48,32 @@ const handler: any = {
       root: context.root || context.currentContext, // 模板的根
       templateRoot: context.templateRoot || context.templateCurrentContext || template
     }
-    // console.log('path:', context.path.join('.'), template)
     
-    var rule = parser.parse(name)
-    var type = utils.type(template)
-    var data
+    const rule = parser.parse(name)
+    const type = utils.type(template)
+    let data
     
     if (handler[type]) {
       data = handler[type]({
-        // 属性值类型
-        type: type, // 属性值模板
-        template: template, // 属性名 + 生成规则
-        name: name, // 属性名
+        type, // 属性值类型
+        template, // 属性值模板
+        name, // 属性名
+        rule,
+        context,
         parsedName: name ? name.replace(constant.RE_KEY, '$1') : name,
-        
-        // 解析后的生成规则
-        rule: rule, // 相关上下文
-        context: context
       })
       
-      if (!context.root) context.root = data
+      if (!context.root) {
+        context.root = data
+      }
       return data
     }
     
     return template
   },
   
-  array: function (options) {
-    var result: any[] = [], i, ii
+  array: function (options: GenerateOptions) {
+    let result: any[] = []
     
     // 'name|1': []
     // 'name|count': []
@@ -92,7 +82,7 @@ const handler: any = {
     
     // 'arr': [{ 'email': '@EMAIL' }, { 'email': '@EMAIL' }]
     if (!options.rule.parameters) {
-      for (i = 0; i < options.template.length; i++) {
+      for (let i = 0; i < options.template.length; i++) {
         options.context.path.push(i)
         options.context.templatePath.push(i)
         result.push(handler.gen(options.template[i], i, {
@@ -109,7 +99,7 @@ const handler: any = {
     } else {
       // 'method|1': ['GET', 'POST', 'HEAD', 'DELETE']
       if (options.rule.min === 1 && options.rule.max === undefined) {
-        // fix #17
+        // fix Mock.js#17
         options.context.path.push(options.name)
         options.context.templatePath.push(options.name)
         result = random.pick(handler.gen(options.template, undefined, {
@@ -144,9 +134,9 @@ const handler: any = {
           options.context.templatePath.pop()
         } else {
           // 'data|1-10': [{}]
-          for (i = 0; i < options.rule.count; i++) {
+          for (let i = 0; i < options.rule.count; i++) {
             // 'data|1-10': [{}, {}]
-            for (ii = 0; ii < options.template.length; ii++) {
+            for (let ii = 0; ii < options.template.length; ii++) {
               options.context.path.push(result.length)
               options.context.templatePath.push(ii)
               result.push(handler.gen(options.template[ii], result.length, {
@@ -167,8 +157,14 @@ const handler: any = {
     return result
   },
   
-  object: function (options) {
-    var result = {}, keys, fnKeys, key, parsedKey, inc, i
+  object: function (options: GenerateOptions) {
+    const result = {}
+    let keys
+    let fnKeys
+    let key
+    let parsedKey
+    let inc
+    let i
     
     // 'obj|min-max': {}
     if (options.rule.min != undefined) {
@@ -194,22 +190,13 @@ const handler: any = {
     } else {
       // 'obj': {}
       keys = []
-      fnKeys = [] // #25 改变了非函数属性的顺序，查找起来不方便
+      fnKeys = [] // Mock.js#25 改变了非函数属性的顺序，查找起来不方便
       for (key in options.template) {
         const target = typeof options.template[key] === 'function' ? fnKeys : keys
         target.push(key)
       }
       keys = keys.concat(fnKeys)
       
-      // 会改变非函数属性的顺序
-      // keys = Util.keys(options.template)
-      // keys.sort(function(a, b) {
-      //   var afn = typeof options.template[a] === 'function'
-      //   var bfn = typeof options.template[b] === 'function'
-      //   if (afn === bfn) return 0
-      //   if (afn && !bfn) return 1
-      //   if (!afn && bfn) return -1
-      // })
       for (i = 0; i < keys.length; i++) {
         key = keys[i]
         parsedKey = key.replace(constant.RE_KEY, '$1')
@@ -235,8 +222,9 @@ const handler: any = {
     return result
   },
   
-  number: function (options) {
-    var result, parts
+  number: function (options: GenerateOptions) {
+    let result
+    let parts
     if (options.rule.decimal) {
       // float
       options.template += ''
@@ -260,30 +248,34 @@ const handler: any = {
     return result
   },
   
-  boolean: function (options) {
-    var result
+  boolean: function (options: GenerateOptions) {
     // 'prop|multiple': false, 当前值是相反值的概率倍数
     // 'prop|probability-probability': false, 当前值与相反值的概率
-    result = options.rule.parameters ? random.bool(options.rule.min, options.rule.max, options.template) : options.template
+    const result = options.rule.parameters 
+      ? random.bool(options.rule.min, options.rule.max, options.template) 
+      : options.template
     return result
   },
   
   string: function (options) {
-    var result: any = '', i, placeholders, ph, phed
+    let result = ''
+    let placeholders
+    let ph
+    let phed
+
     if (options.template.length) {
-      //  'foo': '★',
-      /* jshint -W041 */
+      // 'foo': '★',
       if (options.rule.count == undefined) {
         result += options.template
       }
       
       // 'star|1-5': '★',
-      for (i = 0; i < options.rule.count; i++) {
+      for (let i = 0; i < options.rule.count; i++) {
         result += options.template
       }
       // 'email|1-10': '@EMAIL, ',
       placeholders = result.match(constant.RE_PLACEHOLDER) || [] // A-Z_0-9 > \w_
-      for (i = 0; i < placeholders.length; i++) {
+      for (let i = 0; i < placeholders.length; i++) {
         ph = placeholders[i]
         
         // 遇到转义斜杠，不需要解析占位符
@@ -296,18 +288,8 @@ const handler: any = {
         
         // 只有一个占位符，并且没有其他字符
         if (placeholders.length === 1 && ph === result && typeof phed !== typeof result) {
-          //
           result = phed
           break
-          
-          if (utils.isNumeric(phed)) {
-            result = parseFloat(phed)
-            break
-          }
-          if (/^(true|false)$/.test(phed)) {
-            result = phed === 'true' ? true : phed === 'false' ? false : phed // 已经是布尔值
-            break
-          }
         }
         result = result.replace(ph, phed)
       }
@@ -319,13 +301,13 @@ const handler: any = {
     return result
   },
   
-  function: function (options) {
+  function: function (options: GenerateOptions) {
     // ( context, options )
     return options.template.call(options.context.currentContext, options)
   },
   
-  regexp: function (options) {
-    var source = ''
+  regexp: function (options: GenerateOptions) {
+    let source = ''
     
     // 'name': /regexp/,
     /* jshint -W041 */
@@ -334,7 +316,7 @@ const handler: any = {
     }
     
     // 'name|1-5': /regexp/,
-    for (var i = 0; i < options.rule.count; i++) {
+    for (let i = 0; i < options.rule.count; i++) {
       source += options.template.source
     }
     
@@ -342,21 +324,25 @@ const handler: any = {
   },
   
   _all: function (): any {
-    var re = {}
-    for (var key in random) {
+    const re = {}
+    for (let key in random) {
       re[key.toLowerCase()] = key
     }
     return re
   },
   
   // 处理占位符，转换为最终值
-  placeholder: function (placeholder, obj, templateContext, options) {
-    // console.log(options.context.path)
+  placeholder: function (placeholder: string, obj, templateContext, options) {
     // 1 key, 2 params
+    // regexp init
     constant.RE_PLACEHOLDER.exec('')
-    var parts = constant.RE_PLACEHOLDER.exec(placeholder), key = parts && parts[1], lkey = key && key.toLowerCase(),
-      okey = this._all()[lkey!], params: any = (parts && parts[2]) || ''
-    var pathParts = this.splitPathToArray(key)
+    let parts = constant.RE_PLACEHOLDER.exec(placeholder)!
+    let key = parts && parts[1]
+    let lkey = key && key.toLowerCase()
+    let okey = handler._all()[lkey!]
+    let paramsInput: string = (parts && parts[2]) || ''
+    let pathParts = handler.splitPathToArray(key)
+    let params: string[] = []
     
     // 解析占位符的参数
     try {
@@ -364,24 +350,33 @@ const handler: any = {
       // #24 [Window Firefox 30.0 引用 占位符 抛错](https://github.com/nuysoft/Mock/issues/24)
       // [BX9056: 各浏览器下 window.eval 方法的执行上下文存在差异](http://www.w3help.org/zh-cn/causes/BX9056)
       // 应该属于 Window Firefox 30.0 的 BUG
-      params = eval('(function(){ return [].splice.call(arguments, 0 ) })(' + params + ')')
+      params = eval('(function(){ return [].splice.call(arguments, 0 ) })(' + paramsInput + ')')
     } catch (error) {
       // 2. 如果失败，只能解析为字符串
-      params = parts![2].split(/,\s*/)
+      params = paramsInput.split(/,\s*/)
     }
     
     // 占位符优先引用数据模板中的属性
+    // {
+    //   first: '@EMAIL',
+    //   full: '@first'
+    // }
+    // =======>
+    // {
+    //   first: 'dsa@163.com',
+    //   full: 'dsa@163.com'
+    // }
     if (obj && key! in obj) {
       return obj[key!]
     }
     
     // 绝对路径 or 相对路径
     if (key!.charAt(0) === '/' || pathParts.length > 1) {
-      return this.getValueByKeyPath(key, options)
+      return handler.getValueByKeyPath(key, options)
     }
     
     // 递归引用数据模板中的属性
-    // fix #15 避免自己依赖自己)
+    // fix Mock.js#15 避免自己依赖自己)
     if (templateContext && typeof templateContext === 'object' && key! in templateContext && placeholder !== templateContext[key!]) {
       // 先计算被引用的属性值
       templateContext[key!] = handler.gen(templateContext[key!], key, {
@@ -403,7 +398,7 @@ const handler: any = {
       }
     }
     
-    var handle = random[key!] || random[lkey!] || random[okey]
+    const handle = random[key!] || random[lkey!] || random[okey]
     switch (utils.type(handle)) {
       case 'array':
         // 自动从数组中取一个，例如 @areas
@@ -411,43 +406,51 @@ const handler: any = {
       case 'function':
         // 执行占位符方法（大多数情况）
         handle.options = options
-        var re = handle.apply(random, params)
-        if (re === undefined) re = '' // 因为是在字符串中，所以默认为空字符串。
+        let re = handle.apply(random, params)
+        // 因为是在字符串中，所以默认为空字符串。
+        if (re === undefined) {
+          re = ''
+        }
         delete handle.options
         return re
     }
   },
   
-  getValueByKeyPath: function (key, options) {
-    var originalKey = key
-    var keyPathParts = this.splitPathToArray(key)
-    var absolutePathParts: any[] = []
+  getValueByKeyPath: function (key: string, options) {
+    const originalKey = key
+    const keyPathParts: string[] = handler.splitPathToArray(key)
+    let absolutePathParts: any[] = []
     
     // 绝对路径
     if (key.charAt(0) === '/') {
-      absolutePathParts = [options.context.path[0]].concat(this.normalizePath(keyPathParts))
+      absolutePathParts = [options.context.path[0]].concat(handler.normalizePath(keyPathParts))
     } else {
       // 相对路径
       if (keyPathParts.length > 1) {
         absolutePathParts = options.context.path.slice(0)
         absolutePathParts.pop()
-        absolutePathParts = this.normalizePath(absolutePathParts.concat(keyPathParts))
+        absolutePathParts = handler.normalizePath(absolutePathParts.concat(keyPathParts))
       }
     }
     
     key = keyPathParts[keyPathParts.length - 1]
-    var currentContext = options.context.root
-    var templateCurrentContext = options.context.templateRoot
-    for (var i = 1; i < absolutePathParts.length - 1; i++) {
+    let currentContext = options.context.root
+    let templateCurrentContext = options.context.templateRoot
+    for (let i = 1; i < absolutePathParts.length - 1; i++) {
       currentContext = currentContext[absolutePathParts[i]]
       templateCurrentContext = templateCurrentContext[absolutePathParts[i]]
     }
     // 引用的值已经计算好
-    if (currentContext && key in currentContext) return currentContext[key]
+    if (currentContext && key in currentContext) {
+      return currentContext[key]
+    }
     
     // 尚未计算，递归引用数据模板中的属性
-    if (templateCurrentContext && typeof templateCurrentContext === 'object' && key in templateCurrentContext && originalKey !== templateCurrentContext[key] // fix #15 避免自己依赖自己
-    ) {
+    // fix #15 避免自己依赖自己
+    if (templateCurrentContext && 
+      typeof templateCurrentContext === 'object' && 
+      key in templateCurrentContext && 
+      originalKey !== templateCurrentContext[key]) {
       // 先计算被引用的属性值
       templateCurrentContext[key] = handler.gen(templateCurrentContext[key], key, {
         currentContext: currentContext, templateCurrentContext: templateCurrentContext
@@ -457,8 +460,8 @@ const handler: any = {
   },
   
   // https://github.com/kissyteam/kissy/blob/master/src/path/src/path.js
-  normalizePath: function (pathParts) {
-    const newPathParts: any = []
+  normalizePath: function (pathParts: string[]): string[] {
+    const newPathParts: string[] = []
     for (let i = 0; i < pathParts.length; i++) {
       switch (pathParts[i]) {
         case '..':
@@ -473,16 +476,27 @@ const handler: any = {
     return newPathParts
   },
   
-  splitPathToArray: function (path) {
-    let parts = path.split(/\/+/)
-    if (!parts[parts.length - 1]) {
-      parts = parts.slice(0, -1)
-    }
-    if (!parts[0]) {
-      parts = parts.slice(1)
-    }
-    return parts
+  splitPathToArray: function (path: string): string[] {
+    return path.split(/\/+/).filter(_ => _)
   }
 }
 
 export default handler
+
+interface GenerateContext {
+  path: Array<string | number>,
+  templatePath: Array<string | number>,
+  currentContext: any,
+  templateCurrentContext: any,
+  root: any,
+  templateRoot: any
+}
+
+interface GenerateOptions {
+  type: string
+  template: any
+  name: string
+  rule: any
+  context: GenerateContext
+  parsedName: string
+}

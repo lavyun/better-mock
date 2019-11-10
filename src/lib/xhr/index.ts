@@ -334,7 +334,7 @@ class MockXMLHttpRequest {
   }
 
   // https://xhr.spec.whatwg.org/#the-getresponseheader()-method
-  getResponseHeader (name: string): string {
+  getResponseHeader (name: string): string | null {
     // 原生 XHR
     if (!this.match) {
       return this.custom.xhr!.getResponseHeader(name)

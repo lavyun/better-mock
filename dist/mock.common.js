@@ -5490,21 +5490,23 @@ var Random = __assign(__assign(__assign(__assign(__assign(__assign(__assign(__as
 // 解析数据模板（属性名部分）。
 var parse = function parse(name) {
   name = name == undefined ? '' : name + '';
-  var parameters = (name || '').match(constant.RE_KEY);
+  var parameters = (name || '').match(constant.RE_KEY); // name|min-max, name|count
+
   var range = parameters && parameters[3] && parameters[3].match(constant.RE_RANGE);
   var min = range && range[1] && parseInt(range[1], 10); // || 1
 
   var max = range && range[2] && parseInt(range[2], 10); // || 1
-  // repeat || min-max || 1
+  // 如果是 min-max, 返回 min-max 之间的一个数
+  // 如果是 count, 返回 count
 
-  var count = range ? !range[2] ? parseInt(range[1], 10) : Random.integer(min, max) : undefined;
+  var count = range ? range[2] ? Random.integer(min, max) : parseInt(range[1], 10) : undefined;
   var decimal = parameters && parameters[4] && parameters[4].match(constant.RE_RANGE);
   var dmin = decimal && decimal[1] && parseInt(decimal[1], 10); // || 0,
 
   var dmax = decimal && decimal[2] && parseInt(decimal[2], 10); // || 0,
-  // int || dmin-dmax || 0
+  // int || dmin-dmax
 
-  var dcount = decimal ? !decimal[2] && parseInt(decimal[1], 10) || Random.integer(dmin, dmax) : undefined;
+  var dcount = decimal ? decimal[2] ? Random.integer(dmin, dmax) : parseInt(decimal[1], 10) : undefined;
   var result = {
     // 1 name, 2 inc, 3 range, 4 decimal
     parameters: parameters,
@@ -5512,18 +5514,17 @@ var parse = function parse(name) {
     range: range,
     min: min,
     max: max,
-    // min-max
     count: count,
-    // 是否有 decimal
     decimal: decimal,
     dmin: dmin,
     dmax: dmax,
-    // dmin-dimax
     dcount: dcount
   };
 
   for (var r in result) {
-    if (result[r] != undefined) return result;
+    if (result[r] != undefined) {
+      return result;
+    }
   }
 
   return {};
@@ -6571,7 +6572,6 @@ var handler$1 = {
   //     path, templatePath
   //     root, templateRoot
   gen: function gen(template, name, context) {
-    /* jshint -W041 */
     name = name === undefined ? '' : name.toString();
     context = context || {};
     context = {
@@ -6582,40 +6582,39 @@ var handler$1 = {
       templateCurrentContext: context.templateCurrentContext || template,
       root: context.root || context.currentContext,
       templateRoot: context.templateRoot || context.templateCurrentContext || template
-    }; // console.log('path:', context.path.join('.'), template)
-
+    };
     var rule = parse(name);
     var type$1 = type(template);
     var data;
 
     if (handler$1[type$1]) {
       data = handler$1[type$1]({
-        // 属性值类型
         type: type$1,
         template: template,
         name: name,
-        parsedName: name ? name.replace(constant.RE_KEY, '$1') : name,
-        // 解析后的生成规则
         rule: rule,
-        context: context
+        context: context,
+        parsedName: name ? name.replace(constant.RE_KEY, '$1') : name
       });
-      if (!context.root) context.root = data;
+
+      if (!context.root) {
+        context.root = data;
+      }
+
       return data;
     }
 
     return template;
   },
   array: function array(options) {
-    var result = [],
-        i,
-        ii; // 'name|1': []
+    var result = []; // 'name|1': []
     // 'name|count': []
     // 'name|min-max': []
 
     if (options.template.length === 0) return result; // 'arr': [{ 'email': '@EMAIL' }, { 'email': '@EMAIL' }]
 
     if (!options.rule.parameters) {
-      for (i = 0; i < options.template.length; i++) {
+      for (var i = 0; i < options.template.length; i++) {
         options.context.path.push(i);
         options.context.templatePath.push(i);
         result.push(handler$1.gen(options.template[i], i, {
@@ -6632,7 +6631,7 @@ var handler$1 = {
     } else {
       // 'method|1': ['GET', 'POST', 'HEAD', 'DELETE']
       if (options.rule.min === 1 && options.rule.max === undefined) {
-        // fix #17
+        // fix Mock.js#17
         options.context.path.push(options.name);
         options.context.templatePath.push(options.name);
         result = Random.pick(handler$1.gen(options.template, undefined, {
@@ -6664,9 +6663,9 @@ var handler$1 = {
           options.context.templatePath.pop();
         } else {
           // 'data|1-10': [{}]
-          for (i = 0; i < options.rule.count; i++) {
+          for (var i = 0; i < options.rule.count; i++) {
             // 'data|1-10': [{}, {}]
-            for (ii = 0; ii < options.template.length; ii++) {
+            for (var ii = 0; ii < options.template.length; ii++) {
               options.context.path.push(result.length);
               options.context.templatePath.push(ii);
               result.push(handler$1.gen(options.template[ii], result.length, {
@@ -6688,13 +6687,13 @@ var handler$1 = {
     return result;
   },
   object: function object(options) {
-    var result = {},
-        keys$1,
-        fnKeys,
-        key,
-        parsedKey,
-        inc,
-        i; // 'obj|min-max': {}
+    var result = {};
+    var keys$1;
+    var fnKeys;
+    var key;
+    var parsedKey;
+    var inc;
+    var i; // 'obj|min-max': {}
 
     if (options.rule.min != undefined) {
       keys$1 = keys(options.template);
@@ -6720,22 +6719,14 @@ var handler$1 = {
     } else {
       // 'obj': {}
       keys$1 = [];
-      fnKeys = []; // #25 改变了非函数属性的顺序，查找起来不方便
+      fnKeys = []; // Mock.js#25 改变了非函数属性的顺序，查找起来不方便
 
       for (key in options.template) {
         var target = typeof options.template[key] === 'function' ? fnKeys : keys$1;
         target.push(key);
       }
 
-      keys$1 = keys$1.concat(fnKeys); // 会改变非函数属性的顺序
-      // keys = Util.keys(options.template)
-      // keys.sort(function(a, b) {
-      //   var afn = typeof options.template[a] === 'function'
-      //   var bfn = typeof options.template[b] === 'function'
-      //   if (afn === bfn) return 0
-      //   if (afn && !bfn) return 1
-      //   if (!afn && bfn) return -1
-      // })
+      keys$1 = keys$1.concat(fnKeys);
 
       for (i = 0; i < keys$1.length; i++) {
         key = keys$1[i];
@@ -6764,7 +6755,8 @@ var handler$1 = {
     return result;
   },
   number: function number(options) {
-    var result, parts;
+    var result;
+    var parts;
 
     if (options.rule.decimal) {
       // float
@@ -6792,36 +6784,32 @@ var handler$1 = {
     return result;
   },
   boolean: function boolean(options) {
-    var result; // 'prop|multiple': false, 当前值是相反值的概率倍数
+    // 'prop|multiple': false, 当前值是相反值的概率倍数
     // 'prop|probability-probability': false, 当前值与相反值的概率
-
-    result = options.rule.parameters ? Random.bool(options.rule.min, options.rule.max, options.template) : options.template;
+    var result = options.rule.parameters ? Random.bool(options.rule.min, options.rule.max, options.template) : options.template;
     return result;
   },
   string: function string(options) {
-    var result = '',
-        i,
-        placeholders,
-        ph,
-        phed;
+    var result = '';
+    var placeholders;
+    var ph;
+    var phed;
 
     if (options.template.length) {
-      //  'foo': '★',
-
-      /* jshint -W041 */
+      // 'foo': '★',
       if (options.rule.count == undefined) {
         result += options.template;
       } // 'star|1-5': '★',
 
 
-      for (i = 0; i < options.rule.count; i++) {
+      for (var i = 0; i < options.rule.count; i++) {
         result += options.template;
       } // 'email|1-10': '@EMAIL, ',
 
 
       placeholders = result.match(constant.RE_PLACEHOLDER) || []; // A-Z_0-9 > \w_
 
-      for (i = 0; i < placeholders.length; i++) {
+      for (var i = 0; i < placeholders.length; i++) {
         ph = placeholders[i]; // 遇到转义斜杠，不需要解析占位符
 
         if (/^\\/.test(ph)) {
@@ -6832,20 +6820,8 @@ var handler$1 = {
         phed = handler$1.placeholder(ph, options.context.currentContext, options.context.templateCurrentContext, options); // 只有一个占位符，并且没有其他字符
 
         if (placeholders.length === 1 && ph === result && _typeof(phed) !== _typeof(result)) {
-          //
           result = phed;
           break;
-
-          if (isNumeric(phed)) {
-            result = parseFloat(phed);
-            break;
-          }
-
-          if (/^(true|false)$/.test(phed)) {
-            result = phed === 'true' ? true : phed === 'false' ? false : phed; // 已经是布尔值
-
-            break;
-          }
         }
 
         result = result.replace(ph, phed);
@@ -6889,28 +6865,38 @@ var handler$1 = {
   },
   // 处理占位符，转换为最终值
   placeholder: function placeholder(_placeholder, obj, templateContext, options) {
-    // console.log(options.context.path)
     // 1 key, 2 params
+    // regexp init
     constant.RE_PLACEHOLDER.exec('');
+    var parts = constant.RE_PLACEHOLDER.exec(_placeholder);
+    var key = parts && parts[1];
+    var lkey = key && key.toLowerCase();
 
-    var parts = constant.RE_PLACEHOLDER.exec(_placeholder),
-        key = parts && parts[1],
-        lkey = key && key.toLowerCase(),
-        okey = this._all()[lkey],
-        params = parts && parts[2] || '';
+    var okey = handler$1._all()[lkey];
 
-    var pathParts = this.splitPathToArray(key); // 解析占位符的参数
+    var paramsInput = parts && parts[2] || '';
+    var pathParts = handler$1.splitPathToArray(key);
+    var params = []; // 解析占位符的参数
 
     try {
       // 1. 尝试保持参数的类型
       // #24 [Window Firefox 30.0 引用 占位符 抛错](https://github.com/nuysoft/Mock/issues/24)
       // [BX9056: 各浏览器下 window.eval 方法的执行上下文存在差异](http://www.w3help.org/zh-cn/causes/BX9056)
       // 应该属于 Window Firefox 30.0 的 BUG
-      params = eval('(function(){ return [].splice.call(arguments, 0 ) })(' + params + ')');
+      params = eval('(function(){ return [].splice.call(arguments, 0 ) })(' + paramsInput + ')');
     } catch (error) {
       // 2. 如果失败，只能解析为字符串
-      params = parts[2].split(/,\s*/);
+      params = paramsInput.split(/,\s*/);
     } // 占位符优先引用数据模板中的属性
+    // {
+    //   first: '@EMAIL',
+    //   full: '@first'
+    // }
+    // =======>
+    // {
+    //   first: 'dsa@163.com',
+    //   full: 'dsa@163.com'
+    // }
 
 
     if (obj && key in obj) {
@@ -6919,9 +6905,9 @@ var handler$1 = {
 
 
     if (key.charAt(0) === '/' || pathParts.length > 1) {
-      return this.getValueByKeyPath(key, options);
+      return handler$1.getValueByKeyPath(key, options);
     } // 递归引用数据模板中的属性
-    // fix #15 避免自己依赖自己)
+    // fix Mock.js#15 避免自己依赖自己)
 
 
     if (templateContext && _typeof(templateContext) === 'object' && key in templateContext && _placeholder !== templateContext[key]) {
@@ -6957,8 +6943,11 @@ var handler$1 = {
       case 'function':
         // 执行占位符方法（大多数情况）
         handle.options = options;
-        var re = handle.apply(Random, params);
-        if (re === undefined) re = ''; // 因为是在字符串中，所以默认为空字符串。
+        var re = handle.apply(Random, params); // 因为是在字符串中，所以默认为空字符串。
+
+        if (re === undefined) {
+          re = '';
+        }
 
         delete handle.options;
         return re;
@@ -6966,17 +6955,17 @@ var handler$1 = {
   },
   getValueByKeyPath: function getValueByKeyPath(key, options) {
     var originalKey = key;
-    var keyPathParts = this.splitPathToArray(key);
+    var keyPathParts = handler$1.splitPathToArray(key);
     var absolutePathParts = []; // 绝对路径
 
     if (key.charAt(0) === '/') {
-      absolutePathParts = [options.context.path[0]].concat(this.normalizePath(keyPathParts));
+      absolutePathParts = [options.context.path[0]].concat(handler$1.normalizePath(keyPathParts));
     } else {
       // 相对路径
       if (keyPathParts.length > 1) {
         absolutePathParts = options.context.path.slice(0);
         absolutePathParts.pop();
-        absolutePathParts = this.normalizePath(absolutePathParts.concat(keyPathParts));
+        absolutePathParts = handler$1.normalizePath(absolutePathParts.concat(keyPathParts));
       }
     }
 
@@ -6990,17 +6979,20 @@ var handler$1 = {
     } // 引用的值已经计算好
 
 
-    if (currentContext && key in currentContext) return currentContext[key]; // 尚未计算，递归引用数据模板中的属性
+    if (currentContext && key in currentContext) {
+      return currentContext[key];
+    } // 尚未计算，递归引用数据模板中的属性
+    // fix #15 避免自己依赖自己
 
-    if (templateCurrentContext && _typeof(templateCurrentContext) === 'object' && key in templateCurrentContext && originalKey !== templateCurrentContext[key] // fix #15 避免自己依赖自己
-    ) {
-        // 先计算被引用的属性值
-        templateCurrentContext[key] = handler$1.gen(templateCurrentContext[key], key, {
-          currentContext: currentContext,
-          templateCurrentContext: templateCurrentContext
-        });
-        return templateCurrentContext[key];
-      }
+
+    if (templateCurrentContext && _typeof(templateCurrentContext) === 'object' && key in templateCurrentContext && originalKey !== templateCurrentContext[key]) {
+      // 先计算被引用的属性值
+      templateCurrentContext[key] = handler$1.gen(templateCurrentContext[key], key, {
+        currentContext: currentContext,
+        templateCurrentContext: templateCurrentContext
+      });
+      return templateCurrentContext[key];
+    }
   },
   // https://github.com/kissyteam/kissy/blob/master/src/path/src/path.js
   normalizePath: function normalizePath(pathParts) {
@@ -7023,17 +7015,9 @@ var handler$1 = {
     return newPathParts;
   },
   splitPathToArray: function splitPathToArray(path) {
-    var parts = path.split(/\/+/);
-
-    if (!parts[parts.length - 1]) {
-      parts = parts.slice(0, -1);
-    }
-
-    if (!parts[0]) {
-      parts = parts.slice(1);
-    }
-
-    return parts;
+    return path.split(/\/+/).filter(function (_) {
+      return _;
+    });
   }
 };
 
@@ -7063,8 +7047,8 @@ function toJSONSchema(template, name, path
 
     case 'object':
       result.properties = [];
-      each(template, function (value, name) {
-        result.properties.push(toJSONSchema(value, name, result.path));
+      each(template, function (value, key) {
+        result.properties.push(toJSONSchema(value, key, result.path));
       });
       break;
   }
@@ -7378,7 +7362,17 @@ var Diff = {
 
 var Assert = {
   message: function message(item) {
-    return (item.message || '[{utype}] Expect {path}\'{ltype} {action} {expected}, but is {actual}').replace('{utype}', item.type.toUpperCase()).replace('{ltype}', item.type.toLowerCase()).replace('{path}', isArray(item.path) && item.path.join('.') || item.path).replace('{action}', item.action).replace('{expected}', item.expected).replace('{actual}', item.actual);
+    if (item.message) {
+      return item.message;
+    }
+
+    var upperType = item.type.toUpperCase();
+    var lowerType = item.type.toLowerCase();
+    var path = isArray(item.path) && item.path.join('.') || item.path;
+    var action = item.action;
+    var expected = item.expected;
+    var actual = item.actual;
+    return "[" + upperType + "] Expect " + path + "'" + lowerType + " " + action + " " + expected + ", but is " + actual;
   },
   equal: function equal(type, path, actual, expected, result, message) {
     if (actual === expected) {

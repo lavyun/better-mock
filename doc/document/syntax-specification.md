@@ -151,12 +151,12 @@ _占位符_ 的格式为：
 
 **注意：**
 
-1. 用 `@` 来标识其后的字符串是 _占位符_。
-2. _占位符_ 引用的是 `Mock.Random` 中的方法。
-3. 通过 `Mock.Random.extend()` 来扩展自定义占位符。
-4. _占位符_ 也可以引用 _数据模板_ 中的属性。
-5. _占位符_ 会优先引用 _数据模板_ 中的属性。
-6. _占位符_ 支持 _相对路径_ 和 _绝对路径_。
+- 用 `@` 来标识其后的字符串是 _占位符_。
+- _占位符_ 引用的是 `Mock.Random` 中的方法。
+- _占位符_ 也可以引用 _数据模板_ 中的属性。
+- _占位符_ 会优先引用 _数据模板_ 中的属性。
+- _占位符_ 支持 _相对路径_ 和 _绝对路径_。
+- 可以使用 `\` 来转义 `@` 符号。
 
 ```javascript
 Mock.mock({
@@ -164,6 +164,7 @@ Mock.mock({
     first: '@FIRST',
     middle: '@FIRST',
     last: '@LAST',
+    email: 'example\@gmail.com',
     full: '@first @middle @last'
   }
 })
@@ -173,6 +174,7 @@ Mock.mock({
     "first": "Charles",
     "middle": "Brenda",
     "last": "Lopez",
+    "email": "example@gmail.com",
     "full": "Charles Brenda Lopez"
   }
 }
