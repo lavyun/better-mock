@@ -1,6 +1,6 @@
 import * as helper from './helper'
 import * as basic from './basic'
-import DICT from './address_dict'
+import DICT from './address-dict'
 
 const REGION = ['东北', '华北', '华东', '华中', '华南', '西南', '西北']
 

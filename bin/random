@@ -11,7 +11,7 @@
 var path = require('path')
 var program = require('commander')
 var pkg = require(path.resolve(__dirname, '../package.json'))
-var Random = require('../dist/mock.js').Random
+var Random = require('../dist/mock.node.js').Random
 
 var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m
 var FN_ARG_SPLIT = /,/

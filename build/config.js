@@ -17,28 +17,40 @@ const banner =
 
 const builds = [
   {
-    entry: resolve('../ts-dist/mock.js'),
-    dest: resolve('../dist/mock.js'),
+    entry: resolve('../ts-dist/mock.browser.js'),
+    dest: resolve('../dist/mock.browser.js'),
     format: 'umd',
-    banner
+    banner,
+    target: {
+      ie: '9'
+    }
   },
   {
-    entry: resolve('../ts-dist/mock.js'),
-    dest: resolve('../dist/mock.min.js'),
+    entry: resolve('../ts-dist/mock.browser.js'),
+    dest: resolve('../dist/mock.browser.min.js'),
     format: 'umd',
-    banner
+    banner,
+    target: {
+      ie: '9'
+    }
   },
   {
-    entry: resolve('../ts-dist/mock.js'),
-    dest: resolve('../dist/mock.esm.js'),
+    entry: resolve('../ts-dist/mock.browser.js'),
+    dest: resolve('../dist/mock.browser.esm.js'),
     format: 'es',
-    banner
+    banner,
+    target: {
+      ie: '9'
+    }
   },
   {
-    entry: resolve('../ts-dist/mock.common.js'),
-    dest: resolve('../dist/mock.common.js'),
+    entry: resolve('../ts-dist/mock.node.js'),
+    dest: resolve('../dist/mock.node.js'),
     format: 'cjs',
-    banner
+    banner,
+    target: {
+      node: '6'
+    }
   }
 ]
 
@@ -53,7 +65,16 @@ const genConfig = (name) => {
       }),
       babel({
         exclude: 'node_modules/**',
-        runtimeHelpers: true
+        runtimeHelpers: true,
+        babelrc: false,
+        presets: [
+          [
+            "@babel/preset-env",
+            {
+              targets: opts.targets
+            }
+          ]
+        ]
       })
     ],
     output: {

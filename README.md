@@ -1,32 +1,15 @@
-# Mock.js
+# Better-Mock
 <!-- 模拟请求 & 模拟数据 -->
 [![Build Status](https://travis-ci.org/lavyun/better-mock.svg?branch=master)](https://travis-ci.org/lavyun/better-mock)
 [![Coverage Status](https://coveralls.io/repos/github/lavyun/better-mock/badge.svg?branch=master)](https://coveralls.io/github/lavyun/better-mock?branch=master)
 
-<!-- [![Coverage Status](https://coveralls.io/repos/nuysoft/Mock/badge.png?branch=refactoring)](https://coveralls.io/r/nuysoft/Mock?branch=refactoring)
-[![NPM version](https://badge.fury.io/js/mockjs.svg)](http://badge.fury.io/js/mockjs)
-[![Bower version](https://badge.fury.io/bo/mockjs.svg)](http://badge.fury.io/bo/mockjs)
-[![Dependency Status](https://gemnasium.com/nuysoft/Mock.svg)](https://gemnasium.com/nuysoft/Mock)
-[![spm package](http://spmjs.io/badge/mockjs)](http://spmjs.io/package/mockjs) -->
+Fork 自 Mock.js，使用 typescript 进行重构，100% 兼容 Mock.js。
 
-Mock.js is a simulation data generator to help the front-end to develop and prototype separate from the back-end progress and reduce some monotony particularly while writing automated tests.
+[官方文档](http://lavyun.github.io/better-mock)
 
-The official site: <http://mockjs.com>
+## 初衷
 
-## Features
-
-* Generate simulated data according to the data template
-* Provide request/response mocking for ajax requests
-* ~~Generate simulated data according to HTML-based templates~~
-
-This library is loosely inspired by Elijah Manor's post [Mocking
-Introduction](http://www.elijahmanor.com/2013/04/angry-birds-of-javascript-green-bird.html), [mennovanslooten/mockJSON](https://github.com/mennovanslooten/mockJSON), [appendto/jquery-mockjax](https://github.com/appendto/jquery-mockjax) and [victorquinn/chancejs](https://github.com/victorquinn/chancejs/).
-
-## Questions?
-If you have any questions, please feel free to ask through [New Issue](https://github.com/nuysoft/Mock/issues/new).
-
-## Reporting an Issue
-Make sure the problem you're addressing is reproducible. Use <http://jsbin.com/> or <http://jsfiddle.net/> to provide a test page. Indicate what browsers the issue can be reproduced in. What version of Mock.js is the issue reproducible in. Is it reproducible after updating to the latest version?
+Mock.js 是一个很好的库，国内使用者也挺多，但是该库在3年前就几乎已经停止维护了，而且在当前时代下，不管从构建工具、代码质量还是社区生态上来看，Mock.js 都显得很陈旧，所以 better-mock 将会在 Mock.js 的基础上进行构建，持续修复 Mock.js 的众多issue，支持更多的新特性。
 
 ## License
 Mock.js is available under the terms of the [MIT License](./LICENSE).

@@ -69,8 +69,8 @@
 //     ).toString(16)
 //     color = "#" + ("000000" + color).slice(-6)
 //     return color.toUpperCase()
-import * as convert from './color_convert'
-import dict from './color_dict'
+import * as convert from './color-convert'
+import dict from './color-dict'
 
 // 随机生成一个有吸引力的颜色，格式为 '#RRGGBB'。
 export const color = function(name: string = '') {

@@ -2,9 +2,9 @@
   "name": "better-mock",
   "description": "Forked from Mockjs. Generate random data & Intercept ajax request",
   "author": "lavyun@163.com",
-  "version": "0.0.1",
-  "main": "./dist/mock.common.js",
-  "module": "./dist/mock.esm.js",
+  "version": "0.0.1-beta1",
+  "main": "./dist/mock.node.js",
+  "module": "./dist/mock.browser.esm.js",
   "scripts": {
     "test": "mochify",
     "cover": "nyc --reporter=lcov --instrument false mochify --transform [ babelify --ignore [ test ] --plugins [ babel-plugin-istanbul ] ]",

@@ -11,3 +11,4 @@ ts-dist
 .nyc_output
 coverage
 .dev-doc
+example

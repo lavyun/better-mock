@@ -1,4 +1,4 @@
-const Mock = require('../dist/mock')
+const Mock = require('../dist/mock.browser')
 const expect = require('chai').expect
 
 describe('DTD', function () {

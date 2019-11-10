@@ -1,5 +1,5 @@
 /*!
- * better-mock v0.0.1
+ * better-mock v0.0.1-beta1
  * (c) 2019-2019 lavyun@163.com * Released under the MIT License.
  */
 (function (global, factory) {
@@ -181,7 +181,7 @@
   var MAX_NATURE_NUMBER = 9007199254740992;
   var MIN_NATURE_NUMBER = -9007199254740992; // 返回一个随机的布尔值。
 
-  var boolean = function boolean(min, max, current) {
+  var _boolean = function _boolean(min, max, current) {
     if (min === void 0) {
       min = 1;
     }
@@ -204,7 +204,7 @@
 
     return Math.random() >= 0.5;
   };
-  var bool = boolean; // 返回一个随机的自然数（大于等于 0 的整数）。
+  var bool = _boolean; // 返回一个随机的自然数（大于等于 0 的整数）。
 
   var natural = function natural(min, max) {
     if (min === void 0) {
@@ -233,9 +233,9 @@
     max = parseInt(max.toString(), 10);
     return Math.round(Math.random() * (max - min)) + min;
   };
-  var int = integer; // 返回一个随机的浮点数。
+  var _int = integer; // 返回一个随机的浮点数。
 
-  var float = function float(min, max, dmin, dmax) {
+  var _float = function _float(min, max, dmin, dmax) {
     dmin = isDef(dmin) ? dmin : 0;
     dmin = Math.max(Math.min(dmin, 17), 0);
     dmax = isDef(dmax) ? dmax : 17;
@@ -250,7 +250,6 @@
 
     return parseFloat(ret);
   }; // 返回一个随机字符。
-
   var character = function character(pool) {
     if (pool === void 0) {
       pool = '';
@@ -276,8 +275,7 @@
 
     return pool.charAt(natural(0, pool.length - 1));
   };
-  var char = character; // 返回一个随机字符串。
-
+  var _char = character; // 返回一个随机字符串。
   var string = function string(pool, min, max) {
     var len;
 
@@ -347,14 +345,14 @@
   };
 
   var basic = /*#__PURE__*/Object.freeze({
-    boolean: boolean,
+    boolean: _boolean,
     bool: bool,
     natural: natural,
     integer: integer,
-    int: int,
-    float: float,
+    int: _int,
+    float: _float,
     character: character,
-    char: char,
+    char: _char,
     string: string,
     str: str,
     range: range
@@ -5688,7 +5686,7 @@
     // }
     alternate: function alternate(node, result, cache) {
       // node.left/right {}
-      return handler.gen(Random.boolean() ? node.left : node.right, result, cache);
+      return handler.gen(Random["boolean"]() ? node.left : node.right, result, cache);
     },
     // {
     //   type: 'match',
@@ -6787,7 +6785,7 @@
 
       return result;
     },
-    boolean: function boolean(options) {
+    "boolean": function boolean(options) {
       // 'prop|multiple': false, 当前值是相反值的概率倍数
       // 'prop|probability-probability': false, 当前值与相反值的概率
       var result = options.rule.parameters ? Random.bool(options.rule.min, options.rule.max, options.template) : options.template;
@@ -6838,7 +6836,7 @@
 
       return result;
     },
-    function: function _function(options) {
+    "function": function _function(options) {
       // ( context, options )
       return options.template.call(options.context.currentContext, options);
     },
@@ -7958,7 +7956,7 @@
       return MockXMLHttpRequest.setup(settings);
     },
     mocked: {},
-    version: '0.0.1'
+    version: '0.0.1-beta1'
   }; // 避免循环依赖
 
   if (MockXMLHttpRequest) {

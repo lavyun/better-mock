@@ -1,5 +1,5 @@
 // Miscellaneous
-import dict from './address_dict'
+import dict from './address-dict'
 import * as basic from './basic'
 import * as helper from './helper'
 import * as date from './date'
