@@ -455,6 +455,10 @@ var datetime = function datetime(format) {
   }
 
   return _formatDate(_randomDate(), format);
+}; // 返回一个随机的时间戳
+
+var timestamp = function timestamp() {
+  return Number(_formatDate(_randomDate(), 'T'));
 }; // 返回当前的日期和时间字符串。
 
 var now = function now(unit, format) {
@@ -507,6 +511,7 @@ var date$1 = /*#__PURE__*/Object.freeze({
   date: date,
   time: time,
   datetime: datetime,
+  timestamp: timestamp,
   now: now
 });
 
@@ -7945,6 +7950,7 @@ var Mock = {
   RE: RE,
   toJSONSchema: toJSONSchema,
   valid: valid,
+  mock: mock,
   heredoc: heredoc,
   setup: function setup(settings) {
     return MockXMLHttpRequest.setup(settings);
@@ -7964,7 +7970,7 @@ if (MockXMLHttpRequest) {
 // 根据数据模板生成模拟数据。
 
 
-Mock.mock = function (rurl, rtype, template) {
+function mock(rurl, rtype, template) {
   // Mock.mock(template)
   if (arguments.length === 1) {
     return handler$1.gen(rurl);
@@ -7987,6 +7993,6 @@ Mock.mock = function (rurl, rtype, template) {
     template: template
   };
   return Mock;
-};
+}
 
 export default Mock;

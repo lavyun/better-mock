@@ -95,18 +95,23 @@ const _randomDate = function (min: Date = new Date(0), max: Date = new Date()): 
 }
 
 // 返回一个随机的日期字符串。
-export const date = function (format: string = 'yyyy-MM-dd') {
+export const date = function (format: string = 'yyyy-MM-dd'): string {
   return _formatDate(_randomDate(), format)
 }
 
 // 返回一个随机的时间字符串。
-export const time = function (format: string = 'HH:mm:ss') {
+export const time = function (format: string = 'HH:mm:ss'): string {
   return _formatDate(_randomDate(), format)
 }
 
 // 返回一个随机的日期和时间字符串。
 export const datetime = function (format: string = 'yyyy-MM-dd HH:mm:ss') {
   return _formatDate(_randomDate(), format)
+}
+
+// 返回一个随机的时间戳
+export const timestamp = function (): number {
+  return Number(_formatDate(_randomDate(), 'T'))
 }
 
 // 返回当前的日期和时间字符串。

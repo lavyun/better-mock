@@ -114,8 +114,9 @@ describe('DPD', function () {
         range1: '@RANGE(10)',
         range2: '@RANGE(3, 7)',
         range3: '@RANGE(1, 10, 2)',
-        range4: '@RANGE(1, 10, 3)',
-
+        range4: '@RANGE(1, 10, 3)'
+      },
+      data: {
         date: '@DATE',
         time: '@TIME',
 
@@ -125,6 +126,8 @@ describe('DPD', function () {
         datetime4: '@DATETIME("yy-MM-dd HH:mm:ss")',
         datetime5: '@DATETIME("y-MM-dd HH:mm:ss")',
         datetime6: '@DATETIME("y-M-d H:m:s")',
+
+        timestamp: '@TIMESTAMP',
 
         now: '@NOW',
         nowYear: '@NOW("year")',

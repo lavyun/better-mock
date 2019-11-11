@@ -99,6 +99,12 @@ Random.datetime('y-M-d H:m:s')
 // => "02-4-23 2:49:40"
 ```
 
+## Random.timestamp
+
+* Random.timestamp()
+
+返回一个随机的时间戳。
+
 ## Random.now
 
 * Ranndom.now()

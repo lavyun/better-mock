@@ -121,5 +121,4 @@ export const heredoc = function (fn) {
     .replace(/[\s\xA0]+$/, '') // .trim()
 }
 
-export const noop = function () {
-}
+export const noop = function () {}
