@@ -1,4 +1,4 @@
-import { isArray, isDef } from '../util'
+import { isArray, isDef, values } from '../util'
 import * as basic from './basic'
 
 // 把字符串的第一个字母转换为大写。
@@ -42,6 +42,11 @@ export const pick = function pick(arr: any[], min?: number, max?: number) {
   
   // pick( [ item1, item2 ... ], min, max )
   return shuffle(arr, min, max)
+}
+
+// 从map中随机选择一个
+export const pickMap = function pickMap(map: object) {
+  return pick(values(map))
 }
 
 // 打乱数组中元素的顺序，并返回。

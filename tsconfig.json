@@ -7,6 +7,7 @@
     "noImplicitAny": false,
     "outDir": "ts-dist",
     "strict": true,
+    "resolveJsonModule": true,
     "lib": [
       "es5",
       "es6",

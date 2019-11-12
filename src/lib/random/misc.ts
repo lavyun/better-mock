@@ -1,8 +1,11 @@
 // Miscellaneous
-import dict from './address-dict'
 import * as basic from './basic'
 import * as helper from './helper'
 import * as date from './date'
+import * as location from 'china-location/dist/location.json'
+import * as util from '../util'
+
+const areas = location['default']
 
 // 随机生成一个 guid
 // http://www.broofa.com/2008/09/javascript-uuid-function/
@@ -24,7 +27,12 @@ export const id = function (): string {
   const rank: string[] = ['7', '9', '10', '5', '8', '4', '2', '1', '6', '3', '7', '9', '10', '5', '8', '4', '2']
   const last: string[] = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2']
   
-  id = helper.pick(dict).id + date.date('yyyyMMdd') + basic.string('number', 3)
+  const province = helper.pickMap(areas)
+  const city = helper.pickMap(province.cities)
+  const districts = city.districts
+  const countyCode = helper.pick(util.keys(districts))
+
+  id = countyCode + date.date('yyyyMMdd') + basic.string('number', 3)
   
   for (let i = 0; i < id.length; i++) {
     sum += id[i] * Number(rank[i])
