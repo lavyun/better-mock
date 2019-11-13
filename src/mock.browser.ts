@@ -7,7 +7,7 @@ import toJSONSchema from './lib/schema/index'
 import valid from './lib/valid/index'
 import XHR from './lib/xhr'
 
-const Mock: any = {
+const Mock = {
   Handler,
   Random,
   Util,
@@ -15,6 +15,7 @@ const Mock: any = {
   RE,
   toJSONSchema,
   valid,
+  mock,
   heredoc: Util.heredoc,
   setup: (settings) => XHR.setup(settings),
   mocked: {},
@@ -33,7 +34,7 @@ if (XHR) {
 // Mock.mock( rurl, rtype, template )
 // Mock.mock( rurl, rtype, function(options) )
 // 根据数据模板生成模拟数据。
-Mock.mock = function(rurl, rtype, template) {
+function mock (rurl, rtype, template) {
   // Mock.mock(template)
   if (arguments.length === 1) {
     return Handler.gen(rurl)

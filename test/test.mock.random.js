@@ -9,7 +9,7 @@ describe('Random', function () {
 
   function doit (expression, validator) {
     it('', function () {
-      var data = eval(expression)
+      const data = eval(expression)
       validator(data)
       this.test.title = stringify(expression) + ' => ' + stringify(data)
     })
@@ -38,11 +38,11 @@ describe('Random', function () {
     })
 
     // 1 整数部分 2 小数部分
-    var RE_FLOAT = /(\-?\d+)\.?(\d+)?/
+    const RE_FLOAT = /(\-?\d+)\.?(\d+)?/
 
     function validFloat (float, min, max, dmin, dmax) {
       RE_FLOAT.lastIndex = 0
-      var parts = RE_FLOAT.exec(float + '')
+      const parts = RE_FLOAT.exec(float + '')
 
       expect(+parts[1]).to.be.a('number').within(min, max)
 
@@ -68,10 +68,10 @@ describe('Random', function () {
       validFloat(data, 60, 100, 3, 5)
     })
 
-    var CHARACTER_LOWER = 'abcdefghijklmnopqrstuvwxyz'
-    var CHARACTER_UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    var CHARACTER_NUMBER = '0123456789'
-    var CHARACTER_SYMBOL = '!@#$%^&*()[]'
+    const CHARACTER_LOWER = 'abcdefghijklmnopqrstuvwxyz'
+    const CHARACTER_UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    const CHARACTER_NUMBER = '0123456789'
+    const CHARACTER_SYMBOL = '!@#$%^&*()[]'
     doit('Random.character()', function (data) {
       expect(data).to.be.a('string').with.length(1)
       expect(
@@ -110,7 +110,7 @@ describe('Random', function () {
     })
     doit('Random.string("lower", 5)', function (data) {
       expect(data).to.be.a('string').with.length(5)
-      for (var i = 0; i < data.length; i++) {
+      for (let i = 0; i < data.length; i++) {
         expect(CHARACTER_LOWER).to.include(data[i])
       }
     })
@@ -119,7 +119,7 @@ describe('Random', function () {
     })
     doit('Random.string("aeiou", 1, 3)', function (data) {
       expect(data).to.be.a('string').with.length.within(1, 3)
-      for (var i = 0; i < data.length; i++) {
+      for (let i = 0; i < data.length; i++) {
         expect('aeiou').to.include(data[i])
       }
     })
@@ -136,10 +136,12 @@ describe('Random', function () {
     doit('Random.range(1, 10, 3)', function (data) {
       expect(data).to.be.an('array').deep.equal([1, 4, 7])
     })
+  })
 
-    var RE_DATE = /\d{4}-\d{2}-\d{2}/
-    var RE_TIME = /\d{2}:\d{2}:\d{2}/
-    var RE_DATETIME = new RegExp(RE_DATE.source + ' ' + RE_TIME.source)
+  describe('Date', function () {
+    const RE_DATE = /\d{4}-\d{2}-\d{2}/
+    const RE_TIME = /\d{2}:\d{2}:\d{2}/
+    const RE_DATETIME = new RegExp(RE_DATE.source + ' ' + RE_TIME.source)
 
     doit('Random.date()', function (data) {
       expect(RE_DATE.test(data)).to.be.true
@@ -169,6 +171,10 @@ describe('Random', function () {
     })
     doit('Random.datetime("yyyy yy y MM M dd d HH H hh h mm m ss s SS S A a T")', function (data) {
       expect(data).to.be.ok
+    })
+    doit('Random.timestamp()', function (timestamp) {
+      expect(timestamp).to.be.a('number')
+      expect(/^\d*$/.test(timestamp)).to.be.true
     })
 
     doit('Random.now()', function (data) {
@@ -205,26 +211,26 @@ describe('Random', function () {
       expect(data).to.be.ok
     })
     it('Random.dataImage()', function () {
-      var data = eval(this.test.title)
+      const data = eval(this.test.title)
       expect(data).to.be.ok
       this.test.title = stringify(this.test.title) + ' => '
     })
     it('Random.dataImage("200x100")', function () {
-      var data = eval(this.test.title)
+      const data = eval(this.test.title)
       expect(data).to.be.ok
       this.test.title = stringify(this.test.title) + ' => '
     })
     it('Random.dataImage("200x100", "Hello Mock.js!")', function () {
-      var data = eval(this.test.title)
+      const data = eval(this.test.title)
       expect(data).to.be.ok
       this.test.title = stringify(this.test.title) + ' => '
     })
   })
 
-  var RE_COLOR = /^#[0-9a-fA-F]{6}$/
-  var RE_COLOR_RGB = /^rgb\(\d{1,3}, \d{1,3}, \d{1,3}\)$/
-  var RE_COLOR_RGBA = /^rgba\(\d{1,3}, \d{1,3}, \d{1,3}, 0\.\d{1,2}\)$/
-  var RE_COLOR_HSL = /^hsl\(\d{1,3}, \d{1,3}, \d{1,3}\)$/
+  const RE_COLOR = /^#[0-9a-fA-F]{6}$/
+  const RE_COLOR_RGB = /^rgb\(\d{1,3}, \d{1,3}, \d{1,3}\)$/
+  const RE_COLOR_RGBA = /^rgba\(\d{1,3}, \d{1,3}, \d{1,3}, 0\.\d{1,2}\)$/
+  const RE_COLOR_HSL = /^hsl\(\d{1,3}, \d{1,3}, \d{1,3}\)$/
   describe('Color', function () {
     doit('Random.color()', function (data) {
       expect(RE_COLOR.test(data)).to.true
@@ -278,21 +284,21 @@ describe('Random', function () {
     })
 
     doit('Random.title()', function (data) {
-      var words = data.split(' ')
+      const words = data.split(' ')
       words.forEach(function (word) {
         expect(word[0]).to.equal(word[0].toUpperCase())
       })
       expect(words).to.have.length.within(3, 7)
     })
     doit('Random.title(4)', function (data) {
-      var words = data.split(' ')
+      const words = data.split(' ')
       words.forEach(function (word) {
         expect(word[0]).to.equal(word[0].toUpperCase())
       })
       expect(words).to.have.length(4)
     })
     doit('Random.title(3, 5)', function (data) {
-      var words = data.split(' ')
+      const words = data.split(' ')
       words.forEach(function (word) {
         expect(word[0]).to.equal(word[0].toUpperCase())
       })
@@ -308,13 +314,13 @@ describe('Random', function () {
       expect(data[0]).to.equal(data[0].toUpperCase())
     })
     doit('Random.name()', function (data) {
-      var words = data.split(' ')
+      const words = data.split(' ')
       expect(words).to.have.length(2)
       expect(words[0][0]).to.equal(words[0][0].toUpperCase())
       expect(words[1][0]).to.equal(words[1][0].toUpperCase())
     })
     doit('Random.name(true)', function (data) {
-      var words = data.split(' ')
+      const words = data.split(' ')
       expect(words).to.have.length(3)
       expect(words[0][0]).to.equal(words[0][0].toUpperCase())
       expect(words[1][0]).to.equal(words[1][0].toUpperCase())
@@ -332,8 +338,8 @@ describe('Random', function () {
     })
   })
 
-  var RE_URL = /^([\w.+-]+:)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/
-  var RE_IP = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/
+  const RE_URL = /^([\w.+-]+:)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/
+  const RE_IP = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/
   describe('Web', function () {
     doit('Random.url()', function (data) {
       expect(RE_URL.test(data)).to.be.true
@@ -434,7 +440,7 @@ describe('Random', function () {
     })
   })
 
-  var RE_GUID = /[a-fA-F0-9]{8}\-[a-fA-F0-9]{4}\-[a-fA-F0-9]{4}\-[a-fA-F0-9]{4}\-[a-fA-F0-9]{12}/
+  const RE_GUID = /[a-fA-F0-9]{8}\-[a-fA-F0-9]{4}\-[a-fA-F0-9]{4}\-[a-fA-F0-9]{4}\-[a-fA-F0-9]{12}/
   describe('Miscellaneous', function () {
     doit('Random.guid()', function (data) {
       expect(data).to.be.a('string').with.length(36)
@@ -442,6 +448,14 @@ describe('Random', function () {
     })
     doit('Random.id()', function (data) {
       expect(data).to.be.a('string').with.length(18)
+    })
+    doit('Random.version()', function (data) {
+      expect(data).to.be.a('string')
+      expect(data.split('.')).to.be.a('array').with.length(3)
+    })
+    doit('Random.version(4)', function (data) {
+      expect(data).to.be.a('string')
+      expect(data.split('.')).to.be.a('array').with.length(4)
     })
   })
 })

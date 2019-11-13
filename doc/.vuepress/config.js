@@ -31,6 +31,9 @@ module.exports = {
         },
         ['/document/valid/', 'Mock.valid()'],
         ['/document/toJSONSchema/', 'Mock.toJSONSchema()']
+      ],
+      '/changelog/': [
+        ''
       ]
     }
   }

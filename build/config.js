@@ -3,6 +3,7 @@ const version = require('../package.json').version
 const babel = require('rollup-plugin-babel')
 const replace = require('rollup-plugin-replace')
 const nodeResolve = require('rollup-plugin-node-resolve')
+const json = require('rollup-plugin-json')
 
 const resolve = p => {
   return path.resolve(__dirname,  p)
@@ -63,6 +64,7 @@ const genConfig = (name) => {
       replace({
         '__VERSION__': version
       }),
+      json(),
       babel({
         exclude: 'node_modules/**',
         runtimeHelpers: true,

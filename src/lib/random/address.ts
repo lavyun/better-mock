@@ -1,8 +1,9 @@
 import * as helper from './helper'
 import * as basic from './basic'
-import DICT from './address-dict'
+import * as location from 'china-location/dist/location.json'
 
 const REGION = ['东北', '华北', '华东', '华中', '华南', '西南', '西北']
+const areas = location['default']
 
 // 随机生成一个大区。
 export const region = function(): string {
@@ -11,7 +12,7 @@ export const region = function(): string {
 
 // 随机生成一个（中国）省（或直辖市、自治区、特别行政区）。
 export const province = function(): string {
-  return helper.pick(DICT).name
+  return helper.pickMap(areas).name
 }
 
 /**
@@ -19,8 +20,8 @@ export const province = function(): string {
  * @param prefix 是否有省前缀
  */
 export const city = function(prefix: boolean = false): string {
-  const province = helper.pick(DICT)
-  const city = helper.pick(province.children)
+  const province = helper.pickMap(areas)
+  const city = helper.pickMap(province.cities)
   return prefix ? [province.name, city.name].join(' ') : city.name
 }
 
@@ -29,12 +30,10 @@ export const city = function(prefix: boolean = false): string {
  * @param prefix 是否有省/市前缀
  */
 export const county = function(prefix: boolean = false): string {
-  const province = helper.pick(DICT)
-  const city = helper.pick(province.children)
-  const county = helper.pick(city.children) || {
-    name: '-'
-  }
-  return prefix ? [province.name, city.name, county.name].join(' ') : county.name
+  const province = helper.pickMap(areas)
+  const city = helper.pickMap(province.cities)
+  const county = helper.pickMap(city.districts) || '-'
+  return prefix ? [province.name, city.name, county].join(' ') : county
 }
 
 /**

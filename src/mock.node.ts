@@ -6,13 +6,14 @@ import RE from './lib/regexp/index'
 import toJSONSchema from './lib/schema/index'
 import valid from './lib/valid/index'
 
-const Mock: any = {
+const Mock = {
   Handler,
   Random,
   Util,
   RE,
   toJSONSchema,
   valid,
+  mock,
   heredoc: Util.heredoc,
   version: '__VERSION__'
 }
@@ -20,7 +21,7 @@ const Mock: any = {
 
 // Mock.mock( template )
 // 根据数据模板生成模拟数据。
-Mock.mock = function(template: string) {
+function mock(template: string) {
   return Handler.gen(template)
 }
 

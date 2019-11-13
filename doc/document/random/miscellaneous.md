@@ -22,6 +22,24 @@ Random.id()
 // => "420000200710091854"
 ```
 
+## Random.version
+
+* Random.version()
+* Random.version(depth)
+
+随机生成一个版本号，每一位的最大值不超过10
+
+### depth `可选`
+
+版本号的层级，默认为 3
+
+```js
+Random.version()
+// => 3.6.1
+Random.version(4)
+// => 4.9.1.8
+```
+
 ## Random.increment
 
 * Random.increment()
