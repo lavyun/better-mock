@@ -6722,14 +6722,29 @@ var key = 0;
 var increment = function increment(step) {
   return key += Number(step) || 1; // step?
 };
-var inc = increment;
+var inc = increment; // 生成一个版本号
+
+var version = function version(depth) {
+  if (depth === void 0) {
+    depth = 3;
+  }
+
+  var numbers = [];
+
+  for (var i = 0; i < depth; i++) {
+    numbers.push(natural(0, 10));
+  }
+
+  return numbers.join('.');
+};
 
 var misc = /*#__PURE__*/Object.freeze({
   guid: guid,
   uuid: uuid,
   id: id,
   increment: increment,
-  inc: inc
+  inc: inc,
+  version: version
 });
 
 var __assign = undefined && undefined.__assign || function () {

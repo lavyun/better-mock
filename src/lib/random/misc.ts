@@ -50,3 +50,12 @@ export const increment = function (step: number | string) {
 }
 
 export const inc = increment
+
+// 生成一个版本号
+export const version = function (depth: number = 3): string {
+  const numbers: number[] = []
+  for (let i = 0; i < depth; i++) {
+    numbers.push(basic.natural(0, 10))
+  }
+  return numbers.join('.')
+}

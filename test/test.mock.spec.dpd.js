@@ -195,6 +195,8 @@ describe('DPD', function () {
       miscellaneous: {
         guid: '@GUID',
         id: '@ID',
+        version1: '@VERSION',
+        version2: '@VERSION(4)',
         'increment1|3': [
           '@INCREMENT'
         ],

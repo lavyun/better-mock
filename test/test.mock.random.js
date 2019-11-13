@@ -449,5 +449,13 @@ describe('Random', function () {
     doit('Random.id()', function (data) {
       expect(data).to.be.a('string').with.length(18)
     })
+    doit('Random.version()', function (data) {
+      expect(data).to.be.a('string')
+      expect(data.split('.')).to.be.a('array').with.length(3)
+    })
+    doit('Random.version(4)', function (data) {
+      expect(data).to.be.a('string')
+      expect(data.split('.')).to.be.a('array').with.length(4)
+    })
   })
 })
