@@ -1,5 +1,5 @@
 /*!
- * better-mock v0.0.1-beta1
+ * better-mock v0.0.2
  * (c) 2019-2019 lavyun@163.com * Released under the MIT License.
  */
 function _typeof(obj) {
@@ -9232,7 +9232,7 @@ var Mock = {
     return MockXMLHttpRequest.setup(settings);
   },
   mocked: {},
-  version: '0.0.1-beta1'
+  version: '0.0.2'
 }; // 避免循环依赖
 
 if (MockXMLHttpRequest) {
