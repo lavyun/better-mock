@@ -443,22 +443,46 @@ function find(options) {
   for (let sUrlType in MockXMLHttpRequest.Mock.mocked) {
     const item = MockXMLHttpRequest.Mock.mocked[sUrlType]
     if (
-      (!item.rurl || match(item.rurl, options.url)) &&
-      (!item.rtype || match(item.rtype, options.type.toLowerCase()))
+      (!item.rurl || matchUrl(item.rurl, options.url)) &&
+      (!item.rtype || matchType(item.rtype, options.type))
     ) {
-      // console.log('[mock]', options.url, '>', item.rurl)
       return item
     }
   }
 
-  function match(expected, actual) {
-    if (util.type(expected) === 'string') {
-      return expected === actual
+  function matchUrl(expected: string | RegExp, actual: string): boolean {
+    if (util.isString(expected)) {
+      if (expected === actual) {
+        return true
+      }
+      // expected: /hello/world
+      // actual: /hello/world?type=1
+      if (actual.indexOf(expected) === 0 && actual[expected.length] === '?') {
+        return true
+      }
     }
-    if (util.type(expected) === 'regexp') {
+    if (util.isRegExp(expected)) {
       return expected.test(actual)
     }
+    return false
   }
+
+  function matchType(expected: string | RegExp, actual: string): boolean {
+    if (util.isString(expected) || util.isRegExp(expected)) {
+      return new RegExp(expected, 'i').test(actual)
+    }
+    return false
+  }
+
+  // function match(expected: string | RegExp, actual: string): boolean {
+  //   if (util.isString(expected)) {
+  //     return expected === actual
+  //   }
+  //   if (util.isRegExp(expected)) {
+  //     return new RegExp(expected, 'i').test(actual)
+  //   }
+  //   return false
+  // }
 }
 
 // 数据模板 ＝> 响应数据

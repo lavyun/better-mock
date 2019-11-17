@@ -2,14 +2,14 @@
   "name": "better-mock",
   "description": "Forked from Mockjs. Generate random data & Intercept ajax request",
   "author": "lavyun@163.com",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "./dist/mock.node.js",
   "module": "./dist/mock.browser.esm.js",
   "scripts": {
     "test": "mochify",
     "cover": "nyc --reporter=lcov --instrument false mochify --transform [ babelify --ignore [ test ] --plugins [ babel-plugin-istanbul ] ]",
     "coveralls": "cat ./coverage/lcov.info | coveralls",
-    "clear": "rimraf dist && rimraf typings",
+    "clear": "rimraf dist",
     "build": "npm run clear && tsc && node build/build.js && rimraf ts-dist",
     "doc:dev": "vuepress dev doc",
     "doc:build": "vuepress build doc",
@@ -24,6 +24,24 @@
     "intercept request",
     "ajax"
   ],
+  "files": [
+    "bin",
+    "dist",
+    "src",
+    "test",
+    "LICENCE",
+    "package.json",
+    "README.md",
+    "tsconfig.json"
+  ],
+  "bin": {
+    "random": "bin/random"
+  },
+  "types": "./typings/index.d.ts",
+  "dependencies": {
+    "china-location": "^2.0.0",
+    "sync-request": "^6.1.0"
+  },
   "devDependencies": {
     "@babel/core": "^7.4.5",
     "@babel/preset-env": "^7.4.5",
@@ -52,16 +70,10 @@
     "type": "git",
     "url": "https://github.com/lavyun/better-mock"
   },
-  "bin": {
-    "random": "bin/random"
-  },
   "licenses": [
     {
       "type": "MIT",
       "url": "https://github.com/lavyun/better-mock/blob/master/LICENSE"
     }
-  ],
-  "dependencies": {
-    "china-location": "^2.0.0"
-  }
+  ]
 }

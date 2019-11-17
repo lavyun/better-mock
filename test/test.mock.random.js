@@ -7,11 +7,12 @@ describe('Random', function () {
     return JSON.stringify(json /*, null, 4*/)
   }
 
-  function doit (expression, validator) {
+  function doit (expression, validator, cut) {
     it('', function () {
       const data = eval(expression)
       validator(data)
-      this.test.title = stringify(expression) + ' => ' + stringify(data)
+      const result = stringify(data)
+      this.test.title = `${stringify(expression)} => ${cut ? result.substr(0, 100) + '...' : result}`
     })
   }
 
@@ -46,7 +47,6 @@ describe('Random', function () {
 
       expect(+parts[1]).to.be.a('number').within(min, max)
 
-      /* jshint -W041 */
       if (parts[2] != undefined) {
         expect(parts[2]).to.have.length.within(dmin, dmax)
       }
@@ -208,23 +208,26 @@ describe('Random', function () {
 
   describe('Image', function () {
     doit('Random.image()', function (data) {
-      expect(data).to.be.ok
+      expect(data).to.include('https://dummyimage.com')
     })
-    it('Random.dataImage()', function () {
-      const data = eval(this.test.title)
-      expect(data).to.be.ok
-      this.test.title = stringify(this.test.title) + ' => '
+    doit('Random.image("300x400", "HelloWorld")', function (data) {
+      expect(data).to.be.equal('https://dummyimage.com/300x400&text=HelloWorld')
     })
-    it('Random.dataImage("200x100")', function () {
-      const data = eval(this.test.title)
-      expect(data).to.be.ok
-      this.test.title = stringify(this.test.title) + ' => '
+    doit('Random.image("300x400", "#234567", "HelloWorld")', function (data) {
+      expect(data).to.be.equal('https://dummyimage.com/300x400/234567&text=HelloWorld')
     })
-    it('Random.dataImage("200x100", "Hello Mock.js!")', function () {
-      const data = eval(this.test.title)
-      expect(data).to.be.ok
-      this.test.title = stringify(this.test.title) + ' => '
+    doit('Random.image("300x400", "#234567", "#FFFFFF", "HelloWorld")', function (data) {
+      expect(data).to.be.equal('https://dummyimage.com/300x400/234567/FFFFFF&text=HelloWorld')
     })
+    doit('Random.dataImage()', function (data) {
+      expect(data.startsWith('data:image/png;base64,')).to.be.ok
+    }, true)
+    doit('Random.dataImage("200x100")', function (data) {
+      expect(data.startsWith('data:image/png;base64,')).to.be.ok
+    }, true)
+    doit('Random.dataImage("200x100", "HelloWorld")', function (data) {
+      expect(data.startsWith('data:image/png;base64,')).to.be.ok
+    }, true)
   })
 
   const RE_COLOR = /^#[0-9a-fA-F]{6}$/
@@ -456,6 +459,11 @@ describe('Random', function () {
     doit('Random.version(4)', function (data) {
       expect(data).to.be.a('string')
       expect(data.split('.')).to.be.a('array').with.length(4)
+    })
+    doit('Random.phone()', function (data) {
+      expect(data).to.be.a('string')
+      const PHONE_RE = /^[1](([3][0-9])|([4][5-9])|([5][0-3,5-9])|([6][5,6])|([7][0-8])|([8][0-9])|([9][1,8,9]))[0-9]{8}$/
+      expect(PHONE_RE.test(data)).to.be.ok
     })
   })
 })

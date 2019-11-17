@@ -12,3 +12,5 @@ ts-dist
 coverage
 .dev-doc
 example
+doc/.vuepress/dist
+publish.sh

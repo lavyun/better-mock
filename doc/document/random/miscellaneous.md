@@ -59,3 +59,14 @@ Random.increment(100)
 Random.increment(1000)
 // => 1101
 ```
+
+## Random.phone
+
+* Random.phone()
+
+生成一个中国的手机号。
+
+```js
+Random.phone()
+// => 13088757656
+```

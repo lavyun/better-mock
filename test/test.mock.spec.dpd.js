@@ -197,6 +197,7 @@ describe('DPD', function () {
         id: '@ID',
         version1: '@VERSION',
         version2: '@VERSION(4)',
+        phone: '@PHONE',
         'increment1|3': [
           '@INCREMENT'
         ],
