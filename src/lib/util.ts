@@ -1,4 +1,4 @@
-export const objectAssign = function (target, varArgs) {
+export const objectAssign = function (target, args) {
   // TypeError if undefined or null
   if (target == null) {
     throw new TypeError('Cannot convert undefined or null to object')
@@ -6,8 +6,8 @@ export const objectAssign = function (target, varArgs) {
   
   let to = Object(target)
   
-  for (let index = 1; index < arguments.length; index++) {
-    const nextSource = arguments[index]
+  for (let i = 1; i < arguments.length; i++) {
+    const nextSource = arguments[i]
     
     if (nextSource != null) { // Skip over if undefined or null
       for (let nextKey in nextSource) {
@@ -38,35 +38,37 @@ export const each = function (obj, iterator, context?) {
   }
 }
 
-export const type = function (obj) {
-  return isDef(obj) ? Object.prototype.toString.call(obj).match(/\[object (\w+)\]/)![1].toLowerCase() : String(obj)
+export const type = function(value: any): string {
+  return isDef(value) 
+    ? Object.prototype.toString.call(value).match(/\[object (\w+)\]/)![1].toLowerCase() 
+    : String(value)
 }
 
 export const isDef = function (value: any): boolean {
   return value !== undefined && value !== null
 }
 
-export const isString = function (value) {
+export const isString = function (value: any): value is string {
   return type(value) === 'string'
 }
 
-export const isObject = function (value) {
+export const isObject = function (value: any): value is object {
   return type(value) === 'object'
 }
 
-export const isArray = function (value) {
+export const isArray = function (value: any): value is Array<any> {
   return type(value) === 'array'
 }
 
-export const isRegExp = function (value) {
+export const isRegExp = function (value: any): value is RegExp {
   return type(value) === 'regexp'
 }
 
-export const isFunction = function (value) {
+export const isFunction = function (value: any): value is Function {
   return type(value) === 'function'
 }
 
-export const isObjectOrArray = function (value) {
+export const isObjectOrArray = function (value: any): value is object | Array<any> {
   return isObject(value) || isArray(value)
 }
 
@@ -74,7 +76,7 @@ export const isNumeric = function (value) {
   return !isNaN(parseFloat(value)) && isFinite(value)
 }
 
-export const keys = function (obj: object) {
+export const keys = function (obj: object): string[] {
   const keys: string[] = []
   for (let key in obj) {
     if (obj.hasOwnProperty(key)) {

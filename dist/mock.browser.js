@@ -60,7 +60,7 @@
     return r;
   };
 
-  var objectAssign = function objectAssign(target, varArgs) {
+  var objectAssign = function objectAssign(target, args) {
     // TypeError if undefined or null
     if (target == null) {
       throw new TypeError('Cannot convert undefined or null to object');
@@ -68,8 +68,8 @@
 
     var to = Object(target);
 
-    for (var index = 1; index < arguments.length; index++) {
-      var nextSource = arguments[index];
+    for (var i = 1; i < arguments.length; i++) {
+      var nextSource = arguments[i];
 
       if (nextSource != null) {
         // Skip over if undefined or null
@@ -101,8 +101,8 @@
       }
     }
   };
-  var type = function type(obj) {
-    return isDef(obj) ? Object.prototype.toString.call(obj).match(/\[object (\w+)\]/)[1].toLowerCase() : String(obj);
+  var type = function type(value) {
+    return isDef(value) ? Object.prototype.toString.call(value).match(/\[object (\w+)\]/)[1].toLowerCase() : String(value);
   };
   var isDef = function isDef(value) {
     return value !== undefined && value !== null;
@@ -9094,21 +9094,47 @@
     for (var sUrlType in MockXMLHttpRequest.Mock.mocked) {
       var item = MockXMLHttpRequest.Mock.mocked[sUrlType];
 
-      if ((!item.rurl || match(item.rurl, options.url)) && (!item.rtype || match(item.rtype, options.type.toLowerCase()))) {
-        // console.log('[mock]', options.url, '>', item.rurl)
+      if ((!item.rurl || matchUrl(item.rurl, options.url)) && (!item.rtype || matchType(item.rtype, options.type))) {
         return item;
       }
     }
 
-    function match(expected, actual) {
-      if (type(expected) === 'string') {
-        return expected === actual;
+    function matchUrl(expected, actual) {
+      if (isString(expected)) {
+        if (expected === actual) {
+          return true;
+        } // expected: /hello/world
+        // actual: /hello/world?type=1
+
+
+        if (actual.indexOf(expected) === 0 && actual[expected.length] === '?') {
+          return true;
+        }
       }
 
-      if (type(expected) === 'regexp') {
+      if (isRegExp(expected)) {
         return expected.test(actual);
       }
+
+      return false;
     }
+
+    function matchType(expected, actual) {
+      if (isString(expected) || isRegExp(expected)) {
+        return new RegExp(expected, 'i').test(actual);
+      }
+
+      return false;
+    } // function match(expected: string | RegExp, actual: string): boolean {
+    //   if (util.isString(expected)) {
+    //     return expected === actual
+    //   }
+    //   if (util.isRegExp(expected)) {
+    //     return new RegExp(expected, 'i').test(actual)
+    //   }
+    //   return false
+    // }
+
   } // 数据模板 ＝> 响应数据
 
 

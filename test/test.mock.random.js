@@ -206,7 +206,7 @@ describe('Random', function () {
     })
   })
 
-  describe.only('Image', function () {
+  describe('Image', function () {
     doit('Random.image()', function (data) {
       expect(data).to.include('https://dummyimage.com')
     })

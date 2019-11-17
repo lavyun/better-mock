@@ -56,7 +56,7 @@ var __spreadArrays = undefined && undefined.__spreadArrays || function () {
   return r;
 };
 
-var objectAssign = function objectAssign(target, varArgs) {
+var objectAssign = function objectAssign(target, args) {
   // TypeError if undefined or null
   if (target == null) {
     throw new TypeError('Cannot convert undefined or null to object');
@@ -64,8 +64,8 @@ var objectAssign = function objectAssign(target, varArgs) {
 
   var to = Object(target);
 
-  for (var index = 1; index < arguments.length; index++) {
-    var nextSource = arguments[index];
+  for (var i = 1; i < arguments.length; i++) {
+    var nextSource = arguments[i];
 
     if (nextSource != null) {
       // Skip over if undefined or null
@@ -97,8 +97,8 @@ var each = function each(obj, iterator, context) {
     }
   }
 };
-var type = function type(obj) {
-  return isDef(obj) ? Object.prototype.toString.call(obj).match(/\[object (\w+)\]/)[1].toLowerCase() : String(obj);
+var type = function type(value) {
+  return isDef(value) ? Object.prototype.toString.call(value).match(/\[object (\w+)\]/)[1].toLowerCase() : String(value);
 };
 var isDef = function isDef(value) {
   return value !== undefined && value !== null;

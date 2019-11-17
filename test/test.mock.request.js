@@ -395,6 +395,72 @@ describe('Request', function () {
 
     })
   })
+
+  describe('Mock.mock( rurl, rtype, function(options) ) + get params', function () {
+    it('', function (done) {
+      var that = this
+      var url = 'rurl_rtype_function.json'
+
+      Mock.mock('rurl_rtype_function.json', 'get', function (options) {
+        expect(options).to.not.equal(undefined)
+        expect(options.url).to.be.equal(url + '?foo=1')
+        expect(options.type).to.be.equal('GET')
+        expect(options.body).to.be.equal(null)
+        return {
+          type: 'get'
+        }
+      })
+
+      $.ajax({
+        url: url,
+        type: 'get',
+        dataType: 'json',
+        data: {
+          foo: 1
+        }
+      }).done(function (data /*, status, jqXHR*/) {
+        that.test.title += 'GET ' + url + ' => ' + stringify(data)
+        expect(data).to.have.property('type', 'get')
+      }).fail(function (jqXHR, textStatus, errorThrown) {
+        console.log(jqXHR, textStatus, errorThrown)
+      }).always(function () {
+        done()
+      })
+    })
+  })
+
+  describe('Mock.mock( rurl, rtype, function(options) ) + method not case sensitive', function () {
+    it('', function (done) {
+      var that = this
+      var url = 'rurl_rtype_function.json'
+
+      Mock.mock('rurl_rtype_function.json', 'GET', function (options) {
+        expect(options).to.not.equal(undefined)
+        expect(options.url).to.be.equal(url + '?foo=1')
+        expect(options.type).to.be.equal('GET')
+        expect(options.body).to.be.equal(null)
+        return {
+          type: 'get'
+        }
+      })
+
+      $.ajax({
+        url: url,
+        type: 'get',
+        dataType: 'json',
+        data: {
+          foo: 1
+        }
+      }).done(function (data /*, status, jqXHR*/) {
+        that.test.title += 'GET ' + url + ' => ' + stringify(data)
+        expect(data).to.have.property('type', 'get')
+      }).fail(function (jqXHR, textStatus, errorThrown) {
+        console.log(jqXHR, textStatus, errorThrown)
+      }).always(function () {
+        done()
+      })
+    })
+  })
   describe('#105 addEventListener', function () {
     it('addEventListene => addEventListener', function (done) {
       var xhr = new Mock.XHR()
