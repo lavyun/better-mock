@@ -9,7 +9,7 @@
     "test": "mochify",
     "cover": "nyc --reporter=lcov --instrument false mochify --transform [ babelify --ignore [ test ] --plugins [ babel-plugin-istanbul ] ]",
     "coveralls": "cat ./coverage/lcov.info | coveralls",
-    "clear": "rimraf dist && rimraf typings",
+    "clear": "rimraf dist",
     "build": "npm run clear && tsc && node build/build.js && rimraf ts-dist",
     "doc:dev": "vuepress dev doc",
     "doc:build": "vuepress build doc",
