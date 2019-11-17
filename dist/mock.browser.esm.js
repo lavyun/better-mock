@@ -1,5 +1,5 @@
 /*!
- * better-mock v0.0.2
+ * better-mock v0.0.3
  * (c) 2019-2019 lavyun@163.com * Released under the MIT License.
  */
 function _typeof(obj) {
@@ -6722,7 +6722,11 @@ var key = 0;
 var increment = function increment(step) {
   return key += Number(step) || 1; // step?
 };
-var inc = increment; // 生成一个版本号
+var inc = increment;
+/**
+ * 随机生成一个版本号
+ * @param depth 版本号的层级，默认为3
+ */
 
 var version = function version(depth) {
   if (depth === void 0) {
@@ -6736,6 +6740,14 @@ var version = function version(depth) {
   }
 
   return numbers.join('.');
+}; // 随机生成一个中国手机号
+
+var phone = function phone() {
+  var segments = [// 移动号段
+  '134', '135', '136', '137', '138', '139', '147', '150', '151', '152', '157', '158', '159', '165', '172', '178', '182', '183', '184', '187', '188', // 联通号段
+  '130', '131', '132', '145', '155', '156', '171', '175', '176', '185', '186', // 电信号段
+  '133', '149', '153', '173', '174', '177', '180', '181', '189', '191'];
+  return pick(segments) + string('number', 8);
 };
 
 var misc = /*#__PURE__*/Object.freeze({
@@ -6744,7 +6756,8 @@ var misc = /*#__PURE__*/Object.freeze({
   id: id,
   increment: increment,
   inc: inc,
-  version: version
+  version: version,
+  phone: phone
 });
 
 var __assign = undefined && undefined.__assign || function () {
@@ -9232,7 +9245,7 @@ var Mock = {
     return MockXMLHttpRequest.setup(settings);
   },
   mocked: {},
-  version: '0.0.2'
+  version: '0.0.3'
 }; // 避免循环依赖
 
 if (MockXMLHttpRequest) {

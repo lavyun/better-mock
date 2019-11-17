@@ -2,7 +2,7 @@
   "name": "better-mock",
   "description": "Forked from Mockjs. Generate random data & Intercept ajax request",
   "author": "lavyun@163.com",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "./dist/mock.node.js",
   "module": "./dist/mock.browser.esm.js",
   "scripts": {
@@ -24,6 +24,17 @@
     "intercept request",
     "ajax"
   ],
+  "files": [
+    "bin",
+    "dist",
+    "src",
+    "test",
+    "LICENCE",
+    "package.json",
+    "README.md",
+    "tsconfig.json"
+  ],
+  "types": "./typings/index.d.ts",
   "devDependencies": {
     "@babel/core": "^7.4.5",
     "@babel/preset-env": "^7.4.5",

@@ -46,7 +46,6 @@ describe('Random', function () {
 
       expect(+parts[1]).to.be.a('number').within(min, max)
 
-      /* jshint -W041 */
       if (parts[2] != undefined) {
         expect(parts[2]).to.have.length.within(dmin, dmax)
       }
@@ -456,6 +455,11 @@ describe('Random', function () {
     doit('Random.version(4)', function (data) {
       expect(data).to.be.a('string')
       expect(data.split('.')).to.be.a('array').with.length(4)
+    })
+    doit('Random.phone()', function (data) {
+      expect(data).to.be.a('string')
+      const PHONE_RE = /^[1](([3][0-9])|([4][5-9])|([5][0-3,5-9])|([6][5,6])|([7][0-8])|([8][0-9])|([9][1,8,9]))[0-9]{8}$/
+      expect(PHONE_RE.test(data)).to.be.ok
     })
   })
 })

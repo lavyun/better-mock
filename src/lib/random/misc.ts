@@ -51,11 +51,27 @@ export const increment = function (step: number | string) {
 
 export const inc = increment
 
-// 生成一个版本号
+/**
+ * 随机生成一个版本号
+ * @param depth 版本号的层级，默认为3
+ */
 export const version = function (depth: number = 3): string {
   const numbers: number[] = []
   for (let i = 0; i < depth; i++) {
     numbers.push(basic.natural(0, 10))
   }
   return numbers.join('.')
+}
+
+// 随机生成一个中国手机号
+export const phone = function (): string {
+  const segments: string[] = [
+    // 移动号段
+    '134', '135', '136', '137', '138', '139', '147', '150', '151', '152', '157', '158', '159', '165', '172', '178', '182', '183', '184', '187', '188',
+    // 联通号段
+    '130', '131', '132', '145', '155', '156', '171', '175', '176', '185', '186',
+    // 电信号段
+    '133', '149', '153', '173', '174', '177', '180', '181', '189', '191'
+  ]
+  return helper.pick(segments) + basic.string('number', 8)
 }
