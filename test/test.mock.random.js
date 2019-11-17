@@ -7,11 +7,12 @@ describe('Random', function () {
     return JSON.stringify(json /*, null, 4*/)
   }
 
-  function doit (expression, validator) {
+  function doit (expression, validator, cut) {
     it('', function () {
       const data = eval(expression)
       validator(data)
-      this.test.title = stringify(expression) + ' => ' + stringify(data)
+      const result = stringify(data)
+      this.test.title = `${stringify(expression)} => ${cut ? result.substr(0, 100) + '...' : result}`
     })
   }
 
@@ -205,25 +206,28 @@ describe('Random', function () {
     })
   })
 
-  describe('Image', function () {
+  describe.only('Image', function () {
     doit('Random.image()', function (data) {
-      expect(data).to.be.ok
+      expect(data).to.include('https://dummyimage.com')
     })
-    it('Random.dataImage()', function () {
-      const data = eval(this.test.title)
-      expect(data).to.be.ok
-      this.test.title = stringify(this.test.title) + ' => '
+    doit('Random.image("300x400", "HelloWorld")', function (data) {
+      expect(data).to.be.equal('https://dummyimage.com/300x400&text=HelloWorld')
     })
-    it('Random.dataImage("200x100")', function () {
-      const data = eval(this.test.title)
-      expect(data).to.be.ok
-      this.test.title = stringify(this.test.title) + ' => '
+    doit('Random.image("300x400", "#234567", "HelloWorld")', function (data) {
+      expect(data).to.be.equal('https://dummyimage.com/300x400/234567&text=HelloWorld')
     })
-    it('Random.dataImage("200x100", "Hello Mock.js!")', function () {
-      const data = eval(this.test.title)
-      expect(data).to.be.ok
-      this.test.title = stringify(this.test.title) + ' => '
+    doit('Random.image("300x400", "#234567", "#FFFFFF", "HelloWorld")', function (data) {
+      expect(data).to.be.equal('https://dummyimage.com/300x400/234567/FFFFFF&text=HelloWorld')
     })
+    doit('Random.dataImage()', function (data) {
+      expect(data.startsWith('data:image/png;base64,')).to.be.ok
+    }, true)
+    doit('Random.dataImage("200x100")', function (data) {
+      expect(data.startsWith('data:image/png;base64,')).to.be.ok
+    }, true)
+    doit('Random.dataImage("200x100", "HelloWorld")', function (data) {
+      expect(data.startsWith('data:image/png;base64,')).to.be.ok
+    }, true)
   })
 
   const RE_COLOR = /^#[0-9a-fA-F]{6}$/

@@ -1,8 +1,6 @@
 // Type definitions for better-mock
 // Project: http://github.com/lavyun/better-mock
 // Definitions by: lavyun <https://github.com/lavyun>
-// Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
-// TypeScript Version: 2.2
 
 declare namespace betterMock {
   type N = number;
@@ -88,10 +86,13 @@ declare namespace betterMock {
   }
 
   // Mock.Random - Image
-  type RandomImageFormatString = 'png' | 'gif' | 'jpg';
   interface RandomImage {
     // Random.image
-    image(size?: S, background?: S, foreground?: S, format?: RandomImageFormatString | S, text?: S): S;
+    image(): S;
+    image(size: S, text: S): S;
+    image(size: S, background: S, text: S): S;
+    image(size: S, background: S, foreground: S, text: S);
+    image(size: S, background: S, foreground: S, format: 'png' | 'gif' | 'jpg', text: S): S;
 
     // Random.dataImage
     dataImage(size?: S, text?: S): S;

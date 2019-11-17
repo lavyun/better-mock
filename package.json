@@ -34,7 +34,14 @@
     "README.md",
     "tsconfig.json"
   ],
+  "bin": {
+    "random": "bin/random"
+  },
   "types": "./typings/index.d.ts",
+  "dependencies": {
+    "china-location": "^2.0.0",
+    "sync-request": "^6.1.0"
+  },
   "devDependencies": {
     "@babel/core": "^7.4.5",
     "@babel/preset-env": "^7.4.5",
@@ -63,16 +70,10 @@
     "type": "git",
     "url": "https://github.com/lavyun/better-mock"
   },
-  "bin": {
-    "random": "bin/random"
-  },
   "licenses": [
     {
       "type": "MIT",
       "url": "https://github.com/lavyun/better-mock/blob/master/LICENSE"
     }
-  ],
-  "dependencies": {
-    "china-location": "^2.0.0"
-  }
+  ]
 }

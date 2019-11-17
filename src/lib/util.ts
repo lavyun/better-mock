@@ -95,19 +95,9 @@ export const values = function (obj: object) {
 }
 
 /**
- * ### Mock.heredoc(fn)
- *
+ * Mock.heredoc(fn)
  * 以直观、安全的方式书写（多行）HTML 模板。
- *
- * 使用示例如下所示：
- *
- * const tpl = Mock.heredoc(function () {
-   *
-   * })
- *
- * 相关阅读:
- *
- * [Creating multiline strings in JavaScript](http://stackoverflow.com/questions/805107/creating-multiline-strings-in-javascript)
+ * http://stackoverflow.com/questions/805107/creating-multiline-strings-in-javascript
  */
 export const heredoc = function (fn) {
   // 1. 移除起始的 function(){ /*!
@@ -122,3 +112,7 @@ export const heredoc = function (fn) {
 }
 
 export const noop = function () {}
+
+export const logInfo = function (...args) {
+  console.log('[better-mock]', ...args)
+}
