@@ -439,7 +439,7 @@ function createNativeXMLHttpRequest() {
 }
 
 // 查找与请求参数匹配的数据模板：URL，Type
-function find(options) {
+export function find(options) {
   for (let sUrlType in MockXMLHttpRequest.Mock.mocked) {
     const item = MockXMLHttpRequest.Mock.mocked[sUrlType]
     if (
@@ -455,6 +455,7 @@ function find(options) {
       if (expected === actual) {
         return true
       }
+
       // expected: /hello/world
       // actual: /hello/world?type=1
       if (actual.indexOf(expected) === 0 && actual[expected.length] === '?') {
@@ -473,20 +474,10 @@ function find(options) {
     }
     return false
   }
-
-  // function match(expected: string | RegExp, actual: string): boolean {
-  //   if (util.isString(expected)) {
-  //     return expected === actual
-  //   }
-  //   if (util.isRegExp(expected)) {
-  //     return new RegExp(expected, 'i').test(actual)
-  //   }
-  //   return false
-  // }
 }
 
 // 数据模板 ＝> 响应数据
-function convert(item, options) {
+export function convert(item, options) {
   return util.isFunction(item.template) ? item.template(options) : MockXMLHttpRequest.Mock.mock(item.template)
 }
 

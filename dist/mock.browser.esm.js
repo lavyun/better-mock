@@ -1,5 +1,5 @@
 /*!
- * better-mock v0.0.3
+ * better-mock v0.1.0
  * (c) 2019-2019 lavyun@163.com * Released under the MIT License.
  */
 function _typeof(obj) {
@@ -9119,22 +9119,44 @@ function find(options) {
     }
 
     return false;
-  } // function match(expected: string | RegExp, actual: string): boolean {
-  //   if (util.isString(expected)) {
-  //     return expected === actual
-  //   }
-  //   if (util.isRegExp(expected)) {
-  //     return new RegExp(expected, 'i').test(actual)
-  //   }
-  //   return false
-  // }
-
+  }
 } // 数据模板 ＝> 响应数据
-
 
 function convert(item, options) {
   return isFunction(item.template) ? item.template(options) : MockXMLHttpRequest.Mock.mock(item.template);
 }
+
+var _nativeFetch = fetch;
+
+var MockFetch = function MockFetch(input, init) {
+  var request;
+
+  if (input instanceof Request && !init) {
+    request = input;
+  } else {
+    request = new Request(input, init);
+  }
+
+  var options = {
+    url: request.url,
+    type: request.method,
+    body: request.body || null
+  }; // 查找与请求参数匹配的数据模板
+
+  var item = find(options); // 如果未找到匹配的数据模板，则采用原生 fetch 发送请求。
+
+  if (!item) {
+    return _nativeFetch(input, init);
+  } // 找到了匹配的数据模板，拦截 fetch 请求
+
+
+  var response = new Response(JSON.stringify(convert(item, options)), {
+    status: 200,
+    statusText: 'ok',
+    headers: request.headers
+  });
+  return Promise.resolve(response);
+};
 
 // For browser
 var Mock = {
@@ -9151,7 +9173,7 @@ var Mock = {
     return MockXMLHttpRequest.setup(settings);
   },
   mocked: {},
-  version: '0.0.3'
+  version: '0.1.0'
 }; // 避免循环依赖
 
 if (MockXMLHttpRequest) {
@@ -9178,8 +9200,10 @@ function mock(rurl, rtype, template) {
   } // 拦截 XHR
 
 
-  if (MockXMLHttpRequest) {
-    window.XMLHttpRequest = MockXMLHttpRequest;
+  window.XMLHttpRequest = MockXMLHttpRequest; // 拦截fetch
+
+  if (window.fetch) {
+    window.fetch = MockFetch;
   }
 
   Mock.mocked[rurl + (rtype || '')] = {

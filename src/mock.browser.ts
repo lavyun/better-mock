@@ -6,6 +6,7 @@ import RE from './lib/regexp/index'
 import toJSONSchema from './lib/schema/index'
 import valid from './lib/valid/index'
 import XHR from './lib/xhr'
+import Fetch from './lib/fetch'
 
 const Mock = {
   Handler,
@@ -45,8 +46,10 @@ function mock (rurl, rtype, template) {
     rtype = undefined
   }
   // 拦截 XHR
-  if (XHR) {
-    (window.XMLHttpRequest as any) = XHR
+  (window.XMLHttpRequest as any) = XHR
+  // 拦截fetch
+  if (window.fetch) {
+    window.fetch = Fetch
   }
   Mock.mocked[rurl + (rtype || '')] = {
     rurl: rurl,
