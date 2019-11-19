@@ -135,7 +135,7 @@ describe('Fetch', function() {
         expect(options).to.not.equal(undefined)
         expect(options.url).to.be.equal(url)
         expect(options.type).to.be.equal('POST')
-        // expect(options.body).to.be.equal('foo=1')
+        expect(options.body).to.be.equal('{"foo":1}')
         return Mock.mock({
           'list|1-10': [
             {
@@ -149,12 +149,7 @@ describe('Fetch', function() {
       try {
         const data = await fetch(url, {
           method: 'POST',
-          body: JSON.stringify({
-            foo: 1
-          }),
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          body: JSON.stringify({foo: 1})
         }).then(res => res.json())
         this.test.title += url + ' => ' + stringify(data)
         expect(data)
@@ -294,9 +289,7 @@ describe('Fetch', function() {
 
   describe('Mock.mock( rurl, rtype, function(options) ) + data', () => {
     it('get ', async function () {
-      var that = this
       const url = 'http://example.com/rurl_rtype_function_get_data'
-      var count = 0
 
       Mock.mock(url, /get/, function (options) {
         expect(options).to.not.equal(undefined)
@@ -313,7 +306,7 @@ describe('Fetch', function() {
         this.test.title += url + ' => ' + stringify(data)
         expect(data).to.have.property('type', 'get')
       } catch (err) {
-        console.err(err)
+        console.error(err)
       }
     })
 
@@ -324,7 +317,7 @@ describe('Fetch', function() {
         expect(options).to.not.equal(undefined)
         expect(options.url).to.be.equal(url)
         expect(['POST', 'PUT']).to.include(options.type)
-        // expect(options.body).to.be.equal('foo=1')
+        expect(options.body).to.be.equal('{"foo":1}')
         return {
           type: options.type.toLowerCase()
         }
@@ -333,8 +326,7 @@ describe('Fetch', function() {
       try {
         const data = await fetch(url, {
           method: 'POST',
-          data: JSON.stringify({foo: 1}),
-          headers: {'content-type': 'application/json'}
+          body: JSON.stringify({foo: 1})
         }).then(res => res.json())
         this.test.title += url + ' => ' + stringify(data)
         expect(data).to.have.property('type', 'post')
@@ -345,8 +337,7 @@ describe('Fetch', function() {
       try {
         const data = await fetch(url, {
           method: 'PUT',
-          data: JSON.stringify({foo: 1}),
-          headers: {'content-type': 'application/json'}
+          body: JSON.stringify({foo: 1})
         }).then(res => res.json())
         this.test.title += url + ' => ' + stringify(data)
         expect(data).to.have.property('type', 'put')

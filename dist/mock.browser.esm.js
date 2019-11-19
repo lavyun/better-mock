@@ -9127,20 +9127,70 @@ function convert(item, options) {
 }
 
 var _nativeFetch = fetch;
+var _nativeRequest = Request;
 
-var MockFetch = function MockFetch(input, init) {
+function extendRequest(request, input, init) {
+  if (isString(input)) {
+    request['_actualUrl'] = input;
+  }
+
+  if (init && init.body) {
+    request['_actualBody'] = init.body;
+  }
+
+  if (input instanceof _nativeRequest && !init) {
+    request['_actualUrl'] = input['_actualUrl'];
+    request['_actualBody'] = input['_actualBody'];
+  }
+
+  return request;
+}
+
+var MockRequest;
+/**
+ * 拦截 window.Request 实例化
+ * 原生 Request 对象被实例化后，对 request.url 取值得到的是拼接后的 url:
+ *   const request = new Request('/path/to')
+ *   console.log(request.url) => 'http://example.com/path/to'
+ * 原生 Request 对象被实例化后，对 request.body 取值得到的是 undefined:
+ *   const request = new Request('/path/to', { method: 'POST', body: 'foo=1' })
+ *   console.log(request.body) => undefined
+ */
+
+if (window.Proxy) {
+  MockRequest = new Proxy(_nativeRequest, {
+    construct: function construct(target, _a) {
+      var input = _a[0],
+          init = _a[1];
+      var request = new target(input, init);
+      return extendRequest(request, input, init);
+    }
+  });
+} else {
+  MockRequest = function MockRequest(input, init) {
+    var request = new _nativeRequest(input, init);
+    return extendRequest(request, input, init);
+  };
+
+  MockRequest.prototype = _nativeRequest.prototype;
+} // 拦截 fetch 方法
+// https://developer.mozilla.org/zh-CN/docs/Web/API/WindowOrWorkerGlobalScope/fetch
+
+
+function MockFetch(input, init) {
   var request;
 
   if (input instanceof Request && !init) {
     request = input;
   } else {
     request = new Request(input, init);
-  }
+  } // 优先获取自己扩展的 _actualUrl 和 _actualBody
+
 
   var options = {
-    url: request.url,
+    url: request['_actualUrl'] || request.url,
     type: request.method,
-    body: request.body || null
+    body: request['_actualBody'] || request.body || null
   }; // 查找与请求参数匹配的数据模板
 
   var item = find(options); // 如果未找到匹配的数据模板，则采用原生 fetch 发送请求。
@@ -9156,7 +9206,12 @@ var MockFetch = function MockFetch(input, init) {
     headers: request.headers
   });
   return Promise.resolve(response);
-};
+}
+
+function rewriteFetchAndRequest() {
+  window.Request = MockRequest;
+  window.fetch = MockFetch;
+}
 
 // For browser
 var Mock = {
@@ -9178,13 +9233,7 @@ var Mock = {
 
 if (MockXMLHttpRequest) {
   MockXMLHttpRequest.Mock = Mock;
-} // Mock.mock( template )
-// Mock.mock( function() )
-// Mock.mock( rurl, template )
-// Mock.mock( rurl, function(options) )
-// Mock.mock( rurl, rtype, template )
-// Mock.mock( rurl, rtype, function(options) )
-// 根据数据模板生成模拟数据。
+} // 根据数据模板生成模拟数据。
 
 
 function mock(rurl, rtype, template) {
@@ -9203,7 +9252,7 @@ function mock(rurl, rtype, template) {
   window.XMLHttpRequest = MockXMLHttpRequest; // 拦截fetch
 
   if (window.fetch) {
-    window.fetch = MockFetch;
+    rewriteFetchAndRequest();
   }
 
   Mock.mocked[rurl + (rtype || '')] = {

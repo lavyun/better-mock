@@ -6,7 +6,7 @@ import RE from './lib/regexp/index'
 import toJSONSchema from './lib/schema/index'
 import valid from './lib/valid/index'
 import XHR from './lib/xhr'
-import Fetch from './lib/fetch'
+import rewriteFetchAndRequest from './lib/fetch'
 
 const Mock = {
   Handler,
@@ -28,12 +28,6 @@ if (XHR) {
   XHR.Mock = Mock
 }
 
-// Mock.mock( template )
-// Mock.mock( function() )
-// Mock.mock( rurl, template )
-// Mock.mock( rurl, function(options) )
-// Mock.mock( rurl, rtype, template )
-// Mock.mock( rurl, rtype, function(options) )
 // 根据数据模板生成模拟数据。
 function mock (rurl, rtype, template) {
   // Mock.mock(template)
@@ -49,7 +43,7 @@ function mock (rurl, rtype, template) {
   (window.XMLHttpRequest as any) = XHR
   // 拦截fetch
   if (window.fetch) {
-    window.fetch = Fetch
+    rewriteFetchAndRequest()
   }
   Mock.mocked[rurl + (rtype || '')] = {
     rurl: rurl,
