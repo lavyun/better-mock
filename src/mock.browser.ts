@@ -45,9 +45,9 @@ function mock (rurl, rtype, template) {
   if (window.fetch) {
     rewriteFetchAndRequest()
   }
-  Mock.mocked[rurl + (rtype || '')] = {
-    rurl: rurl,
-    rtype: rtype,
+  Mock.mocked[rurl + (rtype || '')] = { 
+    rurl: rurl, 
+    rtype: rtype, 
     template: template
   }
   return Mock

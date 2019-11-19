@@ -7,6 +7,17 @@ describe('Fetch', function() {
     return JSON.stringify(json)
   }
 
+  function dataAssert(data) {
+    expect(data)
+      .to.have.property('list')
+      .that.be.an('array')
+      .with.length.within(1, 10)
+
+    data.list.forEach(function(item, index) {
+      if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
+    })
+  }
+
   describe('fetch()', () => {
     it('error', async () => {
       const url = Math.random()
@@ -28,7 +39,7 @@ describe('Fetch', function() {
   })
 
   describe('Mock.mock( rurl, template )', () => {
-    it('', async function() {
+    it('remote url', async function() {
       const url = 'http://example.com/rurl_template'
 
       Mock.mock(url, {
@@ -43,13 +54,28 @@ describe('Fetch', function() {
       try {
         const data = await fetch(url).then(res => res.json())
         this.test.title += url + ' => ' + stringify(data)
-        expect(data)
-          .to.have.property('list')
-          .that.be.an('array')
-          .with.length.within(1, 10)
-        data.list.forEach(function(item, index) {
-          if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
-        })
+        dataAssert(data)
+      } catch (err) {
+        console.error(err)
+      }
+    })
+
+    it('remote url', async function() {
+      const url = 'http://example.com/rurl_template'
+
+      Mock.mock(url, {
+        'list|1-10': [
+          {
+            'id|+1': 1,
+            email: '@EMAIL'
+          }
+        ]
+      })
+
+      try {
+        const data = await fetch(url).then(res => res.json())
+        this.test.title += url + ' => ' + stringify(data)
+        dataAssert(data)
       } catch (err) {
         console.error(err)
       }
@@ -78,13 +104,7 @@ describe('Fetch', function() {
       try {
         const data = await fetch(url).then(res => res.json())
         this.test.title += url + ' => ' + stringify(data)
-        expect(data)
-          .to.have.property('list')
-          .that.be.an('array')
-          .with.length.within(1, 10)
-        data.list.forEach(function(item, index) {
-          if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
-        })
+        dataAssert(data)
       } catch (err) {
         console.error(err)
       }
@@ -114,13 +134,7 @@ describe('Fetch', function() {
         const requestUrl = url + '?' + $.param({ foo: 1 })
         const data = await fetch(requestUrl).then(res => res.json())
         this.test.title += requestUrl + ' => ' + stringify(data)
-        expect(data)
-          .to.have.property('list')
-          .that.be.an('array')
-          .with.length.within(1, 10)
-        data.list.forEach(function(item, index) {
-          if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
-        })
+        dataAssert(data)
       } catch (err) {
         console.log(err)
       }
@@ -149,16 +163,10 @@ describe('Fetch', function() {
       try {
         const data = await fetch(url, {
           method: 'POST',
-          body: JSON.stringify({foo: 1})
+          body: JSON.stringify({ foo: 1 })
         }).then(res => res.json())
         this.test.title += url + ' => ' + stringify(data)
-        expect(data)
-          .to.have.property('list')
-          .that.be.an('array')
-          .with.length.within(1, 10)
-        data.list.forEach(function(item, index) {
-          if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
-        })
+        dataAssert(data)
       } catch (err) {
         console.error(err)
       }
@@ -177,27 +185,20 @@ describe('Fetch', function() {
           }
         ]
       })
-      
 
       try {
         const data = await fetch(url).then(res => res.json())
         this.test.title += url + ' => ' + stringify(data) + ' '
-        expect(data)
-          .to.have.property('list')
-          .that.be.an('array')
-          .with.length.within(1, 10)
-        data.list.forEach(function(item, index) {
-          if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
-          expect(item)
-            .to.have.property('type')
-            .equal('get')
+        dataAssert(data)
+        data.list.forEach(function(item) {
+          expect(item).to.have.property('type').equal('get')
         })
       } catch (err) {
         console.log(err)
       }
     })
 
-    it('post ', async function () {
+    it('post ', async function() {
       const url = 'http://example.com/rurl_rtype_temp_post'
       Mock.mock(url, 'post', {
         'list|1-10': [
@@ -214,15 +215,9 @@ describe('Fetch', function() {
           method: 'POST'
         }).then(res => res.json())
         this.test.title += url + ' => ' + stringify(data) + ' '
-        expect(data)
-          .to.have.property('list')
-          .that.be.an('array')
-          .with.length.within(1, 10)
-        data.list.forEach(function(item, index) {
-          if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
-          expect(item)
-            .to.have.property('type')
-            .equal('post')
+        dataAssert(data)
+        data.list.forEach(function(item) {
+          expect(item).to.have.property('type').equal('post')
         })
       } catch (err) {
         console.error(err)
@@ -231,10 +226,10 @@ describe('Fetch', function() {
   })
 
   describe('Mock.mock( rurl, rtype, function(options) )', () => {
-    it('get ', async function () {
+    it('get ', async function() {
       const url = 'http://example.com/rurl_rtype_function_get'
 
-      Mock.mock(url, /get/, function (options) {
+      Mock.mock(url, /get/, function(options) {
         expect(options).to.not.equal(undefined)
         expect(options.url).to.be.equal(url)
         expect(options.type).to.be.equal('GET')
@@ -253,9 +248,9 @@ describe('Fetch', function() {
       }
     })
 
-    it('post|put ', async function () {
+    it('post|put ', async function() {
       const url = 'http://example.com/rurl_rtype_function_post_put'
-      Mock.mock(url, /post|put/, function (options) {
+      Mock.mock(url, /post|put/, function(options) {
         expect(options).to.not.equal(undefined)
         expect(options.url).to.be.equal(url)
         expect(['POST', 'PUT']).to.include(options.type)
@@ -288,10 +283,10 @@ describe('Fetch', function() {
   })
 
   describe('Mock.mock( rurl, rtype, function(options) ) + data', () => {
-    it('get ', async function () {
+    it('get ', async function() {
       const url = 'http://example.com/rurl_rtype_function_get_data'
 
-      Mock.mock(url, /get/, function (options) {
+      Mock.mock(url, /get/, function(options) {
         expect(options).to.not.equal(undefined)
         expect(options.url).to.be.equal(url + '?foo=1')
         expect(options.type).to.be.equal('GET')
@@ -302,7 +297,7 @@ describe('Fetch', function() {
       })
 
       try {
-        const data = await fetch(url + '?' + $.param({foo: 1})).then(res => res.json())
+        const data = await fetch(url + '?' + $.param({ foo: 1 })).then(res => res.json())
         this.test.title += url + ' => ' + stringify(data)
         expect(data).to.have.property('type', 'get')
       } catch (err) {
@@ -310,10 +305,10 @@ describe('Fetch', function() {
       }
     })
 
-    it('post|put ', async function () {
+    it('post|put ', async function() {
       const url = 'http://example.com/rurl_rtype_function_post_put_data'
 
-      Mock.mock(url, /post|put/, function (options) {
+      Mock.mock(url, /post|put/, function(options) {
         expect(options).to.not.equal(undefined)
         expect(options.url).to.be.equal(url)
         expect(['POST', 'PUT']).to.include(options.type)
@@ -326,7 +321,7 @@ describe('Fetch', function() {
       try {
         const data = await fetch(url, {
           method: 'POST',
-          body: JSON.stringify({foo: 1})
+          body: JSON.stringify({ foo: 1 })
         }).then(res => res.json())
         this.test.title += url + ' => ' + stringify(data)
         expect(data).to.have.property('type', 'post')
@@ -337,7 +332,7 @@ describe('Fetch', function() {
       try {
         const data = await fetch(url, {
           method: 'PUT',
-          body: JSON.stringify({foo: 1})
+          body: JSON.stringify({ foo: 1 })
         }).then(res => res.json())
         this.test.title += url + ' => ' + stringify(data)
         expect(data).to.have.property('type', 'put')
@@ -348,10 +343,10 @@ describe('Fetch', function() {
   })
 
   describe('Mock.mock( rurl, rtype, function(options) ) + get + params', () => {
-    it('get ', async function () {
+    it('get ', async function() {
       const url = 'http://example.com/rurl_rtype_function_get_params'
 
-      Mock.mock(url, 'get', function (options) {
+      Mock.mock(url, 'get', function(options) {
         expect(options).to.not.equal(undefined)
         expect(options.url).to.be.equal(url + '?foo=1')
         expect(options.type).to.be.equal('GET')
@@ -362,7 +357,7 @@ describe('Fetch', function() {
       })
 
       try {
-        const data = await fetch(url + '?' + $.param({foo: 1})).then(res => res.json())
+        const data = await fetch(url + '?' + $.param({ foo: 1 })).then(res => res.json())
         this.test.title += url + ' => ' + stringify(data)
         expect(data).to.have.property('type', 'get')
       } catch (err) {
@@ -372,10 +367,10 @@ describe('Fetch', function() {
   })
 
   describe('Mock.mock( rurl, rtype, function(options) ) + method not case sensitive', () => {
-    it('', async function () {
+    it('', async function() {
       const url = 'http://example.com/rurl_rtype_function_not_case_sensitive'
 
-      Mock.mock(url, 'GET', function (options) {
+      Mock.mock(url, 'GET', function(options) {
         expect(options).to.not.equal(undefined)
         expect(options.url).to.be.equal(url + '?foo=1')
         expect(options.type).to.be.equal('GET')
@@ -386,12 +381,48 @@ describe('Fetch', function() {
       })
 
       try {
-        const data = await fetch(url + '?' + $.param({foo: 1})).then(res => res.json())
+        const data = await fetch(url + '?' + $.param({ foo: 1 })).then(res => res.json())
         this.test.title += url + ' => ' + stringify(data)
         expect(data).to.have.property('type', 'get')
       } catch (err) {
         console.error(err)
       }
     })
+  })
+})
+
+describe('window.Request', () => {
+  before (() => {
+    // rewrite Request
+    Mock.mock('http://example.com', 'get', {
+      'list|1-10': [
+        {
+          'id|+1': 1,
+          email: '@EMAIL',
+          type: 'post'
+        }
+      ]
+    })
+  })
+
+  it('get actualUrl property', () => {
+    const request1 = new Request('http://example.com')
+    const request2 = new Request('/path/to')
+    const request3 = new Request('path/to')
+    expect(request1._actualUrl).to.be.an('string').equal('http://example.com')
+    expect(request2._actualUrl).to.be.an('string').equal('/path/to')
+    expect(request3._actualUrl).to.be.an('string').equal('path/to')
+  })
+
+  it('get actualBody property', () => {
+    const request = new Request('http://example.com', { method: 'POST', body: 'foo=1' })
+    expect(request._actualBody).to.be.an('string').equal('foo=1')
+  })
+
+  it('clone from request', () => {
+    const request1 = new Request('http://example.com', { method: 'POST', body: 'foo=1' })
+    const request2 = new Request(request1)
+    expect(request2._actualUrl).to.be.an('string').equal('http://example.com')
+    expect(request2._actualBody).to.be.an('string').equal('foo=1')
   })
 })

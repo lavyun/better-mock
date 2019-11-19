@@ -19,7 +19,6 @@ function extendRequest(request: Request, input: RequestInfo, init?: RequestInit 
 }
 
 let MockRequest
-
 /**
  * 拦截 window.Request 实例化
  * 原生 Request 对象被实例化后，对 request.url 取值得到的是拼接后的 url:
@@ -31,13 +30,13 @@ let MockRequest
  */
 if (window.Proxy) {
   MockRequest = new Proxy(_nativeRequest, {
-    construct (target, [input, init]: [RequestInfo, RequestInit | undefined]): Request {
+    construct(target, [input, init]: [RequestInfo, RequestInit | undefined]): Request {
       const request = new target(input, init)
       return extendRequest(request, input, init)
     }
   })
 } else {
-  MockRequest = function MockRequest (input: RequestInfo, init?: RequestInit | undefined): Request {
+  MockRequest = function MockRequest(input: RequestInfo, init?: RequestInit | undefined): Request {
     const request = new _nativeRequest(input, init)
     return extendRequest(request, input, init)
   }
@@ -46,7 +45,7 @@ if (window.Proxy) {
 
 // 拦截 fetch 方法
 // https://developer.mozilla.org/zh-CN/docs/Web/API/WindowOrWorkerGlobalScope/fetch
-function MockFetch (input: RequestInfo, init?: RequestInit | undefined): Promise<Response> {
+function MockFetch(input: RequestInfo, init?: RequestInit | undefined): Promise<Response> {
   let request: Request
   if (input instanceof Request && !init) {
     request = input
@@ -79,7 +78,7 @@ function MockFetch (input: RequestInfo, init?: RequestInit | undefined): Promise
   return Promise.resolve(response)
 }
 
-function rewriteFetchAndRequest () {
+function rewriteFetchAndRequest() {
   (window.Request as any) = MockRequest
   window.fetch = MockFetch
 }
