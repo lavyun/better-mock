@@ -168,6 +168,11 @@ var logInfo = function logInfo() {
 
   console.log.apply(console, __spreadArrays(['[better-mock]'], args));
 };
+var assert = function assert(condition, error) {
+  if (!condition) {
+    throw new Error('[better-mock] ' + error);
+  }
+};
 
 var Util = /*#__PURE__*/Object.freeze({
   objectAssign: objectAssign,
@@ -185,7 +190,8 @@ var Util = /*#__PURE__*/Object.freeze({
   values: values,
   heredoc: heredoc,
   noop: noop,
-  logInfo: logInfo
+  logInfo: logInfo,
+  assert: assert
 });
 
 var MAX_NATURE_NUMBER = 9007199254740992;

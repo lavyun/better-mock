@@ -118,3 +118,9 @@ export const noop = function () {}
 export const logInfo = function (...args) {
   console.log('[better-mock]', ...args)
 }
+
+export const assert = function (condition: any, error: string) {
+  if (!condition) {
+    throw new Error('[better-mock] ' + error)
+  }
+}

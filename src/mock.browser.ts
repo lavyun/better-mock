@@ -30,6 +30,7 @@ if (XHR) {
 
 // 根据数据模板生成模拟数据。
 function mock (rurl, rtype, template) {
+  Util.assert(arguments.length, 'The mock function needs to pass at least one parameter!')
   // Mock.mock(template)
   if (arguments.length === 1) {
     return Handler.gen(rurl)

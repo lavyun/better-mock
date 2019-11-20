@@ -2,20 +2,20 @@ const Mock = require('../dist/mock.browser')
 const expect = require('chai').expect
 const $ = require('jquery')
 
+function dataAssert(data) {
+  expect(data)
+    .to.have.property('list')
+    .that.be.an('array')
+    .with.length.within(1, 10)
+
+  data.list.forEach(function(item, index) {
+    if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
+  })
+}
+
 describe('Fetch', function() {
   function stringify(json) {
     return JSON.stringify(json)
-  }
-
-  function dataAssert(data) {
-    expect(data)
-      .to.have.property('list')
-      .that.be.an('array')
-      .with.length.within(1, 10)
-
-    data.list.forEach(function(item, index) {
-      if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
-    })
   }
 
   describe('fetch()', () => {
@@ -35,6 +35,24 @@ describe('Fetch', function() {
           expect(res.success).to.be.ok
           expect(res.data).to.be.an('array')
         })
+    })
+
+    it('input is a request, init is undefined', async () => {
+      Mock.mock('http://example.com', 'get', {
+        'list|1-10': [
+          {
+            'id|+1': 1,
+            email: '@EMAIL'
+          }
+        ]
+      })
+      const request = new Request('http://example.com', { method: 'POST', body: 'foo=1' })
+      try {
+        const data = await fetch(request).then(res => res.json())
+        dataAssert(data)
+      } catch (err) {
+        console.error(err)
+      }
     })
   })
 
@@ -398,8 +416,7 @@ describe('window.Request', () => {
       'list|1-10': [
         {
           'id|+1': 1,
-          email: '@EMAIL',
-          type: 'post'
+          email: '@EMAIL'
         }
       ]
     })

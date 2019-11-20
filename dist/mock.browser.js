@@ -172,6 +172,11 @@
 
     console.log.apply(console, __spreadArrays(['[better-mock]'], args));
   };
+  var assert = function assert(condition, error) {
+    if (!condition) {
+      throw new Error('[better-mock] ' + error);
+    }
+  };
 
   var Util = /*#__PURE__*/Object.freeze({
     objectAssign: objectAssign,
@@ -189,7 +194,8 @@
     values: values,
     heredoc: heredoc,
     noop: noop,
-    logInfo: logInfo
+    logInfo: logInfo,
+    assert: assert
   });
 
   var MAX_NATURE_NUMBER = 9007199254740992;
@@ -9093,8 +9099,14 @@
   function find(options) {
     for (var sUrlType in MockXMLHttpRequest.Mock.mocked) {
       var item = MockXMLHttpRequest.Mock.mocked[sUrlType];
+      var urlMatched = matchUrl(item.rurl, options.url);
+      var typeMatched = matchType(item.rtype, options.type);
 
-      if ((!item.rurl || matchUrl(item.rurl, options.url)) && (!item.rtype || matchType(item.rtype, options.type))) {
+      if (!item.rtype && urlMatched) {
+        return item;
+      }
+
+      if (urlMatched && typeMatched) {
         return item;
       }
     }
@@ -9243,7 +9255,8 @@
 
 
   function mock(rurl, rtype, template) {
-    // Mock.mock(template)
+    assert(arguments.length, 'The mock function needs to pass at least one parameter!'); // Mock.mock(template)
+
     if (arguments.length === 1) {
       return handler$1.gen(rurl);
     } // Mock.mock(rurl, template)

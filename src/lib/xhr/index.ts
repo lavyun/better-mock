@@ -442,10 +442,12 @@ function createNativeXMLHttpRequest() {
 export function find(options) {
   for (let sUrlType in MockXMLHttpRequest.Mock.mocked) {
     const item = MockXMLHttpRequest.Mock.mocked[sUrlType]
-    if (
-      (!item.rurl || matchUrl(item.rurl, options.url)) &&
-      (!item.rtype || matchType(item.rtype, options.type))
-    ) {
+    const urlMatched = matchUrl(item.rurl, options.url)
+    const typeMatched = matchType(item.rtype, options.type)
+    if (!item.rtype && urlMatched) {
+      return item
+    }
+    if (urlMatched && typeMatched) {
       return item
     }
   }
