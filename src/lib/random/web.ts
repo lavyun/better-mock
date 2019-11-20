@@ -3,7 +3,6 @@ import * as text from './text'
 import * as basic from './basic'
 
 // 随机生成一个 URL。
-// http://www.w3.org/Addressing/URL/url-spec.txt
 export const url = function(_protocol: string = protocol(), host: string = domain()): string {
   return `${_protocol}://${host}/${text.word()}`
 }
@@ -24,8 +23,6 @@ export const domain = function(_tld: string = tld()): string {
 }
 
 // 随机生成一个顶级域名。
-// 国际顶级域名 international top-level domain-names, iTLDs
-// 国家顶级域名 national top-level domainnames, nTLDs
 // [域名后缀大全](http://www.163ns.com/zixun/post/4417.html)
 export const tld = function(): string {
   const tlds = (

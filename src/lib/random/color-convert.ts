@@ -167,7 +167,7 @@ export const rgb2hex = function(
   a, // red, as a number from 0 to 255
   b, // green, as a number from 0 to 255
   c // blue, as a number from 0 to 255
-) {
+): string {
   return "#" + ((256 + a << 8 | b) << 8 | c).toString(16).slice(1)
 }
 

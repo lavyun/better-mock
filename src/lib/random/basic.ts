@@ -4,7 +4,7 @@ const MAX_NATURE_NUMBER = 9007199254740992
 const MIN_NATURE_NUMBER = -9007199254740992
 
 // 返回一个随机的布尔值。
-export const boolean = function (min: number = 1, max: number = 1, current?: boolean) {
+export const boolean = function (min: number = 1, max: number = 1, current?: boolean): boolean {
   if (isDef(current)) {
     if (isDef(min)) {
       min = !isNaN(min) ? parseInt(min.toString(), 10) : 1
@@ -12,7 +12,7 @@ export const boolean = function (min: number = 1, max: number = 1, current?: boo
     if (isDef(max)) {
       max = !isNaN(max) ? parseInt(max.toString(), 10) : 1
     }
-    return Math.random() > 1.0 / (min + max) * min ? !current : current
+    return Math.random() > 1.0 / (min + max) * min ? !current : current!
   }
   
   return Math.random() >= 0.5

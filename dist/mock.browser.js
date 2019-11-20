@@ -22,23 +22,6 @@
     return _typeof(obj);
   }
 
-  // RE_KEY
-  //   'name|min-max': value
-  //   'name|count': value
-  //   'name|min-max.dmin-dmax': value
-  //   'name|min-max.dcount': value
-  //   'name|count.dmin-dmax': value
-  //   'name|count.dcount': value
-  //   'name|+step': value
-  //
-  //    1 name, 2 step, 3 range [ min, max ], 4 drange [ dmin, dmax ]
-  //
-  // RE_PLACEHOLDER
-  //   placeholder(*)
-  //
-  // [正则查看工具](http://www.regexper.com/)
-  //
-  // #26 生成规则 支持 负数，例如 number|-100-100
   var constant = {
     GUID: 1,
     RE_KEY: /(.+)\|(?:\+(\d+)|([\+\-]?\d+-?[\+\-]?\d*)?(?:\.(\d+-?\d*))?)/,
@@ -855,7 +838,7 @@
     }
   };
 
-  // ## Color
+  // 颜色相关
 
   var color = function color(name) {
     if (name === void 0) {
@@ -1131,8 +1114,6 @@
     cname: cname
   });
 
-  // http://www.w3.org/Addressing/URL/url-spec.txt
-
   var url = function url(_protocol, host) {
     if (_protocol === void 0) {
       _protocol = protocol();
@@ -1158,8 +1139,6 @@
 
     return word() + '.' + _tld;
   }; // 随机生成一个顶级域名。
-  // 国际顶级域名 international top-level domain-names, iTLDs
-  // 国家顶级域名 national top-level domainnames, nTLDs
   // [域名后缀大全](http://www.163ns.com/zixun/post/4417.html)
 
   var tld = function tld() {
@@ -6542,12 +6521,20 @@
   var county = function county(prefix) {
     if (prefix === void 0) {
       prefix = false;
-    }
+    } // 直筒子市，无区县
+    // https://baike.baidu.com/item/%E7%9B%B4%E7%AD%92%E5%AD%90%E5%B8%82
 
+
+    var specialCity = ['460400', '441900', '442000', '620200'];
     var province = pickMap(areas);
     var city = pickMap(province.cities);
-    var county = pickMap(city.districts) || '-';
-    return prefix ? [province.name, city.name, county].join(' ') : county;
+
+    if (specialCity.indexOf(city.code) !== -1) {
+      return county(prefix);
+    }
+
+    var district = pickMap(city.districts) || '-';
+    return prefix ? [province.name, city.name, district].join(' ') : district;
   };
   /**
    * 随机生成一个邮政编码（默认6位数字）。
@@ -6591,22 +6578,31 @@
   // [《中华人民共和国行政区划代码》国家标准(GB/T2260)](http://zhidao.baidu.com/question/1954561.html)
 
   var id = function id() {
-    var id;
-    var sum = 0;
+    var _id;
+
+    var _sum = 0;
     var rank = ['7', '9', '10', '5', '8', '4', '2', '1', '6', '3', '7', '9', '10', '5', '8', '4', '2'];
-    var last = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2'];
+    var last = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2']; // 直筒子市，无区县
+    // https://baike.baidu.com/item/%E7%9B%B4%E7%AD%92%E5%AD%90%E5%B8%82
+
+    var specialCity = ['460400', '441900', '442000', '620200'];
     var province = pickMap(areas$1);
     var city = pickMap(province.cities);
-    var districts = city.districts;
-    var countyCode = pick(keys(districts));
-    id = countyCode + date('yyyyMMdd') + string('number', 3);
 
-    for (var i = 0; i < id.length; i++) {
-      sum += id[i] * Number(rank[i]);
+    if (specialCity.indexOf(city.code) !== -1) {
+      return id();
     }
 
-    id += last[sum % 11];
-    return id;
+    var districts = city.districts;
+    var district = pick(keys(districts));
+    _id = district + date('yyyyMMdd') + string('number', 3);
+
+    for (var i = 0; i < id.length; i++) {
+      _sum += id[i] * Number(rank[i]);
+    }
+
+    _id += last[_sum % 11];
+    return _id;
   }; // 生成一个全局的自增整数。
   // 类似自增主键（auto increment primary key）。
 
@@ -6713,42 +6709,6 @@
   };
 
   // ## RegExp Handler
-
-  /*var ASCII_CONTROL_CODE_CHART = {
-   '@': ['\u0000'],
-    A: ['\u0001'],
-    B: ['\u0002'],
-    C: ['\u0003'],
-    D: ['\u0004'],
-    E: ['\u0005'],
-    F: ['\u0006'],
-    G: ['\u0007', '\a'],
-    H: ['\u0008', '\b'],
-    I: ['\u0009', '\t'],
-    J: ['\u000A', '\n'],
-    K: ['\u000B', '\v'],
-    L: ['\u000C', '\f'],
-    M: ['\u000D', '\r'],
-    N: ['\u000E'],
-    O: ['\u000F'],
-    P: ['\u0010'],
-    Q: ['\u0011'],
-    R: ['\u0012'],
-    S: ['\u0013'],
-    T: ['\u0014'],
-    U: ['\u0015'],
-    V: ['\u0016'],
-    W: ['\u0017'],
-    X: ['\u0018'],
-    Y: ['\u0019'],
-    Z: ['\u001A'],
-    '[': ['\u001B', '\e'],
-    '\\': ['\u001C'],
-    ']': ['\u001D'],
-    '^': ['\u001E'],
-    '_': ['\u001F']
-  }*/
-  // ASCII printable code chart
 
   var LOWER = ascii(97, 122);
   var UPPER = ascii(65, 90);
@@ -8023,8 +7983,6 @@
     regexp: function regexp(options) {
       var source = ''; // 'name': /regexp/,
 
-      /* jshint -W041 */
-
       if (options.rule.count == undefined) {
         source += options.template.source; // regexp.source
       } // 'name|1-5': /regexp/,
@@ -8070,15 +8028,7 @@
         // 2. 如果失败，只能解析为字符串
         params = paramsInput.split(/,\s*/);
       } // 占位符优先引用数据模板中的属性
-      // {
-      //   first: '@EMAIL',
-      //   full: '@first'
-      // }
-      // =======>
-      // {
-      //   first: 'dsa@163.com',
-      //   full: 'dsa@163.com'
-      // }
+      // { first: '@EMAIL', full: '@first' } =>  { first: 'dsa@163.com', full: 'dsa@163.com' }
 
 
       if (obj && key in obj) {
@@ -8696,8 +8646,6 @@
   valid.Diff = Diff;
   valid.Assert = Assert;
 
-  // 期望的功能：
-
   var _XMLHttpRequest = XMLHttpRequest;
   var _ActiveXObject = window.ActiveXObject; // PhantomJS
   // TypeError: '[object EventConstructor]' is not a constructor (evaluating 'new Event("readystatechange")')
@@ -8732,51 +8680,7 @@
 
   var XHR_EVENTS = ['readystatechange', 'loadstart', 'progress', 'abort', 'error', 'load', 'timeout', 'loadend'];
   var XHR_REQUEST_PROPERTIES = ['timeout', 'withCredentials'];
-  var XHR_RESPONSE_PROPERTIES = ['readyState', 'responseURL', 'status', 'statusText', 'responseType', 'response', 'responseText', 'responseXML']; // https://github.com/trek/FakeXMLHttpRequest/blob/master/fake_xml_http_request.js#L32
-
-  var HTTP_STATUS_CODES = {
-    100: 'Continue',
-    101: 'Switching Protocols',
-    200: 'OK',
-    201: 'Created',
-    202: 'Accepted',
-    203: 'Non-Authoritative Information',
-    204: 'No Content',
-    205: 'Reset Content',
-    206: 'Partial Content',
-    300: 'Multiple Choice',
-    301: 'Moved Permanently',
-    302: 'Found',
-    303: 'See Other',
-    304: 'Not Modified',
-    305: 'Use Proxy',
-    307: 'Temporary Redirect',
-    400: 'Bad Request',
-    401: 'Unauthorized',
-    402: 'Payment Required',
-    403: 'Forbidden',
-    404: 'Not Found',
-    405: 'Method Not Allowed',
-    406: 'Not Acceptable',
-    407: 'Proxy Authentication Required',
-    408: 'Request Timeout',
-    409: 'Conflict',
-    410: 'Gone',
-    411: 'Length Required',
-    412: 'Precondition Failed',
-    413: 'Request Entity Too Large',
-    414: 'Request-URI Too Long',
-    415: 'Unsupported Media Type',
-    416: 'Requested Range Not Satisfiable',
-    417: 'Expectation Failed',
-    422: 'Unprocessable Entity',
-    500: 'Internal Server Error',
-    501: 'Not Implemented',
-    502: 'Bad Gateway',
-    503: 'Service Unavailable',
-    504: 'Gateway Timeout',
-    505: 'HTTP Version Not Supported'
-  };
+  var XHR_RESPONSE_PROPERTIES = ['readyState', 'responseURL', 'status', 'statusText', 'responseType', 'response', 'responseText', 'responseXML'];
 
   var MockXMLHttpRequest =
   /** @class */
@@ -8798,7 +8702,7 @@
       this.responseType = '';
       this.response = null;
       this.responseText = '';
-      this.responseXML = null;
+      this.responseXML = '';
       this.UNSENT = XHR_STATES.UNSENT;
       this.OPENED = XHR_STATES.OPENED;
       this.HEADERS_RECEIVED = XHR_STATES.HEADERS_RECEIVED;
@@ -8946,7 +8850,7 @@
         _this.dispatchEvent(new Event('readystatechange'));
 
         _this.status = 200;
-        _this.statusText = HTTP_STATUS_CODES[200]; // fix #92 #93 by @qddegtya
+        _this.statusText = 'OK'; // fix #92 #93 by @qddegtya
 
         _this.response = _this.responseText = JSON.stringify(convert(_this.custom.template, _this.custom.options), null, 4);
         _this.readyState = XHR_STATES.DONE;
@@ -9097,8 +9001,10 @@
 
 
   function find(options) {
-    for (var sUrlType in MockXMLHttpRequest.Mock.mocked) {
-      var item = MockXMLHttpRequest.Mock.mocked[sUrlType];
+    var mockedItems = values(MockXMLHttpRequest.Mock.mocked);
+
+    for (var i = 0; i < mockedItems.length; i++) {
+      var item = mockedItems[i];
       var urlMatched = matchUrl(item.rurl, options.url);
       var typeMatched = matchType(item.rtype, options.type);
 
@@ -9259,7 +9165,7 @@
 
     if (arguments.length === 1) {
       return handler$1.gen(rurl);
-    } // Mock.mock(rurl, template)
+    } // Mock.mock(url, template)
 
 
     if (arguments.length === 2) {
@@ -9274,7 +9180,8 @@
       rewriteFetchAndRequest();
     }
 
-    Mock.mocked[rurl + (rtype || '')] = {
+    var key = String(rurl) + String(rtype);
+    Mock.mocked[key] = {
       rurl: rurl,
       rtype: rtype,
       template: template

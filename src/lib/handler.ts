@@ -1,24 +1,5 @@
 // 处理数据模板。
 // handler.gen( template, name?, context? )
-//
-// 入口方法。
-//
-// * Data Template Definition, DTD
-//     处理数据模板定义。
-//     * handler.array( options )
-//     * handler.object( options )
-//     * handler.number( options )
-//     * handler.boolean( options )
-//     * handler.string( options )
-//     * handler.function( options )
-//     * handler.regexp( options )
-//
-//     处理路径（相对和绝对）。
-//     * handler.getValueByKeyPath( key, options )
-//
-// * Data Placeholder Definition, DPD
-//     处理数据占位符定义
-//     * handler.placeholder( placeholder, context, templateContext, options )
 import constant from './constant'
 import * as utils from './util'
 import * as parser from './parser'
@@ -310,7 +291,6 @@ const handler = {
     let source = ''
     
     // 'name': /regexp/,
-    /* jshint -W041 */
     if (options.rule.count == undefined) {
       source += options.template.source // regexp.source
     }
@@ -357,15 +337,7 @@ const handler = {
     }
     
     // 占位符优先引用数据模板中的属性
-    // {
-    //   first: '@EMAIL',
-    //   full: '@first'
-    // }
-    // =======>
-    // {
-    //   first: 'dsa@163.com',
-    //   full: 'dsa@163.com'
-    // }
+    // { first: '@EMAIL', full: '@first' } =>  { first: 'dsa@163.com', full: 'dsa@163.com' }
     if (obj && key! in obj) {
       return obj[key!]
     }

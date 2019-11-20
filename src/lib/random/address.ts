@@ -30,10 +30,16 @@ export const city = function(prefix: boolean = false): string {
  * @param prefix 是否有省/市前缀
  */
 export const county = function(prefix: boolean = false): string {
+  // 直筒子市，无区县
+  // https://baike.baidu.com/item/%E7%9B%B4%E7%AD%92%E5%AD%90%E5%B8%82
+  const specialCity = ['460400', '441900', '442000', '620200']
   const province = helper.pickMap(areas)
   const city = helper.pickMap(province.cities)
-  const county = helper.pickMap(city.districts) || '-'
-  return prefix ? [province.name, city.name, county].join(' ') : county
+  if (specialCity.indexOf(city.code) !== -1) {
+    return county(prefix)
+  }
+  const district = helper.pickMap(city.districts) || '-'
+  return prefix ? [province.name, city.name, district].join(' ') : district
 }
 
 /**

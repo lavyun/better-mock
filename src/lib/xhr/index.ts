@@ -1,44 +1,5 @@
-// 期望的功能：
-// 1. 完整地覆盖原生 XHR 的行为
-// 2. 完整地模拟原生 XHR 的行为
-// 3. 在发起请求时，自动检测是否需要拦截
-// 4. 如果不必拦截，则执行原生 XHR 的行为
-// 5. 如果需要拦截，则执行虚拟 XHR 的行为
-// 6. 兼容 XMLHttpRequest 和 ActiveXObject
-//     new window.XMLHttpRequest()
-//     new window.ActiveXObject("Microsoft.XMLHTTP")
-//
-// 关键方法的逻辑：
-//   new   此时尚无法确定是否需要拦截，所以创建原生 XHR 对象是必须的。
-//   open  此时可以取到 URL，可以决定是否进行拦截。
-//   send  此时已经确定了请求方式。
-//
-// 规范：
-// http://xhr.spec.whatwg.org/
-// http://www.w3.org/TR/XMLHttpRequest2/
-//
-// 参考实现：
-// https://github.com/philikon/MockHttpRequest/blob/master/lib/mock.js
-// https://github.com/trek/FakeXMLHttpRequest/blob/master/fake_xml_http_request.js
-// https://github.com/ilinsky/xmlhttprequest/blob/master/XMLHttpRequest.js
-// https://github.com/firebug/firebug-lite/blob/master/content/lite/xhr.js
-// https://github.com/thx/RAP/blob/master/lab/rap.plugin.xinglie.js
-//
-// 需不需要全面重写 XMLHttpRequest？
-//   http://xhr.spec.whatwg.org/#interface-xmlhttprequest
-//   关键属性 readyState、status、statusText、response、responseText、responseXML 是 readonly，所以，试图通过修改这些状态，来模拟响应是不可行的。
-//   因此，唯一的办法是模拟整个 XMLHttpRequest，就像 jQuery 对事件模型的封装。
-//
-// Event handlers:
-// onloadstart         loadstart
-// onprogress          progress
-// onabort             abort
-// onerror             error
-// onload              load
-// ontimeout           timeout
-// onloadend           loadend
-// onreadystatechange  readystatechange
 import * as util from '../util'
+import { XHRCustom, MockedItem, Settings, XHRCustomOptions } from '../type'
 
 // 备份原生 XMLHttpRequest
 const _XMLHttpRequest = XMLHttpRequest
@@ -84,53 +45,8 @@ const XHR_RESPONSE_PROPERTIES = [
   'responseXML'
 ]
 
-// https://github.com/trek/FakeXMLHttpRequest/blob/master/fake_xml_http_request.js#L32
-const HTTP_STATUS_CODES = {
-  100: 'Continue',
-  101: 'Switching Protocols',
-  200: 'OK',
-  201: 'Created',
-  202: 'Accepted',
-  203: 'Non-Authoritative Information',
-  204: 'No Content',
-  205: 'Reset Content',
-  206: 'Partial Content',
-  300: 'Multiple Choice',
-  301: 'Moved Permanently',
-  302: 'Found',
-  303: 'See Other',
-  304: 'Not Modified',
-  305: 'Use Proxy',
-  307: 'Temporary Redirect',
-  400: 'Bad Request',
-  401: 'Unauthorized',
-  402: 'Payment Required',
-  403: 'Forbidden',
-  404: 'Not Found',
-  405: 'Method Not Allowed',
-  406: 'Not Acceptable',
-  407: 'Proxy Authentication Required',
-  408: 'Request Timeout',
-  409: 'Conflict',
-  410: 'Gone',
-  411: 'Length Required',
-  412: 'Precondition Failed',
-  413: 'Request Entity Too Large',
-  414: 'Request-URI Too Long',
-  415: 'Unsupported Media Type',
-  416: 'Requested Range Not Satisfiable',
-  417: 'Expectation Failed',
-  422: 'Unprocessable Entity',
-  500: 'Internal Server Error',
-  501: 'Not Implemented',
-  502: 'Bad Gateway',
-  503: 'Service Unavailable',
-  504: 'Gateway Timeout',
-  505: 'HTTP Version Not Supported'
-}
-
 class MockXMLHttpRequest {
-  custom: MockCustom
+  custom: XHRCustom
 
   // 标记当前对象为 MockXMLHttpRequest
   mock: boolean = true
@@ -160,7 +76,7 @@ class MockXMLHttpRequest {
 
   responseText: string = ''
 
-  responseXML: any = null
+  responseXML: string = ''
 
   UNSENT: number = XHR_STATES.UNSENT
   OPENED: number = XHR_STATES.OPENED
@@ -299,10 +215,10 @@ class MockXMLHttpRequest {
       this.dispatchEvent(new Event('readystatechange'))
 
       this.status = 200
-      this.statusText = HTTP_STATUS_CODES[200]
+      this.statusText = 'OK'
 
       // fix #92 #93 by @qddegtya
-      this.response = this.responseText = JSON.stringify(convert(this.custom.template, this.custom.options), null, 4)
+      this.response = this.responseText = JSON.stringify(convert(this.custom.template!, this.custom.options), null, 4)
 
       this.readyState = XHR_STATES.DONE
       this.dispatchEvent(new Event('readystatechange'))
@@ -346,7 +262,7 @@ class MockXMLHttpRequest {
   
   // https://xhr.spec.whatwg.org/#the-getallresponseheaders()-method
   // http://www.utf8-chartable.de/
-  getAllResponseHeaders () {
+  getAllResponseHeaders (): string {
     // 原生 XHR
     if (!this.match) {
       return this.custom.xhr!.getAllResponseHeaders()
@@ -374,7 +290,7 @@ class MockXMLHttpRequest {
     events[type].push(handle)
   }
 
-  removeEventListener (type: string, handle: Function) {
+  removeEventListener (type: string, handle: Function): void {
     const handles = this.custom.events[type] || []
     for (let i = 0; i < handles.length; i++) {
       if (handles[i] === handle) {
@@ -383,7 +299,7 @@ class MockXMLHttpRequest {
     }
   }
 
-  dispatchEvent (event: Event) {
+  dispatchEvent (event: Event): void {
     const handles = this.custom.events[event.type] || []
     for (let i = 0; i < handles.length; i++) {
       handles[i].call(this, event)
@@ -395,7 +311,7 @@ class MockXMLHttpRequest {
     }
   }
 
-  static settings: any = {
+  static settings: Settings = {
     timeout: '10-100'
   }
 
@@ -415,11 +331,11 @@ class MockXMLHttpRequest {
 
 // Inspired by jQuery
 function createNativeXMLHttpRequest() {
-  var isLocal: boolean = (function() {
-    var rLocalProtocol = /^(?:about|app|app-storage|.+-extension|file|res|widget):$/
-    var rUrl = /^([\w.+-]+:)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/
-    var ajaxLocation = location.href
-    var ajaxLocParts = rUrl.exec(ajaxLocation.toLowerCase()) || []
+  const isLocal: boolean = (function() {
+    const rLocalProtocol = /^(?:about|app|app-storage|.+-extension|file|res|widget):$/
+    const rUrl = /^([\w.+-]+:)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/
+    const ajaxLocation = location.href
+    const ajaxLocParts = rUrl.exec(ajaxLocation.toLowerCase()) || []
     return rLocalProtocol.test(ajaxLocParts[1])
   })()
 
@@ -439,9 +355,10 @@ function createNativeXMLHttpRequest() {
 }
 
 // 查找与请求参数匹配的数据模板：URL，Type
-export function find(options) {
-  for (let sUrlType in MockXMLHttpRequest.Mock.mocked) {
-    const item = MockXMLHttpRequest.Mock.mocked[sUrlType]
+export function find(options): MockedItem | undefined {
+  const mockedItems: MockedItem[] = util.values(MockXMLHttpRequest.Mock.mocked)
+  for (let i = 0; i < mockedItems.length; i++) {
+    const item = mockedItems[i]
     const urlMatched = matchUrl(item.rurl, options.url)
     const typeMatched = matchType(item.rtype, options.type)
     if (!item.rtype && urlMatched) {
@@ -452,7 +369,7 @@ export function find(options) {
     }
   }
 
-  function matchUrl(expected: string | RegExp, actual: string): boolean {
+  function matchUrl(expected: string | RegExp | undefined, actual: string): boolean {
     if (util.isString(expected)) {
       if (expected === actual) {
         return true
@@ -470,7 +387,7 @@ export function find(options) {
     return false
   }
 
-  function matchType(expected: string | RegExp, actual: string): boolean {
+  function matchType(expected: string | RegExp | undefined, actual: string): boolean {
     if (util.isString(expected) || util.isRegExp(expected)) {
       return new RegExp(expected, 'i').test(actual)
     }
@@ -479,28 +396,11 @@ export function find(options) {
 }
 
 // 数据模板 ＝> 响应数据
-export function convert(item, options) {
+export function convert(item: MockedItem, options: Partial<XHRCustomOptions>) {
   return util.isFunction(item.template) ? item.template(options) : MockXMLHttpRequest.Mock.mock(item.template)
 }
 
 export default MockXMLHttpRequest
-
-interface MockCustom {
-  events: {
-    [event: string]: Function[]
-  }
-  requestHeaders: {
-    [name: string]: string
-  }
-  responseHeaders: {
-    [name: string]: string
-  }
-  timeout: number
-  options: any,
-  xhr: XMLHttpRequest | null
-  template: any
-  async: boolean
-}
 
 declare global {
   interface Window {

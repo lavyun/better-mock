@@ -22,24 +22,30 @@ export const uuid = guid
 // 地址码 6 + 出生日期码 8 + 顺序码 3 + 校验码 1
 // [《中华人民共和国行政区划代码》国家标准(GB/T2260)](http://zhidao.baidu.com/question/1954561.html)
 export const id = function (): string {
-  let id
-  let sum = 0
+  let _id
+  let _sum = 0
   const rank: string[] = ['7', '9', '10', '5', '8', '4', '2', '1', '6', '3', '7', '9', '10', '5', '8', '4', '2']
   const last: string[] = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2']
-  
+  // 直筒子市，无区县
+  // https://baike.baidu.com/item/%E7%9B%B4%E7%AD%92%E5%AD%90%E5%B8%82
+  const specialCity = ['460400', '441900', '442000', '620200']
+
   const province = helper.pickMap(areas)
   const city = helper.pickMap(province.cities)
+  if (specialCity.indexOf(city.code) !== -1) {
+    return id()
+  }
   const districts = city.districts
-  const countyCode = helper.pick(util.keys(districts))
+  const district = helper.pick(util.keys(districts))
 
-  id = countyCode + date.date('yyyyMMdd') + basic.string('number', 3)
+  _id = district + date.date('yyyyMMdd') + basic.string('number', 3)
   
   for (let i = 0; i < id.length; i++) {
-    sum += id[i] * Number(rank[i])
+    _sum += id[i] * Number(rank[i])
   }
-  id += last[sum % 11]
+  _id += last[_sum % 11]
   
-  return id
+  return _id
 }
 
 // 生成一个全局的自增整数。

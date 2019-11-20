@@ -52,42 +52,6 @@
 //     null-character      \o      NUL 字符
 import random from '../random'
 
-// http://en.wikipedia.org/wiki/ASCII#ASCII_printable_code_chart
-/*var ASCII_CONTROL_CODE_CHART = {
- '@': ['\u0000'],
-  A: ['\u0001'],
-  B: ['\u0002'],
-  C: ['\u0003'],
-  D: ['\u0004'],
-  E: ['\u0005'],
-  F: ['\u0006'],
-  G: ['\u0007', '\a'],
-  H: ['\u0008', '\b'],
-  I: ['\u0009', '\t'],
-  J: ['\u000A', '\n'],
-  K: ['\u000B', '\v'],
-  L: ['\u000C', '\f'],
-  M: ['\u000D', '\r'],
-  N: ['\u000E'],
-  O: ['\u000F'],
-  P: ['\u0010'],
-  Q: ['\u0011'],
-  R: ['\u0012'],
-  S: ['\u0013'],
-  T: ['\u0014'],
-  U: ['\u0015'],
-  V: ['\u0016'],
-  W: ['\u0017'],
-  X: ['\u0018'],
-  Y: ['\u0019'],
-  Z: ['\u001A'],
-  '[': ['\u001B', '\e'],
-  '\\': ['\u001C'],
-  ']': ['\u001D'],
-  '^': ['\u001E'],
-  '_': ['\u001F']
-}*/
-
 // ASCII printable code chart
 const LOWER = ascii(97, 122)
 const UPPER = ascii(65, 90)
