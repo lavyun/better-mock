@@ -1,5 +1,5 @@
 /*!
- * better-mock v0.1.0
+ * better-mock v0.1.1
  * (c) 2019-2019 lavyun@163.com * Released under the MIT License.
  */
 (function (global, factory) {
@@ -9141,7 +9141,7 @@
       return MockXMLHttpRequest.setup(settings);
     },
     mocked: {},
-    version: '0.1.0'
+    version: '0.1.1'
   }; // 避免循环依赖
 
   if (MockXMLHttpRequest) {
@@ -9165,7 +9165,7 @@
 
     window.XMLHttpRequest = MockXMLHttpRequest; // 拦截fetch
 
-    if (window.fetch) {
+    if (window.fetch && isFunction(window.fetch)) {
       rewriteFetchAndRequest();
     }
 

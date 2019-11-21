@@ -44,7 +44,7 @@ function mock (rurl: string | RegExp, rtype?: string | RegExp, template?: object
   // 拦截 XHR
   (window.XMLHttpRequest as any) = XHR
   // 拦截fetch
-  if (window.fetch) {
+  if (window.fetch && Util.isFunction(window.fetch)) {
     rewriteFetchAndRequest()
   }
   const key = String(rurl) + String(rtype)
