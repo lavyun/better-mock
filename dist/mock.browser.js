@@ -93,6 +93,9 @@
   var isString = function isString(value) {
     return type(value) === 'string';
   };
+  var isNumber = function isNumber(value) {
+    return type(value) === 'number';
+  };
   var isObject = function isObject(value) {
     return type(value) === 'object';
   };
@@ -167,6 +170,7 @@
     type: type,
     isDef: isDef,
     isString: isString,
+    isNumber: isNumber,
     isObject: isObject,
     isArray: isArray,
     isRegExp: isRegExp,
@@ -607,7 +611,7 @@
 
   // image
 
-  var _adSize = ['300x250', '250x250', '240x400', '336x280', '180x150', '720x300', '468x60', '234x60', '88x31', '120x90', '120x60', '120x240', '125x125', '728x90', '160x600', '120x600', '300x600'];
+  var imageSize = ['150x100', '300x200', '400x300', '600x450', '800X600', '100x150', '200x300', '300x400', '450x600', '600x800', '100x100', '200x200', '300x300', '450x450', '600x600'];
   /**
    * 随机生成一个图片，使用：https://dummyimage.com/，例如：
    * https://dummyimage.com/600x400/cc00cc/470047.png&text=hello
@@ -638,7 +642,7 @@
     } // Random.image()
 
 
-    size = size || pick(_adSize);
+    size = size || pick(imageSize);
 
     if (background && ~background.indexOf('#')) {
       background = background.slice(1);
@@ -648,7 +652,7 @@
       foreground = foreground.slice(1);
     }
 
-    return 'https://dummyimage.com/' + size + (background ? '/' + background : '') + (foreground ? '/' + foreground : '') + (format ? '.' + format : '') + (text ? '&text=' + text : '');
+    return 'https://dummyimage.com/' + size + (background ? '/' + background : '') + (foreground ? '/' + foreground : '') + (format ? '.' + format : '') + (text ? '&text=' + encodeURIComponent(text) : '');
   };
   var img = image;
   /**
@@ -658,53 +662,38 @@
    */
 
   var dataImage = function dataImage(size, text) {
-    size = size || pick(_adSize);
+    size = size || pick(imageSize);
     text = text || size;
     var background = pick(['#171515', '#e47911', '#183693', '#720e9e', '#c4302b', '#dd4814', '#00acee', '#0071c5', '#3d9ae8', '#ec6231', '#003580', '#e51937']);
-    var foreground = '#FFFFFF'; // browser
+    var sizes = size.split('x');
+    var width = parseInt(sizes[0], 10);
+    var height = parseInt(sizes[1], 10);
+    assert(isNumber(width) && isNumber(height), 'Invalid size, expected INTxINT, e.g. 300x400');
 
-    if (typeof document !== 'undefined') {
-      var canvas = document.createElement('canvas');
-      var ctx = canvas && canvas.getContext && canvas.getContext('2d');
-
-      if (!canvas || !ctx) {
-        return '';
-      }
-
-      var sizeArr = size.split('x');
-      var width = parseInt(sizeArr[0], 10);
-      var height = parseInt(sizeArr[1], 10);
-      canvas.width = width;
-      canvas.height = height;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = background;
-      ctx.fillRect(0, 0, width, height);
-      ctx.fillStyle = foreground;
-      ctx.font = 'bold 14px sans-serif';
-      ctx.fillText(text, width / 2, height / 2, width);
-      return canvas.toDataURL('image/png');
-    } else {
-      try {
-        var request = require('sync-request');
-
-        var res = request('GET', image(size, background, foreground, text), {
-          cache: 'memory',
-          timeout: 8000
-        });
-        var buffer = res.getBody();
-        return 'data:image/png;base64,' + buffer.toString('base64');
-      } catch (err) {
-        if (err.toString().includes('timed out')) {
-          logInfo('generate image timeout');
-        } else {
-          logInfo(err);
-        }
-
-        return '';
-      }
+    {
+      return createBrowserDataImage(width, height, background, text);
     }
-  };
+  }; // browser 端生成 base64 图片
+
+  function createBrowserDataImage(width, height, background, text) {
+    var canvas = document.createElement('canvas');
+    var ctx = canvas && canvas.getContext && canvas.getContext('2d');
+
+    if (!canvas || !ctx) {
+      return '';
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = background;
+    ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText(text, width / 2, height / 2, width);
+    return canvas.toDataURL('image/png');
+  } // node 端生成 base64 图片
 
   var image$1 = /*#__PURE__*/Object.freeze({
     image: image,

@@ -40,7 +40,8 @@
   "types": "./typings/index.d.ts",
   "dependencies": {
     "china-location": "^2.0.0",
-    "sync-request": "^6.1.0"
+    "jimp": "^0.8.5",
+    "promise-synchronizer": "^1.1.4"
   },
   "devDependencies": {
     "@babel/core": "^7.4.5",

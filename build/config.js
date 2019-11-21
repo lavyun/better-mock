@@ -62,7 +62,8 @@ const genConfig = (name) => {
     plugins: [
       nodeResolve(),
       replace({
-        '__VERSION__': version
+        '__VERSION__': version,
+        'process.env.BROWSER': opts.format !== 'cjs'
       }),
       json(),
       babel({

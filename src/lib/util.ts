@@ -52,6 +52,10 @@ export const isString = function (value: any): value is string {
   return type(value) === 'string'
 }
 
+export const isNumber = function (value: any): value is number {
+  return type(value) === 'number'
+}
+
 export const isObject = function (value: any): value is object {
   return type(value) === 'object'
 }
