@@ -2,7 +2,7 @@
   "name": "better-mock",
   "description": "Forked from Mockjs. Generate random data & Intercept ajax request",
   "author": "lavyun@163.com",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "./dist/mock.node.js",
   "module": "./dist/mock.browser.esm.js",
   "scripts": {
@@ -62,7 +62,7 @@
     "rollup-plugin-json": "^4.0.0",
     "rollup-plugin-node-resolve": "^5.0.1",
     "rollup-plugin-replace": "^2.2.0",
-    "typescript": "^3.5.1",
+    "typescript": "^3.7.2",
     "uglify-js": "^3.6.0",
     "vuepress": "^1.0.3",
     "zlib": "^1.0.5"
