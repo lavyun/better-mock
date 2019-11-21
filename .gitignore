@@ -14,3 +14,4 @@ coverage
 example
 doc/.vuepress/dist
 publish.sh
+test/index.html

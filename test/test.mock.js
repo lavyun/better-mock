@@ -3,6 +3,11 @@ const Mock = require('../dist/mock.browser')
 const expect = require('chai').expect
 
 describe('Mock.mock', function () {
+  describe('Mock.mock()', () => {
+    it('Mock.mock() should throw an error', () => {
+      expect(() => Mock.mock()).to.throw()
+    })
+  })
   describe('Mock.mock( String )', function () {
     it('@EMAIL', function () {
       var data = Mock.mock(this.test.title)

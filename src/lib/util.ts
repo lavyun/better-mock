@@ -52,6 +52,10 @@ export const isString = function (value: any): value is string {
   return type(value) === 'string'
 }
 
+export const isNumber = function (value: any): value is number {
+  return type(value) === 'number'
+}
+
 export const isObject = function (value: any): value is object {
   return type(value) === 'object'
 }
@@ -117,4 +121,10 @@ export const noop = function () {}
 
 export const logInfo = function (...args) {
   console.log('[better-mock]', ...args)
+}
+
+export const assert = function (condition: any, error: string) {
+  if (!condition) {
+    throw new Error('[better-mock] ' + error)
+  }
 }

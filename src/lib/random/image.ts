@@ -1,12 +1,12 @@
 // image
-import * as helper from './helper'
-import * as utils from '../util'
+import { pick } from './helper'
+import { isNumber, assert } from '../util'
 
-// 常见的广告宽高
-const _adSize: string[] = [
-  '300x250', '250x250', '240x400', '336x280', '180x150', '720x300', 
-  '468x60', '234x60', '88x31', '120x90', '120x60', '120x240', 
-  '125x125', '728x90', '160x600', '120x600', '300x600'
+// 常见图片尺寸
+const imageSize: string[] = [
+  '150x100', '300x200', '400x300', '600x450', '800X600',
+  '100x150', '200x300', '300x400', '450x600', '600x800',
+  '100x100', '200x200', '300x300', '450x450', '600x600'
 ]
 
 /**
@@ -35,7 +35,7 @@ export const image = function(size?: string, background?: string, foreground?: s
     background = undefined
   }
   // Random.image()
-  size = size || helper.pick(_adSize)
+  size = size || pick(imageSize)
 
   if (background && ~background.indexOf('#')) {
     background = background.slice(1)
@@ -51,7 +51,7 @@ export const image = function(size?: string, background?: string, foreground?: s
     (background ? '/' + background : '') +
     (foreground ? '/' + foreground : '') +
     (format ? '.' + format : '') +
-    (text ? '&text=' + text : '')
+    (text ? '&text=' + encodeURIComponent(text) : '')
   )
 }
 
@@ -63,51 +63,82 @@ export const img = image
  * @param text 图片上的文字
  */
 export const dataImage = function(size?: string, text?: string): string {
-  size = size || helper.pick(_adSize)
+  size = size || pick(imageSize)
   text = text || size
-  const background: string = helper.pick([
+  const background: string = pick([
     '#171515', '#e47911', '#183693', '#720e9e', '#c4302b', '#dd4814',
     '#00acee', '#0071c5', '#3d9ae8', '#ec6231', '#003580', '#e51937'
   ])
-  const foreground = '#FFFFFF'
-  // browser
-  if (typeof document !== 'undefined') {
-    const canvas = document.createElement('canvas')
-    const ctx = canvas && canvas.getContext && canvas.getContext('2d')
-    if (!canvas || !ctx) {
-      return ''
-    }
+  const sizes = size!.split('x')
+  const width = parseInt(sizes[0], 10)
+  const height = parseInt(sizes[1], 10)
 
-    const sizeArr = size!.split('x')
-    const width = parseInt(sizeArr[0], 10)
-    const height = parseInt(sizeArr[1], 10)
+  assert(isNumber(width) && isNumber(height), 'Invalid size, expected INTxINT, e.g. 300x400')
 
-    canvas.width = width
-    canvas.height = height
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillStyle = background
-    ctx.fillRect(0, 0, width, height)
-    ctx.fillStyle = foreground
-    ctx.font = 'bold 14px sans-serif'
-    ctx.fillText(text!, width / 2, height / 2, width)
-    return canvas.toDataURL('image/png')
+  if (process.env.BROWSER) {
+    return createBrowserDataImage(width, height, background, text!)
   } else {
-    try {
-      const request = require('sync-request')
-      const res = request('GET', image(size, background, foreground, text), {
-        cache: 'memory',
-        timeout: 8000
-      })
-      const buffer = res.getBody()
-      return 'data:image/png;base64,' + buffer.toString('base64')
-    } catch(err) {
-      if (err.toString().includes('timed out')) {
-        utils.logInfo('generate image timeout')
+    return createNodeDataImage(width, height, background, text!)
+  }
+}
+
+// browser 端生成 base64 图片
+function createBrowserDataImage (width: number, height: number, background: string, text: string) {
+  const canvas = document.createElement('canvas')
+  const ctx = canvas && canvas.getContext && canvas.getContext('2d')
+  if (!canvas || !ctx) {
+    return ''
+  }
+
+  canvas.width = width
+  canvas.height = height
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillStyle = background
+  ctx.fillRect(0, 0, width, height)
+  ctx.fillStyle = '#FFFFFF'
+  ctx.font = 'bold 14px sans-serif'
+  ctx.fillText(text!, width / 2, height / 2, width)
+  return canvas.toDataURL('image/png')
+}
+
+// node 端生成 base64 图片
+function createNodeDataImage (width: number, height: number, background: string, text: string) {
+  const Jimp = require('jimp')
+  const sync = require('promise-synchronizer')
+
+  // 计算字体的合适大小
+  const jimpFontSizePool = [128, 64, 32, 16]
+  const expectFontSize = Math.min(width, height) / 3
+  const expectFontSizePool = jimpFontSizePool.filter(size => expectFontSize - size >= 0)
+  const fontSize = expectFontSizePool[0] || 16
+  const fontPath = Jimp[`FONT_SANS_${fontSize}_WHITE`]
+
+  const generateImage = new Promise((resolve, reject) => {
+    new Jimp(width, height, background, (err, image) => {
+      if (err) {
+        reject(err)
       } else {
-        utils.logInfo(err)
+        Jimp.loadFont(fontPath).then(font => {
+          // 文字的真实宽高
+          const measureWidth = Jimp.measureText(font, text)
+          const measureHeight = Jimp.measureTextHeight(font, text)
+          // 文字在画布上的目标 x, y
+          const targetX = width <= measureWidth ? 0 : (width - measureWidth) / 2
+          const targetY = height <= measureHeight ? 0 : (height - measureHeight) / 2
+          
+          image.print(font, targetX, targetY, text)
+          image.getBufferAsync(Jimp.MIME_PNG).then(buffer => {
+            resolve('data:image/png;base64,' + buffer.toString('base64'))
+          })
+        })
       }
-      return ''
-    }
+    })
+  })
+
+  try {
+    return sync(generateImage)
+  } catch (err) {
+    throw err
   }
 }

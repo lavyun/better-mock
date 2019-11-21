@@ -6,6 +6,8 @@ import RE from './lib/regexp/index'
 import toJSONSchema from './lib/schema/index'
 import valid from './lib/valid/index'
 import XHR from './lib/xhr'
+import rewriteFetchAndRequest from './lib/fetch'
+import { Mocked } from './lib/type'
 
 const Mock = {
   Handler,
@@ -18,7 +20,7 @@ const Mock = {
   mock,
   heredoc: Util.heredoc,
   setup: (settings) => XHR.setup(settings),
-  mocked: {},
+  mocked: {} as Mocked,
   version: '__VERSION__'
 }
 
@@ -27,32 +29,27 @@ if (XHR) {
   XHR.Mock = Mock
 }
 
-// Mock.mock( template )
-// Mock.mock( function() )
-// Mock.mock( rurl, template )
-// Mock.mock( rurl, function(options) )
-// Mock.mock( rurl, rtype, template )
-// Mock.mock( rurl, rtype, function(options) )
 // 根据数据模板生成模拟数据。
-function mock (rurl, rtype, template) {
+function mock (rurl: string | RegExp, rtype?: string | RegExp, template?: object | Function) {
+  Util.assert(arguments.length, 'The mock function needs to pass at least one parameter!')
   // Mock.mock(template)
   if (arguments.length === 1) {
     return Handler.gen(rurl)
   }
-  // Mock.mock(rurl, template)
+  // Mock.mock(url, template)
   if (arguments.length === 2) {
-    template = rtype
+    template = rtype as object | Function
     rtype = undefined
   }
   // 拦截 XHR
-  if (XHR) {
-    (window.XMLHttpRequest as any) = XHR
+  (window.XMLHttpRequest as any) = XHR
+  // 拦截fetch
+  if (window.fetch) {
+    rewriteFetchAndRequest()
   }
-  Mock.mocked[rurl + (rtype || '')] = {
-    rurl: rurl,
-    rtype: rtype,
-    template: template
-  }
+  const key = String(rurl) + String(rtype)
+  Mock.mocked[key] = { rurl, rtype, template }
+
   return Mock
 }
 

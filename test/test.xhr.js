@@ -2,7 +2,7 @@ const Mock = require('../dist/mock.browser')
 const expect = require('chai').expect
 const $ = require('jquery')
 
-describe('Request', function () {
+describe('XHR', function () {
   function stringify (json) {
     return JSON.stringify(json /*, null, 4*/)
   }
@@ -96,6 +96,7 @@ describe('Request', function () {
       Mock.mock(/rurl_function\.json/, function (options) {
         expect(options).to.not.equal(undefined)
         expect(options.url).to.be.equal(url)
+        console.log(options.url)
         expect(options.type).to.be.equal('GET')
         expect(options.body).to.be.equal(null)
         return Mock.mock({
