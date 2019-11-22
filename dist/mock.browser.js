@@ -1,167 +1,173 @@
 /*!
- * better-mock v0.1.1
- * (c) 2019-2019 lavyun@163.com * Released under the MIT License.
- */
+  * better-mock v0.1.2 (mock.browser.js)
+  * (c) 2019-2019 lavyun@163.com
+  * Released under the MIT License.
+  */
+
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
   (global = global || self, global.Mock = factory());
 }(this, function () { 'use strict';
 
-  function _typeof(obj) {
-    if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-      _typeof = function (obj) {
-        return typeof obj;
-      };
-    } else {
-      _typeof = function (obj) {
-        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-      };
-    }
+  var constant = {
+      GUID: 1,
+      RE_KEY: /(.+)\|(?:\+(\d+)|([\+\-]?\d+-?[\+\-]?\d*)?(?:\.(\d+-?\d*))?)/,
+      RE_RANGE: /([\+\-]?\d+)-?([\+\-]?\d+)?/,
+      RE_PLACEHOLDER: /\\*@([^@#%&()\?\s]+)(?:\((.*?)\))?/g
+  };
 
-    return _typeof(obj);
+  /*! *****************************************************************************
+  Copyright (c) Microsoft Corporation. All rights reserved.
+  Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+  this file except in compliance with the License. You may obtain a copy of the
+  License at http://www.apache.org/licenses/LICENSE-2.0
+
+  THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+  WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+  MERCHANTABLITY OR NON-INFRINGEMENT.
+
+  See the Apache Version 2.0 License for specific language governing permissions
+  and limitations under the License.
+  ***************************************************************************** */
+
+  var __assign = function() {
+      __assign = Object.assign || function __assign(t) {
+          for (var s, i = 1, n = arguments.length; i < n; i++) {
+              s = arguments[i];
+              for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+          }
+          return t;
+      };
+      return __assign.apply(this, arguments);
+  };
+
+  function __spreadArrays() {
+      for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+      for (var r = Array(s), k = 0, i = 0; i < il; i++)
+          for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+              r[k] = a[j];
+      return r;
   }
 
-  var constant = {
-    GUID: 1,
-    RE_KEY: /(.+)\|(?:\+(\d+)|([\+\-]?\d+-?[\+\-]?\d*)?(?:\.(\d+-?\d*))?)/,
-    RE_RANGE: /([\+\-]?\d+)-?([\+\-]?\d+)?/,
-    RE_PLACEHOLDER: /\\*@([^@#%&()\?\s]+)(?:\((.*?)\))?/g
-  };
-
-  var __spreadArrays = undefined && undefined.__spreadArrays || function () {
-    for (var s = 0, i = 0, il = arguments.length; i < il; i++) {
-      s += arguments[i].length;
-    }
-
-    for (var r = Array(s), k = 0, i = 0; i < il; i++) {
-      for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) {
-        r[k] = a[j];
+  var objectAssign = function (target, args) {
+      // TypeError if undefined or null
+      if (target == null) {
+          throw new TypeError('Cannot convert undefined or null to object');
       }
-    }
-
-    return r;
-  };
-
-  var objectAssign = function objectAssign(target, args) {
-    // TypeError if undefined or null
-    if (target == null) {
-      throw new TypeError('Cannot convert undefined or null to object');
-    }
-
-    var to = Object(target);
-
-    for (var i = 1; i < arguments.length; i++) {
-      var nextSource = arguments[i];
-
-      if (nextSource != null) {
-        // Skip over if undefined or null
-        for (var nextKey in nextSource) {
-          // Avoid bugs when hasOwnProperty is shadowed
-          if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
-            to[nextKey] = nextSource[nextKey];
+      var to = Object(target);
+      for (var i = 1; i < arguments.length; i++) {
+          var nextSource = arguments[i];
+          if (nextSource != null) { // Skip over if undefined or null
+              for (var nextKey in nextSource) {
+                  // Avoid bugs when hasOwnProperty is shadowed
+                  if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                      to[nextKey] = nextSource[nextKey];
+                  }
+              }
           }
-        }
       }
-    }
-
-    return to;
+      return to;
   };
-  var each = function each(obj, iterator, context) {
-    var i, key;
-
-    if (type(obj) === 'number') {
-      for (i = 0; i < obj; i++) {
-        iterator(i, i);
+  var each = function (obj, iterator, context) {
+      var i, key;
+      if (type(obj) === 'number') {
+          for (i = 0; i < obj; i++) {
+              iterator(i, i);
+          }
       }
-    } else if (obj.length === +obj.length) {
-      for (i = 0; i < obj.length; i++) {
-        if (iterator.call(context, obj[i], i, obj) === false) break;
+      else if (obj.length === +obj.length) {
+          for (i = 0; i < obj.length; i++) {
+              if (iterator.call(context, obj[i], i, obj) === false)
+                  break;
+          }
       }
-    } else {
-      for (key in obj) {
-        if (iterator.call(context, obj[key], key, obj) === false) break;
+      else {
+          for (key in obj) {
+              if (iterator.call(context, obj[key], key, obj) === false)
+                  break;
+          }
       }
-    }
   };
-  var type = function type(value) {
-    return isDef(value) ? Object.prototype.toString.call(value).match(/\[object (\w+)\]/)[1].toLowerCase() : String(value);
+  var type = function (value) {
+      return isDef(value)
+          ? Object.prototype.toString.call(value).match(/\[object (\w+)\]/)[1].toLowerCase()
+          : String(value);
   };
-  var isDef = function isDef(value) {
-    return value !== undefined && value !== null;
+  var isDef = function (value) {
+      return value !== undefined && value !== null;
   };
-  var isString = function isString(value) {
-    return type(value) === 'string';
+  var isString = function (value) {
+      return type(value) === 'string';
   };
-  var isNumber = function isNumber(value) {
-    return type(value) === 'number';
+  var isNumber = function (value) {
+      return type(value) === 'number';
   };
-  var isObject = function isObject(value) {
-    return type(value) === 'object';
+  var isObject = function (value) {
+      return type(value) === 'object';
   };
-  var isArray = function isArray(value) {
-    return type(value) === 'array';
+  var isArray = function (value) {
+      return type(value) === 'array';
   };
-  var isRegExp = function isRegExp(value) {
-    return type(value) === 'regexp';
+  var isRegExp = function (value) {
+      return type(value) === 'regexp';
   };
-  var isFunction = function isFunction(value) {
-    return type(value) === 'function';
+  var isFunction = function (value) {
+      return type(value) === 'function';
   };
-  var isObjectOrArray = function isObjectOrArray(value) {
-    return isObject(value) || isArray(value);
+  var isObjectOrArray = function (value) {
+      return isObject(value) || isArray(value);
   };
-  var isNumeric = function isNumeric(value) {
-    return !isNaN(parseFloat(value)) && isFinite(value);
+  var isNumeric = function (value) {
+      return !isNaN(parseFloat(value)) && isFinite(value);
   };
-  var keys = function keys(obj) {
-    var keys = [];
-
-    for (var key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        keys.push(key);
+  var keys = function (obj) {
+      var keys = [];
+      for (var key in obj) {
+          if (obj.hasOwnProperty(key)) {
+              keys.push(key);
+          }
       }
-    }
-
-    return keys;
+      return keys;
   };
-  var values = function values(obj) {
-    var values = [];
-
-    for (var key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        values.push(obj[key]);
+  var values = function (obj) {
+      var values = [];
+      for (var key in obj) {
+          if (obj.hasOwnProperty(key)) {
+              values.push(obj[key]);
+          }
       }
-    }
-
-    return values;
+      return values;
   };
   /**
    * Mock.heredoc(fn)
    * 以直观、安全的方式书写（多行）HTML 模板。
    * http://stackoverflow.com/questions/805107/creating-multiline-strings-in-javascript
    */
-
-  var heredoc = function heredoc(fn) {
-    // 1. 移除起始的 function(){ /*!
-    // 2. 移除末尾的 */ }
-    // 3. 移除起始和末尾的空格
-    return fn.toString().replace(/^[^\/]+\/\*!?/, '').replace(/\*\/[^\/]+$/, '').replace(/^[\s\xA0]+/, '').replace(/[\s\xA0]+$/, ''); // .trim()
+  var heredoc = function (fn) {
+      // 1. 移除起始的 function(){ /*!
+      // 2. 移除末尾的 */ }
+      // 3. 移除起始和末尾的空格
+      return fn
+          .toString()
+          .replace(/^[^\/]+\/\*!?/, '')
+          .replace(/\*\/[^\/]+$/, '')
+          .replace(/^[\s\xA0]+/, '')
+          .replace(/[\s\xA0]+$/, ''); // .trim()
   };
-  var noop = function noop() {};
-  var logInfo = function logInfo() {
-    var args = [];
-
-    for (var _i = 0; _i < arguments.length; _i++) {
-      args[_i] = arguments[_i];
-    }
-
-    console.log.apply(console, __spreadArrays(['[better-mock]'], args));
+  var noop = function () { };
+  var logInfo = function () {
+      var args = [];
+      for (var _i = 0; _i < arguments.length; _i++) {
+          args[_i] = arguments[_i];
+      }
+      console.log.apply(console, __spreadArrays(['[better-mock]'], args));
   };
-  var assert = function assert(condition, error) {
-    if (!condition) {
-      throw new Error('[better-mock] ' + error);
-    }
+  var assert = function (condition, error) {
+      if (!condition) {
+          throw new Error('[better-mock] ' + error);
+      }
   };
 
   var Util = /*#__PURE__*/Object.freeze({
@@ -186,338 +192,273 @@
   });
 
   var MAX_NATURE_NUMBER = 9007199254740992;
-  var MIN_NATURE_NUMBER = -9007199254740992; // 返回一个随机的布尔值。
-
-  var _boolean = function _boolean(min, max, current) {
-    if (min === void 0) {
-      min = 1;
-    }
-
-    if (max === void 0) {
-      max = 1;
-    }
-
-    if (isDef(current)) {
-      if (isDef(min)) {
-        min = !isNaN(min) ? parseInt(min.toString(), 10) : 1;
+  var MIN_NATURE_NUMBER = -9007199254740992;
+  // 返回一个随机的布尔值。
+  var boolean = function (min, max, current) {
+      if (min === void 0) { min = 1; }
+      if (max === void 0) { max = 1; }
+      if (isDef(current)) {
+          if (isDef(min)) {
+              min = !isNaN(min) ? parseInt(min.toString(), 10) : 1;
+          }
+          if (isDef(max)) {
+              max = !isNaN(max) ? parseInt(max.toString(), 10) : 1;
+          }
+          return Math.random() > 1.0 / (min + max) * min ? !current : current;
       }
-
-      if (isDef(max)) {
-        max = !isNaN(max) ? parseInt(max.toString(), 10) : 1;
+      return Math.random() >= 0.5;
+  };
+  var bool = boolean;
+  // 返回一个随机的自然数（大于等于 0 的整数）。
+  var natural = function (min, max) {
+      if (min === void 0) { min = 0; }
+      if (max === void 0) { max = MAX_NATURE_NUMBER; }
+      min = parseInt(min.toString(), 10);
+      max = parseInt(max.toString(), 10);
+      return Math.round(Math.random() * (max - min)) + min;
+  };
+  // 返回一个随机的整数。
+  var integer = function (min, max) {
+      if (min === void 0) { min = MIN_NATURE_NUMBER; }
+      if (max === void 0) { max = MAX_NATURE_NUMBER; }
+      min = parseInt(min.toString(), 10);
+      max = parseInt(max.toString(), 10);
+      return Math.round(Math.random() * (max - min)) + min;
+  };
+  var int = integer;
+  // 返回一个随机的浮点数。
+  var float = function (min, max, dmin, dmax) {
+      dmin = isDef(dmin) ? dmin : 0;
+      dmin = Math.max(Math.min(dmin, 17), 0);
+      dmax = isDef(dmax) ? dmax : 17;
+      dmax = Math.max(Math.min(dmax, 17), 0);
+      var ret = integer(min, max) + '.';
+      for (var i = 0, dcount = natural(dmin, dmax); i < dcount; i++) {
+          // 最后一位不能为 0：如果最后一位为 0，会被 JS 引擎忽略掉。
+          var num = i < dcount - 1 ? character('number') : character('123456789');
+          ret += num;
       }
-
-      return Math.random() > 1.0 / (min + max) * min ? !current : current;
-    }
-
-    return Math.random() >= 0.5;
+      return parseFloat(ret);
   };
-  var bool = _boolean; // 返回一个随机的自然数（大于等于 0 的整数）。
-
-  var natural = function natural(min, max) {
-    if (min === void 0) {
-      min = 0;
-    }
-
-    if (max === void 0) {
-      max = MAX_NATURE_NUMBER;
-    }
-
-    min = parseInt(min.toString(), 10);
-    max = parseInt(max.toString(), 10);
-    return Math.round(Math.random() * (max - min)) + min;
-  }; // 返回一个随机的整数。
-
-  var integer = function integer(min, max) {
-    if (min === void 0) {
-      min = MIN_NATURE_NUMBER;
-    }
-
-    if (max === void 0) {
-      max = MAX_NATURE_NUMBER;
-    }
-
-    min = parseInt(min.toString(), 10);
-    max = parseInt(max.toString(), 10);
-    return Math.round(Math.random() * (max - min)) + min;
+  // 返回一个随机字符。
+  var character = function (pool) {
+      if (pool === void 0) { pool = ''; }
+      var lower = 'abcdefghijklmnopqrstuvwxyz';
+      var upper = lower.toUpperCase();
+      var number = '0123456789';
+      var symbol = '!@#$%^&*()[]';
+      var pools = {
+          lower: lower,
+          upper: upper,
+          number: number,
+          symbol: symbol,
+          alpha: lower + upper
+      };
+      if (!pool) {
+          pool = lower + upper + number + symbol;
+      }
+      else {
+          pool = pools[pool.toLowerCase()] || pool;
+      }
+      return pool.charAt(natural(0, pool.length - 1));
   };
-  var _int = integer; // 返回一个随机的浮点数。
-
-  var _float = function _float(min, max, dmin, dmax) {
-    dmin = isDef(dmin) ? dmin : 0;
-    dmin = Math.max(Math.min(dmin, 17), 0);
-    dmax = isDef(dmax) ? dmax : 17;
-    dmax = Math.max(Math.min(dmax, 17), 0);
-    var ret = integer(min, max) + '.';
-
-    for (var i = 0, dcount = natural(dmin, dmax); i < dcount; i++) {
-      // 最后一位不能为 0：如果最后一位为 0，会被 JS 引擎忽略掉。
-      var num = i < dcount - 1 ? character('number') : character('123456789');
-      ret += num;
-    }
-
-    return parseFloat(ret);
-  }; // 返回一个随机字符。
-  var character = function character(pool) {
-    if (pool === void 0) {
-      pool = '';
-    }
-
-    var lower = 'abcdefghijklmnopqrstuvwxyz';
-    var upper = lower.toUpperCase();
-    var number = '0123456789';
-    var symbol = '!@#$%^&*()[]';
-    var pools = {
-      lower: lower,
-      upper: upper,
-      number: number,
-      symbol: symbol,
-      alpha: lower + upper
-    };
-
-    if (!pool) {
-      pool = lower + upper + number + symbol;
-    } else {
-      pool = pools[pool.toLowerCase()] || pool;
-    }
-
-    return pool.charAt(natural(0, pool.length - 1));
+  var char = character;
+  // 返回一个随机字符串。
+  var string = function (pool, min, max) {
+      var len;
+      switch (arguments.length) {
+          case 0: // ()
+              len = natural(3, 7);
+              break;
+          case 1: // ( length )
+              len = pool;
+              pool = undefined;
+              break;
+          case 2:
+              // ( pool, length )
+              if (typeof arguments[0] === 'string') {
+                  len = min;
+              }
+              else {
+                  // ( min, max )
+                  len = natural(pool, min);
+                  pool = undefined;
+              }
+              break;
+          case 3:
+              len = natural(min, max);
+              break;
+      }
+      var text = '';
+      for (var i = 0; i < len; i++) {
+          text += character(pool);
+      }
+      return text;
   };
-  var _char = character; // 返回一个随机字符串。
-  var string = function string(pool, min, max) {
-    var len;
-
-    switch (arguments.length) {
-      case 0:
-        // ()
-        len = natural(3, 7);
-        break;
-
-      case 1:
-        // ( length )
-        len = pool;
-        pool = undefined;
-        break;
-
-      case 2:
-        // ( pool, length )
-        if (typeof arguments[0] === 'string') {
-          len = min;
-        } else {
-          // ( min, max )
-          len = natural(pool, min);
-          pool = undefined;
-        }
-
-        break;
-
-      case 3:
-        len = natural(min, max);
-        break;
-    }
-
-    var text = '';
-
-    for (var i = 0; i < len; i++) {
-      text += character(pool);
-    }
-
-    return text;
-  };
-  var str = string; // 返回一个整型数组。
-
-  var range = function range(start, stop, step) {
-    if (step === void 0) {
-      step = 1;
-    } // range( stop )
-
-
-    if (arguments.length <= 1) {
-      stop = start || 0;
-      start = 0;
-    }
-
-    start = +start;
-    stop = +stop;
-    step = +step;
-    var idx = 0;
-    var len = Math.max(Math.ceil((stop - start) / step), 0);
-    var range = new Array(len);
-
-    while (idx < len) {
-      range[idx++] = start;
-      start += step;
-    }
-
-    return range;
+  var str = string;
+  // 返回一个整型数组。
+  var range = function (start, stop, step) {
+      if (step === void 0) { step = 1; }
+      // range( stop )
+      if (arguments.length <= 1) {
+          stop = start || 0;
+          start = 0;
+      }
+      start = +start;
+      stop = +stop;
+      step = +step;
+      var idx = 0;
+      var len = Math.max(Math.ceil((stop - start) / step), 0);
+      var range = new Array(len);
+      while (idx < len) {
+          range[idx++] = start;
+          start += step;
+      }
+      return range;
   };
 
   var basic = /*#__PURE__*/Object.freeze({
-    boolean: _boolean,
+    boolean: boolean,
     bool: bool,
     natural: natural,
     integer: integer,
-    int: _int,
-    float: _float,
+    int: int,
+    float: float,
     character: character,
-    char: _char,
+    char: char,
     string: string,
     str: str,
     range: range
   });
 
   // Date
-
-  var _padZero = function _padZero(value) {
-    return value < 10 ? '0' + value : value.toString();
+  var _padZero = function (value) {
+      return value < 10 ? '0' + value : value.toString();
   };
-
   var patternLetters = {
-    yyyy: 'getFullYear',
-    yy: function yy(date) {
-      return date.getFullYear().toString().slice(2);
-    },
-    y: 'yy',
-    MM: function MM(date) {
-      return _padZero(date.getMonth() + 1);
-    },
-    M: function M(date) {
-      return (date.getMonth() + 1).toString();
-    },
-    dd: function dd(date) {
-      return _padZero(date.getDate());
-    },
-    d: 'getDate',
-    HH: function HH(date) {
-      return _padZero(date.getHours());
-    },
-    H: 'getHours',
-    hh: function hh(date) {
-      return _padZero(date.getHours() % 12);
-    },
-    h: function h(date) {
-      return (date.getHours() % 12).toString();
-    },
-    mm: function mm(date) {
-      return _padZero(date.getMinutes());
-    },
-    m: 'getMinutes',
-    ss: function ss(date) {
-      return _padZero(date.getSeconds());
-    },
-    s: 'getSeconds',
-    SS: function SS(date) {
-      var ms = date.getMilliseconds();
-      return ms < 10 && '00' + ms || ms < 100 && '0' + ms || ms.toString();
-    },
-    S: 'getMilliseconds',
-    A: function A(date) {
-      return date.getHours() < 12 ? 'AM' : 'PM';
-    },
-    a: function a(date) {
-      return date.getHours() < 12 ? 'am' : 'pm';
-    },
-    T: 'getTime'
+      yyyy: 'getFullYear',
+      yy: function (date) {
+          return date.getFullYear().toString().slice(2);
+      },
+      y: 'yy',
+      MM: function (date) {
+          return _padZero(date.getMonth() + 1);
+      },
+      M: function (date) {
+          return (date.getMonth() + 1).toString();
+      },
+      dd: function (date) {
+          return _padZero(date.getDate());
+      },
+      d: 'getDate',
+      HH: function (date) {
+          return _padZero(date.getHours());
+      },
+      H: 'getHours',
+      hh: function (date) {
+          return _padZero(date.getHours() % 12);
+      },
+      h: function (date) {
+          return (date.getHours() % 12).toString();
+      },
+      mm: function (date) {
+          return _padZero(date.getMinutes());
+      },
+      m: 'getMinutes',
+      ss: function (date) {
+          return _padZero(date.getSeconds());
+      },
+      s: 'getSeconds',
+      SS: function (date) {
+          var ms = date.getMilliseconds();
+          return ms < 10 && '00' + ms || ms < 100 && '0' + ms || ms.toString();
+      },
+      S: 'getMilliseconds',
+      A: function (date) {
+          return date.getHours() < 12 ? 'AM' : 'PM';
+      },
+      a: function (date) {
+          return date.getHours() < 12 ? 'am' : 'pm';
+      },
+      T: 'getTime'
   };
-
-  var _createFormatRE = function _createFormatRE() {
-    var re = keys(patternLetters);
-    return '(' + re.join('|') + ')';
+  var _createFormatRE = function () {
+      var re = keys(patternLetters);
+      return '(' + re.join('|') + ')';
   };
-
-  var _formatDate = function _formatDate(date, format) {
-    var formatRE = new RegExp(_createFormatRE(), 'g');
-    return format.replace(formatRE, function createNewSubString($0, flag) {
-      return typeof patternLetters[flag] === 'function' ? patternLetters[flag](date) : patternLetters[flag] in patternLetters ? createNewSubString($0, patternLetters[flag]) : date[patternLetters[flag]]();
-    });
-  }; // 生成一个随机的 Date 对象。
-
-
-  var _randomDate = function _randomDate(min, max) {
-    if (min === void 0) {
-      min = new Date(0);
-    }
-
-    if (max === void 0) {
-      max = new Date();
-    }
-
-    var randomTS = Math.random() * (max.getTime() - min.getTime());
-    return new Date(randomTS);
-  }; // 返回一个随机的日期字符串。
-
-
-  var date = function date(format) {
-    if (format === void 0) {
-      format = 'yyyy-MM-dd';
-    }
-
-    return _formatDate(_randomDate(), format);
-  }; // 返回一个随机的时间字符串。
-
-  var time = function time(format) {
-    if (format === void 0) {
-      format = 'HH:mm:ss';
-    }
-
-    return _formatDate(_randomDate(), format);
-  }; // 返回一个随机的日期和时间字符串。
-
-  var datetime = function datetime(format) {
-    if (format === void 0) {
-      format = 'yyyy-MM-dd HH:mm:ss';
-    }
-
-    return _formatDate(_randomDate(), format);
-  }; // 返回一个随机的时间戳
-
-  var timestamp = function timestamp() {
-    return Number(_formatDate(_randomDate(), 'T'));
-  }; // 返回当前的日期和时间字符串。
-
-  var now = function now(unit, format) {
-    // now(unit) now(format)
-    if (arguments.length === 1) {
-      // now(format)
-      if (!/year|month|day|hour|minute|second|week/.test(unit)) {
-        format = unit;
-        unit = '';
+  var _formatDate = function (date, format) {
+      var formatRE = new RegExp(_createFormatRE(), 'g');
+      return format.replace(formatRE, function createNewSubString($0, flag) {
+          return typeof patternLetters[flag] === 'function'
+              ? patternLetters[flag](date)
+              : patternLetters[flag] in patternLetters
+                  ? createNewSubString($0, patternLetters[flag])
+                  : date[patternLetters[flag]]();
+      });
+  };
+  // 生成一个随机的 Date 对象。
+  var _randomDate = function (min, max) {
+      if (min === void 0) { min = new Date(0); }
+      if (max === void 0) { max = new Date(); }
+      var randomTS = Math.random() * (max.getTime() - min.getTime());
+      return new Date(randomTS);
+  };
+  // 返回一个随机的日期字符串。
+  var date = function (format) {
+      if (format === void 0) { format = 'yyyy-MM-dd'; }
+      return _formatDate(_randomDate(), format);
+  };
+  // 返回一个随机的时间字符串。
+  var time = function (format) {
+      if (format === void 0) { format = 'HH:mm:ss'; }
+      return _formatDate(_randomDate(), format);
+  };
+  // 返回一个随机的日期和时间字符串。
+  var datetime = function (format) {
+      if (format === void 0) { format = 'yyyy-MM-dd HH:mm:ss'; }
+      return _formatDate(_randomDate(), format);
+  };
+  // 返回一个随机的时间戳
+  var timestamp = function () {
+      return Number(_formatDate(_randomDate(), 'T'));
+  };
+  // 返回当前的日期和时间字符串。
+  var now = function (unit, format) {
+      // now(unit) now(format)
+      if (arguments.length === 1) {
+          // now(format)
+          if (!/year|month|day|hour|minute|second|week/.test(unit)) {
+              format = unit;
+              unit = '';
+          }
       }
-    }
-
-    unit = (unit || '').toLowerCase();
-    format = format || 'yyyy-MM-dd HH:mm:ss';
-    var date = new Date(); // 参考自 http://momentjs.cn/docs/#/manipulating/start-of/
-
-    switch (unit) {
-      case 'year':
-        date.setMonth(0);
-        break;
-
-      case 'month':
-        date.setDate(1);
-        break;
-
-      case 'week':
-        date.setDate(date.getDate() - date.getDay());
-        break;
-
-      case 'day':
-        date.setHours(0);
-        break;
-
-      case 'hour':
-        date.setMinutes(0);
-        break;
-
-      case 'minute':
-        date.setSeconds(0);
-        break;
-
-      case 'second':
-        date.setMilliseconds(0);
-    }
-
-    return _formatDate(date, format);
+      unit = (unit || '').toLowerCase();
+      format = format || 'yyyy-MM-dd HH:mm:ss';
+      var date = new Date();
+      // 参考自 http://momentjs.cn/docs/#/manipulating/start-of/
+      switch (unit) {
+          case 'year':
+              date.setMonth(0);
+              break;
+          case 'month':
+              date.setDate(1);
+              break;
+          case 'week':
+              date.setDate(date.getDate() - date.getDay());
+              break;
+          case 'day':
+              date.setHours(0);
+              break;
+          case 'hour':
+              date.setMinutes(0);
+              break;
+          case 'minute':
+              date.setSeconds(0);
+              break;
+          case 'second':
+              date.setMilliseconds(0);
+      }
+      return _formatDate(date, format);
   };
 
   var date$1 = /*#__PURE__*/Object.freeze({
@@ -528,76 +469,71 @@
     now: now
   });
 
-  var capitalize = function capitalize(word) {
-    word = word + '';
-    return word.charAt(0).toUpperCase() + word.substr(1);
-  }; // 把字符串转换为大写。
-
-  var upper = function upper(str) {
-    return (str + '').toUpperCase();
-  }; // 把字符串转换为小写。
-
-  var lower = function lower(str) {
-    return (str + '').toLowerCase();
-  }; // 从数组中随机选取一个元素，并返回。
-
+  // 把字符串的第一个字母转换为大写。
+  var capitalize = function (word) {
+      word = word + '';
+      return word.charAt(0).toUpperCase() + word.substr(1);
+  };
+  // 把字符串转换为大写。
+  var upper = function (str) {
+      return (str + '').toUpperCase();
+  };
+  // 把字符串转换为小写。
+  var lower = function (str) {
+      return (str + '').toLowerCase();
+  };
+  // 从数组中随机选取一个元素，并返回。
   var pick = function pick(arr, min, max) {
-    // pick( item1, item2 ... )
-    if (!isArray(arr)) {
-      arr = [].slice.call(arguments);
-      min = 1;
-      max = 1;
-    } else {
-      // pick( [ item1, item2 ... ] )
-      if (!isDef(min)) {
-        min = 1;
-      } // pick( [ item1, item2 ... ], count )
-
-
-      if (!isDef(max)) {
-        max = min;
+      // pick( item1, item2 ... )
+      if (!isArray(arr)) {
+          arr = [].slice.call(arguments);
+          min = 1;
+          max = 1;
       }
-    }
-
-    if (min === 1 && max === 1) {
-      return arr[natural(0, arr.length - 1)];
-    } // pick( [ item1, item2 ... ], min, max )
-
-
-    return shuffle(arr, min, max);
-  }; // 从map中随机选择一个
-
+      else {
+          // pick( [ item1, item2 ... ] )
+          if (!isDef(min)) {
+              min = 1;
+          }
+          // pick( [ item1, item2 ... ], count )
+          if (!isDef(max)) {
+              max = min;
+          }
+      }
+      if (min === 1 && max === 1) {
+          return arr[natural(0, arr.length - 1)];
+      }
+      // pick( [ item1, item2 ... ], min, max )
+      return shuffle(arr, min, max);
+  };
+  // 从map中随机选择一个
   var pickMap = function pickMap(map) {
-    return pick(values(map));
-  }; // 打乱数组中元素的顺序，并返回。
-
+      return pick(values(map));
+  };
+  // 打乱数组中元素的顺序，并返回。
   var shuffle = function shuffle(arr, min, max) {
-    arr = arr || [];
-    var old = arr.slice(0);
-    var result = [];
-    var index = 0;
-    var length = old.length;
-
-    for (var i = 0; i < length; i++) {
-      index = natural(0, old.length - 1);
-      result.push(old[index]);
-      old.splice(index, 1);
-    }
-
-    switch (arguments.length) {
-      case 0:
-      case 1:
-        return result;
-
-      case 2:
-        max = min;
-      // falls through
-
-      case 3:
-        min = parseInt(min.toString(), 10);
-        max = parseInt(max.toString(), 10);
-        return result.slice(0, natural(min, max));
-    }
+      arr = arr || [];
+      var old = arr.slice(0);
+      var result = [];
+      var index = 0;
+      var length = old.length;
+      for (var i = 0; i < length; i++) {
+          index = natural(0, old.length - 1);
+          result.push(old[index]);
+          old.splice(index, 1);
+      }
+      switch (arguments.length) {
+          case 0:
+          case 1:
+              return result;
+          case 2:
+              max = min;
+          // falls through
+          case 3:
+              min = parseInt(min.toString(), 10);
+              max = parseInt(max.toString(), 10);
+              return result.slice(0, natural(min, max));
+      }
   };
 
   var helper = /*#__PURE__*/Object.freeze({
@@ -610,8 +546,12 @@
   });
 
   // image
-
-  var imageSize = ['150x100', '300x200', '400x300', '600x450', '800X600', '100x150', '200x300', '300x400', '450x600', '600x800', '100x100', '200x200', '300x300', '450x450', '600x600'];
+  // 常见图片尺寸
+  var imageSize = [
+      '150x100', '300x200', '400x300', '600x450', '800X600',
+      '100x150', '200x300', '300x400', '450x600', '600x800',
+      '100x100', '200x200', '300x300', '450x450', '600x600'
+  ];
   /**
    * 随机生成一个图片，使用：https://dummyimage.com/，例如：
    * https://dummyimage.com/600x400/cc00cc/470047.png&text=hello
@@ -621,38 +561,36 @@
    * @param format 图片格式
    * @param text 文字
    */
-
-  var image = function image(size, background, foreground, format, text) {
-    // Random.image( size, background, foreground, text )
-    if (arguments.length === 4) {
-      text = format;
-      format = undefined;
-    } // Random.image( size, background, text )
-
-
-    if (arguments.length === 3) {
-      text = foreground;
-      foreground = undefined;
-    } // Random.image( size, text )
-
-
-    if (arguments.length === 2) {
-      text = background;
-      background = undefined;
-    } // Random.image()
-
-
-    size = size || pick(imageSize);
-
-    if (background && ~background.indexOf('#')) {
-      background = background.slice(1);
-    }
-
-    if (foreground && ~foreground.indexOf('#')) {
-      foreground = foreground.slice(1);
-    }
-
-    return 'https://dummyimage.com/' + size + (background ? '/' + background : '') + (foreground ? '/' + foreground : '') + (format ? '.' + format : '') + (text ? '&text=' + encodeURIComponent(text) : '');
+  var image = function (size, background, foreground, format, text) {
+      // Random.image( size, background, foreground, text )
+      if (arguments.length === 4) {
+          text = format;
+          format = undefined;
+      }
+      // Random.image( size, background, text )
+      if (arguments.length === 3) {
+          text = foreground;
+          foreground = undefined;
+      }
+      // Random.image( size, text )
+      if (arguments.length === 2) {
+          text = background;
+          background = undefined;
+      }
+      // Random.image()
+      size = size || pick(imageSize);
+      if (background && ~background.indexOf('#')) {
+          background = background.slice(1);
+      }
+      if (foreground && ~foreground.indexOf('#')) {
+          foreground = foreground.slice(1);
+      }
+      return ('https://dummyimage.com/' +
+          size +
+          (background ? '/' + background : '') +
+          (foreground ? '/' + foreground : '') +
+          (format ? '.' + format : '') +
+          (text ? '&text=' + encodeURIComponent(text) : ''));
   };
   var img = image;
   /**
@@ -660,40 +598,39 @@
    * @param size 图片宽高
    * @param text 图片上的文字
    */
-
-  var dataImage = function dataImage(size, text) {
-    size = size || pick(imageSize);
-    text = text || size;
-    var background = pick(['#171515', '#e47911', '#183693', '#720e9e', '#c4302b', '#dd4814', '#00acee', '#0071c5', '#3d9ae8', '#ec6231', '#003580', '#e51937']);
-    var sizes = size.split('x');
-    var width = parseInt(sizes[0], 10);
-    var height = parseInt(sizes[1], 10);
-    assert(isNumber(width) && isNumber(height), 'Invalid size, expected INTxINT, e.g. 300x400');
-
-    {
-      return createBrowserDataImage(width, height, background, text);
-    }
-  }; // browser 端生成 base64 图片
-
+  var dataImage = function (size, text) {
+      size = size || pick(imageSize);
+      text = text || size;
+      var background = pick([
+          '#171515', '#e47911', '#183693', '#720e9e', '#c4302b', '#dd4814',
+          '#00acee', '#0071c5', '#3d9ae8', '#ec6231', '#003580', '#e51937'
+      ]);
+      var sizes = size.split('x');
+      var width = parseInt(sizes[0], 10);
+      var height = parseInt(sizes[1], 10);
+      assert(isNumber(width) && isNumber(height), 'Invalid size, expected INTxINT, e.g. 300x400');
+      {
+          return createBrowserDataImage(width, height, background, text);
+      }
+  };
+  // browser 端生成 base64 图片
   function createBrowserDataImage(width, height, background, text) {
-    var canvas = document.createElement('canvas');
-    var ctx = canvas && canvas.getContext && canvas.getContext('2d');
-
-    if (!canvas || !ctx) {
-      return '';
-    }
-
-    canvas.width = width;
-    canvas.height = height;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = background;
-    ctx.fillRect(0, 0, width, height);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 14px sans-serif';
-    ctx.fillText(text, width / 2, height / 2, width);
-    return canvas.toDataURL('image/png');
-  } // node 端生成 base64 图片
+      var canvas = document.createElement('canvas');
+      var ctx = canvas && canvas.getContext && canvas.getContext('2d');
+      if (!canvas || !ctx) {
+          return '';
+      }
+      canvas.width = width;
+      canvas.height = height;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = background;
+      ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.fillText(text, width / 2, height / 2, width);
+      return canvas.toDataURL('image/png');
+  }
 
   var image$1 = /*#__PURE__*/Object.freeze({
     image: image,
@@ -703,184 +640,148 @@
 
   // 颜色空间RGB与HSV(HSL)的转换
   var hsv2rgb = function hsv2rgb(hsv) {
-    var h = hsv[0] / 60;
-    var s = hsv[1] / 100;
-    var v = hsv[2] / 100;
-    var hi = Math.floor(h) % 6;
-    var f = h - Math.floor(h);
-    var p = 255 * v * (1 - s);
-    var q = 255 * v * (1 - s * f);
-    var t = 255 * v * (1 - s * (1 - f));
-    v = 255 * v;
-
-    switch (hi) {
-      case 0:
-        return [v, t, p];
-
-      case 1:
-        return [q, v, p];
-
-      case 2:
-        return [p, v, t];
-
-      case 3:
-        return [p, q, v];
-
-      case 4:
-        return [t, p, v];
-
-      case 5:
-        return [v, p, q];
-    }
+      var h = hsv[0] / 60;
+      var s = hsv[1] / 100;
+      var v = hsv[2] / 100;
+      var hi = Math.floor(h) % 6;
+      var f = h - Math.floor(h);
+      var p = 255 * v * (1 - s);
+      var q = 255 * v * (1 - (s * f));
+      var t = 255 * v * (1 - (s * (1 - f)));
+      v = 255 * v;
+      switch (hi) {
+          case 0:
+              return [v, t, p];
+          case 1:
+              return [q, v, p];
+          case 2:
+              return [p, v, t];
+          case 3:
+              return [p, q, v];
+          case 4:
+              return [t, p, v];
+          case 5:
+              return [v, p, q];
+      }
   };
   var hsv2hsl = function hsv2hsl(hsv) {
-    var h = hsv[0],
-        s = hsv[1] / 100,
-        v = hsv[2] / 100,
-        sl,
-        l;
-    l = (2 - s) * v;
-    sl = s * v;
-    sl /= l <= 1 ? l : 2 - l;
-    l /= 2;
-    return [h, sl * 100, l * 100];
-  }; // http://www.140byt.es/keywords/color
-
-  var rgb2hex = function rgb2hex(a, // red, as a number from 0 to 255
+      var h = hsv[0], s = hsv[1] / 100, v = hsv[2] / 100, sl, l;
+      l = (2 - s) * v;
+      sl = s * v;
+      sl /= (l <= 1) ? l : 2 - l;
+      l /= 2;
+      return [h, sl * 100, l * 100];
+  };
+  // http://www.140byt.es/keywords/color
+  var rgb2hex = function (a, // red, as a number from 0 to 255
   b, // green, as a number from 0 to 255
   c // blue, as a number from 0 to 255
   ) {
-    return "#" + ((256 + a << 8 | b) << 8 | c).toString(16).slice(1);
+      return "#" + ((256 + a << 8 | b) << 8 | c).toString(16).slice(1);
   };
 
   // color 字典数据
   // http://clrs.cc
   var dict = {
-    // name value nicer
-    navy: {
-      value: '#000080',
-      nicer: '#001F3F'
-    },
-    blue: {
-      value: '#0000ff',
-      nicer: '#0074D9'
-    },
-    aqua: {
-      value: '#00ffff',
-      nicer: '#7FDBFF'
-    },
-    teal: {
-      value: '#008080',
-      nicer: '#39CCCC'
-    },
-    olive: {
-      value: '#008000',
-      nicer: '#3D9970'
-    },
-    green: {
-      value: '#008000',
-      nicer: '#2ECC40'
-    },
-    lime: {
-      value: '#00ff00',
-      nicer: '#01FF70'
-    },
-    yellow: {
-      value: '#ffff00',
-      nicer: '#FFDC00'
-    },
-    orange: {
-      value: '#ffa500',
-      nicer: '#FF851B'
-    },
-    red: {
-      value: '#ff0000',
-      nicer: '#FF4136'
-    },
-    maroon: {
-      value: '#800000',
-      nicer: '#85144B'
-    },
-    fuchsia: {
-      value: '#ff00ff',
-      nicer: '#F012BE'
-    },
-    purple: {
-      value: '#800080',
-      nicer: '#B10DC9'
-    },
-    silver: {
-      value: '#c0c0c0',
-      nicer: '#DDDDDD'
-    },
-    gray: {
-      value: '#808080',
-      nicer: '#AAAAAA'
-    },
-    black: {
-      value: '#000000',
-      nicer: '#111111'
-    },
-    white: {
-      value: '#FFFFFF',
-      nicer: '#FFFFFF'
-    }
+      // name value nicer
+      navy: {
+          value: '#000080', nicer: '#001F3F'
+      }, blue: {
+          value: '#0000ff', nicer: '#0074D9'
+      }, aqua: {
+          value: '#00ffff', nicer: '#7FDBFF'
+      }, teal: {
+          value: '#008080', nicer: '#39CCCC'
+      }, olive: {
+          value: '#008000', nicer: '#3D9970'
+      }, green: {
+          value: '#008000', nicer: '#2ECC40'
+      }, lime: {
+          value: '#00ff00', nicer: '#01FF70'
+      }, yellow: {
+          value: '#ffff00', nicer: '#FFDC00'
+      }, orange: {
+          value: '#ffa500', nicer: '#FF851B'
+      }, red: {
+          value: '#ff0000', nicer: '#FF4136'
+      }, maroon: {
+          value: '#800000', nicer: '#85144B'
+      }, fuchsia: {
+          value: '#ff00ff', nicer: '#F012BE'
+      }, purple: {
+          value: '#800080', nicer: '#B10DC9'
+      }, silver: {
+          value: '#c0c0c0', nicer: '#DDDDDD'
+      }, gray: {
+          value: '#808080', nicer: '#AAAAAA'
+      }, black: {
+          value: '#000000', nicer: '#111111'
+      }, white: {
+          value: '#FFFFFF', nicer: '#FFFFFF'
+      }
   };
 
   // 颜色相关
-
-  var color = function color(name) {
-    if (name === void 0) {
-      name = '';
-    }
-
-    if (name || dict[name]) {
-      return dict[name].nicer;
-    }
-
-    return hex();
-  }; // #DAC0DE
-
-  var hex = function hex() {
-    var hsv = _goldenRatioColor();
-
-    var rgb = hsv2rgb(hsv);
-    return rgb2hex(rgb[0], rgb[1], rgb[2]);
-  }; // rgb(128,255,255)
-
-  var rgb = function rgb() {
-    var hsv = _goldenRatioColor();
-
-    var rgb = hsv2rgb(hsv);
-    return 'rgb(' + parseInt(rgb[0].toString(), 10) + ', ' + parseInt(rgb[1].toString(), 10) + ', ' + parseInt(rgb[2].toString(), 10) + ')';
-  }; // rgba(128,255,255,0.3)
-
-  var rgba = function rgba() {
-    var hsv = _goldenRatioColor();
-
-    var rgb = hsv2rgb(hsv);
-    return 'rgba(' + parseInt(rgb[0].toString(), 10) + ', ' + parseInt(rgb[1].toString(), 10) + ', ' + parseInt(rgb[2].toString(), 10) + ', ' + Math.random().toFixed(2) + ')';
-  }; // hsl(300,80%,90%)
-
-  var hsl = function hsl() {
-    var hsv = _goldenRatioColor();
-
-    var hsl = hsv2hsl(hsv);
-    return 'hsl(' + parseInt(hsl[0], 10) + ', ' + parseInt(hsl[1], 10) + ', ' + parseInt(hsl[2], 10) + ')';
-  }; // http://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
+  // 随机生成一个有吸引力的颜色，格式为 '#RRGGBB'。
+  var color = function (name) {
+      if (name === void 0) { name = ''; }
+      if (name || dict[name]) {
+          return dict[name].nicer;
+      }
+      return hex();
+  };
+  // #DAC0DE
+  var hex = function () {
+      var hsv = _goldenRatioColor();
+      var rgb = hsv2rgb(hsv);
+      return rgb2hex(rgb[0], rgb[1], rgb[2]);
+  };
+  // rgb(128,255,255)
+  var rgb = function () {
+      var hsv = _goldenRatioColor();
+      var rgb = hsv2rgb(hsv);
+      return 'rgb(' +
+          parseInt(rgb[0].toString(), 10) + ', ' +
+          parseInt(rgb[1].toString(), 10) + ', ' +
+          parseInt(rgb[2].toString(), 10) + ')';
+  };
+  // rgba(128,255,255,0.3)
+  var rgba = function () {
+      var hsv = _goldenRatioColor();
+      var rgb = hsv2rgb(hsv);
+      return 'rgba(' +
+          parseInt(rgb[0].toString(), 10) + ', ' +
+          parseInt(rgb[1].toString(), 10) + ', ' +
+          parseInt(rgb[2].toString(), 10) + ', ' +
+          Math.random().toFixed(2) + ')';
+  };
+  // hsl(300,80%,90%)
+  var hsl = function () {
+      var hsv = _goldenRatioColor();
+      var hsl = hsv2hsl(hsv);
+      return 'hsl(' +
+          parseInt(hsl[0], 10) + ', ' +
+          parseInt(hsl[1], 10) + ', ' +
+          parseInt(hsl[2], 10) + ')';
+  };
+  // http://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
   // https://github.com/devongovett/color-generator/blob/master/index.js
   // 随机生成一个有吸引力的颜色。
-
   var _hue = 0;
-
-  var _goldenRatioColor = function _goldenRatioColor(saturation, value) {
-    var _goldenRatio = 0.618033988749895;
-    _hue = _hue || Math.random();
-    _hue += _goldenRatio;
-    _hue %= 1;
-    if (typeof saturation !== "number") saturation = 0.5;
-    if (typeof value !== "number") value = 0.95;
-    return [_hue * 360, saturation * 100, value * 100];
+  var _goldenRatioColor = function (saturation, value) {
+      var _goldenRatio = 0.618033988749895;
+      _hue = _hue || Math.random();
+      _hue += _goldenRatio;
+      _hue %= 1;
+      if (typeof saturation !== "number")
+          saturation = 0.5;
+      if (typeof value !== "number")
+          value = 0.95;
+      return [
+          _hue * 360,
+          saturation * 100,
+          value * 100
+      ];
   };
 
   var color$1 = /*#__PURE__*/Object.freeze({
@@ -891,146 +792,116 @@
     hsl: hsl
   });
 
-  var _range = function _range(defaultMin, defaultMax, min, max) {
-    return !isDef(min) ? natural(defaultMin, defaultMax) : !isDef(max) ? min : natural(parseInt(min.toString(), 10), parseInt(max.toString(), 10)); // ( min, max )
-  }; // 随机生成一段文本。
-
-
-  var paragraph = function paragraph(min, max) {
-    var len = _range(3, 7, min, max);
-
-    var result = [];
-
-    for (var i = 0; i < len; i++) {
-      result.push(sentence());
-    }
-
-    return result.join(' ');
+  var _range = function (defaultMin, defaultMax, min, max) {
+      return !isDef(min)
+          ? natural(defaultMin, defaultMax)
+          : !isDef(max)
+              ? min
+              : natural(parseInt(min.toString(), 10), parseInt(max.toString(), 10)); // ( min, max )
   };
-  var cparagraph = function cparagraph(min, max) {
-    var len = _range(3, 7, min, max);
-
-    var result = [];
-
-    for (var i = 0; i < len; i++) {
-      result.push(csentence());
-    }
-
-    return result.join('');
-  }; // 随机生成一个句子，第一个单词的首字母大写。
-
-  var sentence = function sentence(min, max) {
-    var len = _range(12, 18, min, max);
-
-    var result = [];
-
-    for (var i = 0; i < len; i++) {
-      result.push(word());
-    }
-
-    return capitalize(result.join(' ')) + '.';
-  }; // 随机生成一个中文句子。
-
-  var csentence = function csentence(min, max) {
-    var len = _range(12, 18, min, max);
-
-    var result = [];
-
-    for (var i = 0; i < len; i++) {
-      result.push(cword());
-    }
-
-    return result.join('') + '。';
-  }; // 随机生成一个单词。
-
-  var word = function word(min, max) {
-    var len = _range(3, 10, min, max);
-
-    var result = '';
-
-    for (var i = 0; i < len; i++) {
-      result += character('lower');
-    }
-
-    return result;
-  }; // 随机生成一个或多个汉字。
-
-  var cword = function cword(pool, min, max) {
-    if (pool === void 0) {
-      pool = '';
-    } // 最常用的 500 个汉字 http://baike.baidu.com/view/568436.htm
-
-
-    var DICT_HANZI = '的一是在不了有和人这中大为上个国我以要他时来用们生到作地于出就分对成会可主发年动同工也能下过子说产种面而方后多定行学法所民得经十三之进着等部度家电力里如水化高自二理起小物现实加量都两体制机当使点从业本去把性好应开它合还因由其些然前外天政四日那社义事平形相全表间样与关各重新线内数正心反你明看原又么利比或但质气第向道命此变条只没结解问意建月公无系军很情者最立代想已通并提直题党程展五果料象员革位入常文总次品式活设及管特件长求老头基资边流路级少图山统接知较将组见计别她手角期根论运农指几九区强放决西被干做必战先回则任取据处队南给色光门即保治北造百规热领七海口东导器压志世金增争济阶油思术极交受联什认六共权收证改清己美再采转更单风切打白教速花带安场身车例真务具万每目至达走积示议声报斗完类八离华名确才科张信马节话米整空元况今集温传土许步群广石记需段研界拉林律叫且究观越织装影算低持音众书布复容儿须际商非验连断深难近矿千周委素技备半办青省列习响约支般史感劳便团往酸历市克何除消构府称太准精值号率族维划选标写存候毛亲快效斯院查江型眼王按格养易置派层片始却专状育厂京识适属圆包火住调满县局照参红细引听该铁价严龙飞';
-    var len;
-
-    switch (arguments.length) {
-      case 0:
-        // ()
-        pool = DICT_HANZI;
-        len = 1;
-        break;
-
-      case 1:
-        // ( pool )
-        if (typeof arguments[0] === 'string') {
-          len = 1;
-        } else {
-          // ( length )
-          len = pool;
-          pool = DICT_HANZI;
-        }
-
-        break;
-
-      case 2:
-        // ( pool, length )
-        if (typeof arguments[0] === 'string') {
-          len = min;
-        } else {
-          // ( min, max )
-          len = natural(parseInt(pool, 10), min);
-          pool = DICT_HANZI;
-        }
-
-        break;
-
-      case 3:
-        len = natural(min, max);
-        break;
-    }
-
-    var result = '';
-
-    for (var i = 0; i < len; i++) {
-      result += pool.charAt(natural(0, pool.length - 1));
-    }
-
-    return result;
-  }; // 随机生成一句标题，其中每个单词的首字母大写。
-
-  var title = function title(min, max) {
-    var len = _range(3, 7, min, max);
-
-    var result = [];
-
-    for (var i = 0; i < len; i++) {
-      result.push(capitalize(word()));
-    }
-
-    return result.join(' ');
-  }; // 随机生成一句中文标题。
-
-  var ctitle = function ctitle(min, max) {
-    var len = _range(3, 7, min, max);
-
-    var result = [];
-
-    for (var i = 0; i < len; i++) {
-      result.push(cword());
-    }
-
-    return result.join('');
+  // 随机生成一段文本。
+  var paragraph = function (min, max) {
+      var len = _range(3, 7, min, max);
+      var result = [];
+      for (var i = 0; i < len; i++) {
+          result.push(sentence());
+      }
+      return result.join(' ');
+  };
+  var cparagraph = function (min, max) {
+      var len = _range(3, 7, min, max);
+      var result = [];
+      for (var i = 0; i < len; i++) {
+          result.push(csentence());
+      }
+      return result.join('');
+  };
+  // 随机生成一个句子，第一个单词的首字母大写。
+  var sentence = function (min, max) {
+      var len = _range(12, 18, min, max);
+      var result = [];
+      for (var i = 0; i < len; i++) {
+          result.push(word());
+      }
+      return capitalize(result.join(' ')) + '.';
+  };
+  // 随机生成一个中文句子。
+  var csentence = function (min, max) {
+      var len = _range(12, 18, min, max);
+      var result = [];
+      for (var i = 0; i < len; i++) {
+          result.push(cword());
+      }
+      return result.join('') + '。';
+  };
+  // 随机生成一个单词。
+  var word = function (min, max) {
+      var len = _range(3, 10, min, max);
+      var result = '';
+      for (var i = 0; i < len; i++) {
+          result += character('lower');
+      }
+      return result;
+  };
+  // 随机生成一个或多个汉字。
+  var cword = function (pool, min, max) {
+      if (pool === void 0) { pool = ''; }
+      // 最常用的 500 个汉字 http://baike.baidu.com/view/568436.htm
+      var DICT_HANZI = '的一是在不了有和人这中大为上个国我以要他时来用们生到作地于出就分对成会可主发年动同工也能下过子说产种面而方后多定行学法所民得经十三之进着等部度家电力里如水化高自二理起小物现实加量都两体制机当使点从业本去把性好应开它合还因由其些然前外天政四日那社义事平形相全表间样与关各重新线内数正心反你明看原又么利比或但质气第向道命此变条只没结解问意建月公无系军很情者最立代想已通并提直题党程展五果料象员革位入常文总次品式活设及管特件长求老头基资边流路级少图山统接知较将组见计别她手角期根论运农指几九区强放决西被干做必战先回则任取据处队南给色光门即保治北造百规热领七海口东导器压志世金增争济阶油思术极交受联什认六共权收证改清己美再采转更单风切打白教速花带安场身车例真务具万每目至达走积示议声报斗完类八离华名确才科张信马节话米整空元况今集温传土许步群广石记需段研界拉林律叫且究观越织装影算低持音众书布复容儿须际商非验连断深难近矿千周委素技备半办青省列习响约支般史感劳便团往酸历市克何除消构府称太准精值号率族维划选标写存候毛亲快效斯院查江型眼王按格养易置派层片始却专状育厂京识适属圆包火住调满县局照参红细引听该铁价严龙飞';
+      var len;
+      switch (arguments.length) {
+          case 0: // ()
+              pool = DICT_HANZI;
+              len = 1;
+              break;
+          case 1: // ( pool )
+              if (typeof arguments[0] === 'string') {
+                  len = 1;
+              }
+              else {
+                  // ( length )
+                  len = pool;
+                  pool = DICT_HANZI;
+              }
+              break;
+          case 2:
+              // ( pool, length )
+              if (typeof arguments[0] === 'string') {
+                  len = min;
+              }
+              else {
+                  // ( min, max )
+                  len = natural(parseInt(pool, 10), min);
+                  pool = DICT_HANZI;
+              }
+              break;
+          case 3:
+              len = natural(min, max);
+              break;
+      }
+      var result = '';
+      for (var i = 0; i < len; i++) {
+          result += pool.charAt(natural(0, pool.length - 1));
+      }
+      return result;
+  };
+  // 随机生成一句标题，其中每个单词的首字母大写。
+  var title = function (min, max) {
+      var len = _range(3, 7, min, max);
+      var result = [];
+      for (var i = 0; i < len; i++) {
+          result.push(capitalize(word()));
+      }
+      return result.join(' ');
+  };
+  // 随机生成一句中文标题。
+  var ctitle = function (min, max) {
+      var len = _range(3, 7, min, max);
+      var result = [];
+      for (var i = 0; i < len; i++) {
+          result.push(cword());
+      }
+      return result.join('');
   };
 
   var text = /*#__PURE__*/Object.freeze({
@@ -1044,54 +915,80 @@
     ctitle: ctitle
   });
 
-  var __spreadArrays$1 = undefined && undefined.__spreadArrays || function () {
-    for (var s = 0, i = 0, il = arguments.length; i < il; i++) {
-      s += arguments[i].length;
-    }
-
-    for (var r = Array(s), k = 0, i = 0; i < il; i++) {
-      for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) {
-        r[k] = a[j];
-      }
-    }
-
-    return r;
+  // 随机生成一个常见的英文名。
+  var first = function () {
+      var male = [
+          "James", "John", "Robert", "Michael", "William",
+          "David", "Richard", "Charles", "Joseph", "Thomas",
+          "Christopher", "Daniel", "Paul", "Mark", "Donald",
+          "George", "Kenneth", "Steven", "Edward", "Brian",
+          "Ronald", "Anthony", "Kevin", "Jason", "Matthew",
+          "Gary", "Timothy", "Jose", "Larry", "Jeffrey",
+          "Frank", "Scott", "Eric"
+      ];
+      var female = [
+          "Mary", "Patricia", "Linda", "Barbara", "Elizabeth",
+          "Jennifer", "Maria", "Susan", "Margaret", "Dorothy",
+          "Lisa", "Nancy", "Karen", "Betty", "Helen",
+          "Sandra", "Donna", "Carol", "Ruth", "Sharon",
+          "Michelle", "Laura", "Sarah", "Kimberly", "Deborah",
+          "Jessica", "Shirley", "Cynthia", "Angela", "Melissa",
+          "Brenda", "Amy", "Anna"
+      ];
+      return pick(__spreadArrays(male, female));
   };
-
-  var first = function first() {
-    var male = ["James", "John", "Robert", "Michael", "William", "David", "Richard", "Charles", "Joseph", "Thomas", "Christopher", "Daniel", "Paul", "Mark", "Donald", "George", "Kenneth", "Steven", "Edward", "Brian", "Ronald", "Anthony", "Kevin", "Jason", "Matthew", "Gary", "Timothy", "Jose", "Larry", "Jeffrey", "Frank", "Scott", "Eric"];
-    var female = ["Mary", "Patricia", "Linda", "Barbara", "Elizabeth", "Jennifer", "Maria", "Susan", "Margaret", "Dorothy", "Lisa", "Nancy", "Karen", "Betty", "Helen", "Sandra", "Donna", "Carol", "Ruth", "Sharon", "Michelle", "Laura", "Sarah", "Kimberly", "Deborah", "Jessica", "Shirley", "Cynthia", "Angela", "Melissa", "Brenda", "Amy", "Anna"];
-    return pick(__spreadArrays$1(male, female));
-  }; // 随机生成一个常见的英文姓。
-
-  var last = function last() {
-    var names = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis", "Garcia", "Rodriguez", "Wilson", "Martinez", "Anderson", "Taylor", "Thomas", "Hernandez", "Moore", "Martin", "Jackson", "Thompson", "White", "Lopez", "Lee", "Gonzalez", "Harris", "Clark", "Lewis", "Robinson", "Walker", "Perez", "Hall", "Young", "Allen"];
-    return pick(names);
-  }; // 随机生成一个常见的英文姓名。
-
-  var name = function name(middle) {
-    if (middle === void 0) {
-      middle = false;
-    }
-
-    return first() + ' ' + (middle ? first() + ' ' : '') + last();
-  }; // 随机生成一个常见的中文姓。
+  // 随机生成一个常见的英文姓。
+  var last = function () {
+      var names = [
+          "Smith", "Johnson", "Williams", "Brown", "Jones",
+          "Miller", "Davis", "Garcia", "Rodriguez", "Wilson",
+          "Martinez", "Anderson", "Taylor", "Thomas", "Hernandez",
+          "Moore", "Martin", "Jackson", "Thompson", "White",
+          "Lopez", "Lee", "Gonzalez", "Harris", "Clark",
+          "Lewis", "Robinson", "Walker", "Perez", "Hall",
+          "Young", "Allen"
+      ];
+      return pick(names);
+  };
+  // 随机生成一个常见的英文姓名。
+  var name = function (middle) {
+      if (middle === void 0) { middle = false; }
+      return first() + ' ' + (middle ? first() + ' ' : '') + last();
+  };
+  // 随机生成一个常见的中文姓。
   // [世界常用姓氏排行](http://baike.baidu.com/view/1719115.htm)
   // [玄派网 - 网络小说创作辅助平台](http://xuanpai.sinaapp.com/)
-
-  var cfirst = function cfirst() {
-    var names = ["王", "李", "张", "刘", "陈", "杨", "赵", "黄", "周", "吴", "徐", "孙", "胡", "朱", "高", "林", "何", "郭", "马", "罗", "梁", "宋", "郑", "谢", "韩", "唐", "冯", "于", "董", "萧", "程", "曹", "袁", "邓", "许", "傅", "沈", "曾", "彭", "吕", "苏", "卢", "蒋", "蔡", "贾", "丁", "魏", "薛", "叶", "阎", "余", "潘", "杜", "戴", "夏", "锺", "汪", "田", "任", "姜", "范", "方", "石", "姚", "谭", "廖", "邹", "熊", "金", "陆", "郝", "孔", "白", "崔", "康", "毛", "邱", "秦", "江", "史", "顾", "侯", "邵", "孟", "龙", "万", "段", "雷", "钱", "汤", "尹", "黎", "易", "常", "武", "乔", "贺", "赖", "龚", "文"];
-    return pick(names);
-  }; // 随机生成一个常见的中文名。
+  var cfirst = function () {
+      var names = [
+          "王", "李", "张", "刘", "陈", "杨", "赵", "黄",
+          "周", "吴", "徐", "孙", "胡", "朱", "高", "林",
+          "何", "郭", "马", "罗", "梁", "宋", "郑", "谢",
+          "韩", "唐", "冯", "于", "董", "萧", "程", "曹",
+          "袁", "邓", "许", "傅", "沈", "曾", "彭", "吕",
+          "苏", "卢", "蒋", "蔡", "贾", "丁", "魏", "薛",
+          "叶", "阎", "余", "潘", "杜", "戴", "夏", "锺",
+          "汪", "田", "任", "姜", "范", "方", "石", "姚",
+          "谭", "廖", "邹", "熊", "金", "陆", "郝", "孔",
+          "白", "崔", "康", "毛", "邱", "秦", "江", "史",
+          "顾", "侯", "邵", "孟", "龙", "万", "段", "雷",
+          "钱", "汤", "尹", "黎", "易", "常", "武", "乔",
+          "贺", "赖", "龚", "文"
+      ];
+      return pick(names);
+  };
+  // 随机生成一个常见的中文名。
   // [中国最常见名字前50名_三九算命网](http://www.name999.net/xingming/xingshi/20131004/48.html)
-
-  var clast = function clast() {
-    var names = ["伟", "芳", "娜", "秀英", "敏", "静", "丽", "强", "磊", "军", "洋", "勇", "艳", "杰", "娟", "涛", "明", "超", "秀兰", "霞", "平", "刚", "桂英"];
-    return pick(names);
-  }; // 随机生成一个常见的中文姓名。
-
-  var cname = function cname() {
-    return cfirst() + clast();
+  var clast = function () {
+      var names = [
+          "伟", "芳", "娜", "秀英", "敏", "静", "丽", "强",
+          "磊", "军", "洋", "勇", "艳", "杰", "娟", "涛",
+          "明", "超", "秀兰", "霞", "平", "刚", "桂英"
+      ];
+      return pick(names);
+  };
+  // 随机生成一个常见的中文姓名。
+  var cname = function () {
+      return cfirst() + clast();
   };
 
   var name$1 = /*#__PURE__*/Object.freeze({
@@ -1103,53 +1000,53 @@
     cname: cname
   });
 
-  var url = function url(_protocol, host) {
-    if (_protocol === void 0) {
-      _protocol = protocol();
-    }
-
-    if (host === void 0) {
-      host = domain();
-    }
-
-    return _protocol + "://" + host + "/" + word();
-  }; // 随机生成一个 URL 协议。
-
-  var protocol = function protocol() {
-    // 协议簇
-    var protocols = ['http', 'ftp', 'gopher', 'mailto', 'mid', 'cid', 'news', 'nntp', 'prospero', 'telnet', 'rlogin', 'tn3270', 'wais'];
-    return pick(protocols);
-  }; // 随机生成一个域名。
-
-  var domain = function domain(_tld) {
-    if (_tld === void 0) {
-      _tld = tld();
-    }
-
-    return word() + '.' + _tld;
-  }; // 随机生成一个顶级域名。
+  // 随机生成一个 URL。
+  var url = function (_protocol, host) {
+      if (_protocol === void 0) { _protocol = protocol(); }
+      if (host === void 0) { host = domain(); }
+      return _protocol + "://" + host + "/" + word();
+  };
+  // 随机生成一个 URL 协议。
+  var protocol = function () {
+      // 协议簇
+      var protocols = [
+          'http', 'ftp', 'gopher', 'mailto', 'mid', 'cid', 'news', 'nntp',
+          'prospero', 'telnet', 'rlogin', 'tn3270', 'wais'
+      ];
+      return pick(protocols);
+  };
+  // 随机生成一个域名。
+  var domain = function (_tld) {
+      if (_tld === void 0) { _tld = tld(); }
+      return word() + '.' + _tld;
+  };
+  // 随机生成一个顶级域名。
   // [域名后缀大全](http://www.163ns.com/zixun/post/4417.html)
-
-  var tld = function tld() {
-    var tlds = ( // 域名后缀
-    'com net org edu gov int mil cn ' + // 国内域名
-    'com.cn net.cn gov.cn org.cn ' + // 中文国内域名
-    '中国 中国互联.公司 中国互联.网络 ' + // 新国际域名
-    'tel biz cc tv info name hk mobi asia cd travel pro museum coop aero ' + // 世界各国域名后缀
-    'ad ae af ag ai al am an ao aq ar as at au aw az ba bb bd be bf bg bh bi bj bm bn bo br bs bt bv bw by bz ca cc cf cg ch ci ck cl cm cn co cq cr cu cv cx cy cz de dj dk dm do dz ec ee eg eh es et ev fi fj fk fm fo fr ga gb gd ge gf gh gi gl gm gn gp gr gt gu gw gy hk hm hn hr ht hu id ie il in io iq ir is it jm jo jp ke kg kh ki km kn kp kr kw ky kz la lb lc li lk lr ls lt lu lv ly ma mc md mg mh ml mm mn mo mp mq mr ms mt mv mw mx my mz na nc ne nf ng ni nl no np nr nt nu nz om qa pa pe pf pg ph pk pl pm pn pr pt pw py re ro ru rw sa sb sc sd se sg sh si sj sk sl sm sn so sr st su sy sz tc td tf tg th tj tk tm tn to tp tr tt tv tw tz ua ug uk us uy va vc ve vg vn vu wf ws ye yu za zm zr zw').split(' ');
-    return pick(tlds);
-  }; // 随机生成一个邮件地址。
-
-  var email = function email(_domain) {
-    if (_domain === void 0) {
-      _domain = domain();
-    }
-
-    return character('lower') + '.' + word() + '@' + _domain;
-  }; // 随机生成一个 IP 地址。
-
-  var ip = function ip() {
-    return natural(0, 255) + '.' + natural(0, 255) + '.' + natural(0, 255) + '.' + natural(0, 255);
+  var tld = function () {
+      var tlds = (
+      // 域名后缀
+      'com net org edu gov int mil cn ' +
+          // 国内域名
+          'com.cn net.cn gov.cn org.cn ' +
+          // 中文国内域名
+          '中国 中国互联.公司 中国互联.网络 ' +
+          // 新国际域名
+          'tel biz cc tv info name hk mobi asia cd travel pro museum coop aero ' +
+          // 世界各国域名后缀
+          'ad ae af ag ai al am an ao aq ar as at au aw az ba bb bd be bf bg bh bi bj bm bn bo br bs bt bv bw by bz ca cc cf cg ch ci ck cl cm cn co cq cr cu cv cx cy cz de dj dk dm do dz ec ee eg eh es et ev fi fj fk fm fo fr ga gb gd ge gf gh gi gl gm gn gp gr gt gu gw gy hk hm hn hr ht hu id ie il in io iq ir is it jm jo jp ke kg kh ki km kn kp kr kw ky kz la lb lc li lk lr ls lt lu lv ly ma mc md mg mh ml mm mn mo mp mq mr ms mt mv mw mx my mz na nc ne nf ng ni nl no np nr nt nu nz om qa pa pe pf pg ph pk pl pm pn pr pt pw py re ro ru rw sa sb sc sd se sg sh si sj sk sl sm sn so sr st su sy sz tc td tf tg th tj tk tm tn to tp tr tt tv tw tz ua ug uk us uy va vc ve vg vn vu wf ws ye yu za zm zr zw').split(' ');
+      return pick(tlds);
+  };
+  // 随机生成一个邮件地址。
+  var email = function (_domain) {
+      if (_domain === void 0) { _domain = domain(); }
+      return character('lower') + '.' + word() + '@' + _domain;
+  };
+  // 随机生成一个 IP 地址。
+  var ip = function () {
+      return natural(0, 255) + '.' +
+          natural(0, 255) + '.' +
+          natural(0, 255) + '.' +
+          natural(0, 255);
   };
 
   var web = /*#__PURE__*/Object.freeze({
@@ -6479,69 +6376,53 @@
   };
 
   var REGION = ['东北', '华北', '华东', '华中', '华南', '西南', '西北'];
-  var areas = location$1; // 随机生成一个大区。
-
-  var region = function region() {
-    return pick(REGION);
-  }; // 随机生成一个（中国）省（或直辖市、自治区、特别行政区）。
-
-  var province = function province() {
-    return pickMap(areas).name;
+  var areas = location$1;
+  // 随机生成一个大区。
+  var region = function () {
+      return pick(REGION);
+  };
+  // 随机生成一个（中国）省（或直辖市、自治区、特别行政区）。
+  var province = function () {
+      return pickMap(areas).name;
   };
   /**
    * 随机生成一个（中国）市。
    * @param prefix 是否有省前缀
    */
-
-  var city = function city(prefix) {
-    if (prefix === void 0) {
-      prefix = false;
-    }
-
-    var province = pickMap(areas);
-    var city = pickMap(province.cities);
-    return prefix ? [province.name, city.name].join(' ') : city.name;
+  var city = function (prefix) {
+      if (prefix === void 0) { prefix = false; }
+      var province = pickMap(areas);
+      var city = pickMap(province.cities);
+      return prefix ? [province.name, city.name].join(' ') : city.name;
   };
   /**
    * 随机生成一个（中国）县。
    * @param prefix 是否有省/市前缀
    */
-
-  var county = function county(prefix) {
-    if (prefix === void 0) {
-      prefix = false;
-    } // 直筒子市，无区县
-    // https://baike.baidu.com/item/%E7%9B%B4%E7%AD%92%E5%AD%90%E5%B8%82
-
-
-    var specialCity = ['460400', '441900', '442000', '620200'];
-    var province = pickMap(areas);
-    var city = pickMap(province.cities);
-
-    if (specialCity.indexOf(city.code) !== -1) {
-      return county(prefix);
-    }
-
-    var district = pickMap(city.districts) || '-';
-    return prefix ? [province.name, city.name, district].join(' ') : district;
+  var county = function (prefix) {
+      if (prefix === void 0) { prefix = false; }
+      // 直筒子市，无区县
+      // https://baike.baidu.com/item/%E7%9B%B4%E7%AD%92%E5%AD%90%E5%B8%82
+      var specialCity = ['460400', '441900', '442000', '620200'];
+      var province = pickMap(areas);
+      var city = pickMap(province.cities);
+      if (specialCity.indexOf(city.code) !== -1) {
+          return county(prefix);
+      }
+      var district = pickMap(city.districts) || '-';
+      return prefix ? [province.name, city.name, district].join(' ') : district;
   };
   /**
    * 随机生成一个邮政编码（默认6位数字）。
    * @param len
    */
-
-  var zip = function zip(len) {
-    if (len === void 0) {
-      len = 6;
-    }
-
-    var zip = '';
-
-    for (var i = 0; i < len; i++) {
-      zip += natural(0, 9);
-    }
-
-    return zip;
+  var zip = function (len) {
+      if (len === void 0) { len = 6; }
+      var zip = '';
+      for (var i = 0; i < len; i++) {
+          zip += natural(0, 9);
+      }
+      return zip;
   };
 
   var address = /*#__PURE__*/Object.freeze({
@@ -6553,78 +6434,71 @@
   });
 
   // Miscellaneous
-  var areas$1 = location$1; // 随机生成一个 guid
+  var areas$1 = location$1;
+  // 随机生成一个 guid
   // http://www.broofa.com/2008/09/javascript-uuid-function/
-
-  var guid = function guid() {
-    var pool = 'abcdefABCDEF1234567890';
-    return string(pool, 8) + '-' + string(pool, 4) + '-' + string(pool, 4) + '-' + string(pool, 4) + '-' + string(pool, 12);
+  var guid = function () {
+      var pool = 'abcdefABCDEF1234567890';
+      return string(pool, 8) + '-' + string(pool, 4) + '-' + string(pool, 4) + '-' + string(pool, 4) + '-' + string(pool, 12);
   };
-  var uuid = guid; // 随机生成一个 18 位身份证。
+  var uuid = guid;
+  // 随机生成一个 18 位身份证。
   // http://baike.baidu.com/view/1697.htm#4
   // [身份证](http://baike.baidu.com/view/1697.htm#4)
   // 地址码 6 + 出生日期码 8 + 顺序码 3 + 校验码 1
   // [《中华人民共和国行政区划代码》国家标准(GB/T2260)](http://zhidao.baidu.com/question/1954561.html)
-
-  var id = function id() {
-    var _id;
-
-    var _sum = 0;
-    var rank = ['7', '9', '10', '5', '8', '4', '2', '1', '6', '3', '7', '9', '10', '5', '8', '4', '2'];
-    var last = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2']; // 直筒子市，无区县
-    // https://baike.baidu.com/item/%E7%9B%B4%E7%AD%92%E5%AD%90%E5%B8%82
-
-    var specialCity = ['460400', '441900', '442000', '620200'];
-    var province = pickMap(areas$1);
-    var city = pickMap(province.cities);
-
-    if (specialCity.indexOf(city.code) !== -1) {
-      return id();
-    }
-
-    var districts = city.districts;
-    var district = pick(keys(districts));
-    _id = district + date('yyyyMMdd') + string('number', 3);
-
-    for (var i = 0; i < id.length; i++) {
-      _sum += id[i] * Number(rank[i]);
-    }
-
-    _id += last[_sum % 11];
-    return _id;
-  }; // 生成一个全局的自增整数。
+  var id = function () {
+      var _id;
+      var _sum = 0;
+      var rank = ['7', '9', '10', '5', '8', '4', '2', '1', '6', '3', '7', '9', '10', '5', '8', '4', '2'];
+      var last = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2'];
+      // 直筒子市，无区县
+      // https://baike.baidu.com/item/%E7%9B%B4%E7%AD%92%E5%AD%90%E5%B8%82
+      var specialCity = ['460400', '441900', '442000', '620200'];
+      var province = pickMap(areas$1);
+      var city = pickMap(province.cities);
+      if (specialCity.indexOf(city.code) !== -1) {
+          return id();
+      }
+      var districts = city.districts;
+      var district = pick(keys(districts));
+      _id = district + date('yyyyMMdd') + string('number', 3);
+      for (var i = 0; i < id.length; i++) {
+          _sum += id[i] * Number(rank[i]);
+      }
+      _id += last[_sum % 11];
+      return _id;
+  };
+  // 生成一个全局的自增整数。
   // 类似自增主键（auto increment primary key）。
-
   var key = 0;
-  var increment = function increment(step) {
-    return key += Number(step) || 1; // step?
+  var increment = function (step) {
+      return key += (Number(step) || 1); // step?
   };
   var inc = increment;
   /**
    * 随机生成一个版本号
    * @param depth 版本号的层级，默认为3
    */
-
-  var version = function version(depth) {
-    if (depth === void 0) {
-      depth = 3;
-    }
-
-    var numbers = [];
-
-    for (var i = 0; i < depth; i++) {
-      numbers.push(natural(0, 10));
-    }
-
-    return numbers.join('.');
-  }; // 随机生成一个中国手机号
-
-  var phone = function phone() {
-    var segments = [// 移动号段
-    '134', '135', '136', '137', '138', '139', '147', '150', '151', '152', '157', '158', '159', '165', '172', '178', '182', '183', '184', '187', '188', // 联通号段
-    '130', '131', '132', '145', '155', '156', '171', '175', '176', '185', '186', // 电信号段
-    '133', '149', '153', '173', '174', '177', '180', '181', '189', '191'];
-    return pick(segments) + string('number', 8);
+  var version = function (depth) {
+      if (depth === void 0) { depth = 3; }
+      var numbers = [];
+      for (var i = 0; i < depth; i++) {
+          numbers.push(natural(0, 10));
+      }
+      return numbers.join('.');
+  };
+  // 随机生成一个中国手机号
+  var phone = function () {
+      var segments = [
+          // 移动号段
+          '134', '135', '136', '137', '138', '139', '147', '150', '151', '152', '157', '158', '159', '165', '172', '178', '182', '183', '184', '187', '188',
+          // 联通号段
+          '130', '131', '132', '145', '155', '156', '171', '175', '176', '185', '186',
+          // 电信号段
+          '133', '149', '153', '173', '174', '177', '180', '181', '189', '191'
+      ];
+      return pick(segments) + string('number', 8);
   };
 
   var misc = /*#__PURE__*/Object.freeze({
@@ -6637,1547 +6511,1367 @@
     phone: phone
   });
 
-  var __assign = undefined && undefined.__assign || function () {
-    __assign = Object.assign || function (t) {
-      for (var s, i = 1, n = arguments.length; i < n; i++) {
-        s = arguments[i];
-
-        for (var p in s) {
-          if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
-        }
-      }
-
-      return t;
-    };
-
-    return __assign.apply(this, arguments);
-  }; // Mock.Random
   var Random = __assign(__assign(__assign(__assign(__assign(__assign(__assign(__assign(__assign(__assign({}, basic), date$1), image$1), color$1), text), name$1), web), address), helper), misc);
 
   // 解析数据模板（属性名部分）。
-  var parse = function parse(name) {
-    name = name == undefined ? '' : name + '';
-    var parameters = (name || '').match(constant.RE_KEY); // name|min-max, name|count
-
-    var range = parameters && parameters[3] && parameters[3].match(constant.RE_RANGE);
-    var min = range && range[1] && parseInt(range[1], 10); // || 1
-
-    var max = range && range[2] && parseInt(range[2], 10); // || 1
-    // 如果是 min-max, 返回 min-max 之间的一个数
-    // 如果是 count, 返回 count
-
-    var count = range ? range[2] ? Random.integer(min, max) : parseInt(range[1], 10) : undefined;
-    var decimal = parameters && parameters[4] && parameters[4].match(constant.RE_RANGE);
-    var dmin = decimal && decimal[1] && parseInt(decimal[1], 10); // || 0,
-
-    var dmax = decimal && decimal[2] && parseInt(decimal[2], 10); // || 0,
-    // int || dmin-dmax
-
-    var dcount = decimal ? decimal[2] ? Random.integer(dmin, dmax) : parseInt(decimal[1], 10) : undefined;
-    var result = {
-      // 1 name, 2 inc, 3 range, 4 decimal
-      parameters: parameters,
-      // 1 min, 2 max
-      range: range,
-      min: min,
-      max: max,
-      count: count,
-      decimal: decimal,
-      dmin: dmin,
-      dmax: dmax,
-      dcount: dcount
-    };
-
-    for (var r in result) {
-      if (result[r] != undefined) {
-        return result;
+  var parse = function (name) {
+      name = name == undefined ? '' : (name + '');
+      var parameters = (name || '').match(constant.RE_KEY);
+      // name|min-max, name|count
+      var range = parameters && parameters[3] && parameters[3].match(constant.RE_RANGE);
+      var min = range && range[1] && parseInt(range[1], 10); // || 1
+      var max = range && range[2] && parseInt(range[2], 10); // || 1
+      // 如果是 min-max, 返回 min-max 之间的一个数
+      // 如果是 count, 返回 count
+      var count = range ?
+          range[2] ? Random.integer(min, max) : parseInt(range[1], 10)
+          : undefined;
+      var decimal = parameters && parameters[4] && parameters[4].match(constant.RE_RANGE);
+      var dmin = decimal && decimal[1] && parseInt(decimal[1], 10); // || 0,
+      var dmax = decimal && decimal[2] && parseInt(decimal[2], 10); // || 0,
+      // int || dmin-dmax
+      var dcount = decimal
+          ? decimal[2] ? Random.integer(dmin, dmax) : parseInt(decimal[1], 10)
+          : undefined;
+      var result = {
+          // 1 name, 2 inc, 3 range, 4 decimal
+          parameters: parameters,
+          // 1 min, 2 max
+          range: range,
+          min: min,
+          max: max,
+          count: count,
+          decimal: decimal,
+          dmin: dmin,
+          dmax: dmax,
+          dcount: dcount
+      };
+      for (var r in result) {
+          if (result[r] != undefined) {
+              return result;
+          }
       }
-    }
-
-    return {};
+      return {};
   };
 
   // ## RegExp Handler
-
+  // ASCII printable code chart
   var LOWER = ascii(97, 122);
   var UPPER = ascii(65, 90);
   var NUMBER = ascii(48, 57);
   var OTHER = ascii(32, 47) + ascii(58, 64) + ascii(91, 96) + ascii(123, 126); // 排除 95 _ ascii(91, 94) + ascii(96, 96)
-
   var PRINTABLE = ascii(32, 126);
-  var SPACE = " \f\n\r\t\x0B\xA0\u2028\u2029";
+  var SPACE = ' \f\n\r\t\v\u00A0\u2028\u2029';
   var CHARACTER_CLASSES = {
-    '\\w': LOWER + UPPER + NUMBER + '_',
-    '\\W': OTHER.replace('_', ''),
-    '\\s': SPACE,
-    '\\S': function () {
-      var result = PRINTABLE;
-
-      for (var i = 0; i < SPACE.length; i++) {
-        result = result.replace(SPACE[i], '');
-      }
-
-      return result;
-    }(),
-    '\\d': NUMBER,
-    '\\D': LOWER + UPPER + OTHER
+      '\\w': LOWER + UPPER + NUMBER + '_',
+      '\\W': OTHER.replace('_', ''), '\\s': SPACE, '\\S': function () {
+          var result = PRINTABLE;
+          for (var i = 0; i < SPACE.length; i++) {
+              result = result.replace(SPACE[i], '');
+          }
+          return result;
+      }(), '\\d': NUMBER, '\\D': LOWER + UPPER + OTHER
   };
-
   function ascii(from, to) {
-    var result = '';
-
-    for (var i = from; i <= to; i++) {
-      result += String.fromCharCode(i);
-    }
-
-    return result;
+      var result = '';
+      for (var i = from; i <= to; i++) {
+          result += String.fromCharCode(i);
+      }
+      return result;
   }
-
   var handler = {
-    // var ast = RegExpParser.parse(regexp.source)
-    gen: function gen(node, result, cache) {
-      cache = cache || {
-        guid: 1
-      };
-      return handler[node.type] ? handler[node.type](node, result, cache) : handler.token(node, result, cache);
-    },
-    token: function token(node) {
-      switch (node.type) {
-        case 'start':
-        case 'end':
-          return '';
-
-        case 'any-character':
-          return Random.character();
-
-        case 'backspace':
-          return '';
-
-        case 'word-boundary':
-          // TODO
-          return '';
-
-        case 'non-word-boundary':
-          // TODO
-          break;
-
-        case 'digit':
-          return Random.pick(NUMBER.split(''));
-
-        case 'non-digit':
-          return Random.pick((LOWER + UPPER + OTHER).split(''));
-
-        case 'form-feed':
-          break;
-
-        case 'line-feed':
+      // var ast = RegExpParser.parse(regexp.source)
+      gen: function (node, result, cache) {
+          cache = cache || {
+              guid: 1
+          };
+          return handler[node.type] ? handler[node.type](node, result, cache) : handler.token(node, result, cache);
+      },
+      token: function (node) {
+          switch (node.type) {
+              case 'start':
+              case 'end':
+                  return '';
+              case 'any-character':
+                  return Random.character();
+              case 'backspace':
+                  return '';
+              case 'word-boundary': // TODO
+                  return '';
+              case 'non-word-boundary': // TODO
+                  break;
+              case 'digit':
+                  return Random.pick(NUMBER.split(''));
+              case 'non-digit':
+                  return Random.pick((LOWER + UPPER + OTHER).split(''));
+              case 'form-feed':
+                  break;
+              case 'line-feed':
+                  return node.body || node.text;
+              case 'carriage-return':
+                  break;
+              case 'white-space':
+                  return Random.pick(SPACE.split(''));
+              case 'non-white-space':
+                  return Random.pick((LOWER + UPPER + NUMBER).split(''));
+              case 'tab':
+                  break;
+              case 'vertical-tab':
+                  break;
+              case 'word': // \w [a-zA-Z0-9]
+                  return Random.pick((LOWER + UPPER + NUMBER).split(''));
+              case 'non-word': // \W [^a-zA-Z0-9]
+                  return Random.pick(OTHER.replace('_', '').split(''));
+              case 'null-character':
+                  break;
+          }
           return node.body || node.text;
-
-        case 'carriage-return':
-          break;
-
-        case 'white-space':
-          return Random.pick(SPACE.split(''));
-
-        case 'non-white-space':
-          return Random.pick((LOWER + UPPER + NUMBER).split(''));
-
-        case 'tab':
-          break;
-
-        case 'vertical-tab':
-          break;
-
-        case 'word':
-          // \w [a-zA-Z0-9]
-          return Random.pick((LOWER + UPPER + NUMBER).split(''));
-
-        case 'non-word':
-          // \W [^a-zA-Z0-9]
-          return Random.pick(OTHER.replace('_', '').split(''));
-
-        case 'null-character':
-          break;
-      }
-
-      return node.body || node.text;
-    },
-    // {
-    //   type: 'alternate',
-    //   offset: 0,
-    //   text: '',
-    //   left: {
-    //     boyd: []
-    //   },
-    //   right: {
-    //     boyd: []
-    //   }
-    // }
-    alternate: function alternate(node, result, cache) {
-      // node.left/right {}
-      return handler.gen(Random["boolean"]() ? node.left : node.right, result, cache);
-    },
-    // {
-    //   type: 'match',
-    //   offset: 0,
-    //   text: '',
-    //   body: []
-    // }
-    match: function match(node, result, cache) {
-      result = ''; // node.body []
-
-      for (var i = 0; i < node.body.length; i++) {
-        result += handler.gen(node.body[i], result, cache);
-      }
-
-      return result;
-    },
-    // ()
-    'capture-group': function captureGroup(node, result, cache) {
-      // node.body {}
-      result = handler.gen(node.body, result, cache);
-      cache[cache.guid++] = result;
-      return result;
-    },
-    // (?:...)
-    'non-capture-group': function nonCaptureGroup(node, result, cache) {
-      // node.body {}
-      return handler.gen(node.body, result, cache);
-    },
-    // (?=p)
-    'positive-lookahead': function positiveLookahead(node, result, cache) {
-      // node.body
-      return handler.gen(node.body, result, cache);
-    },
-    // (?!p)
-    'negative-lookahead': function negativeLookahead() {
-      // node.body
-      return '';
-    },
-    // {
-    //   type: 'quantified',
-    //   offset: 3,
-    //   text: 'c*',
-    //   body: {
-    //     type: 'literal',
-    //     offset: 3,
-    //     text: 'c',
-    //     body: 'c',
-    //     escaped: false
-    //   },
-    //   quantifier: {
-    //     type: 'quantifier',
-    //     offset: 4,
-    //     text: '*',
-    //     min: 0,
-    //     max: Infinity,
-    //     greedy: true
-    //   }
-    // }
-    quantified: function quantified(node, result, cache) {
-      result = ''; // node.quantifier {}
-
-      var count = handler.quantifier(node.quantifier); // node.body {}
-
-      for (var i = 0; i < count; i++) {
-        result += handler.gen(node.body, result, cache);
-      }
-
-      return result;
-    },
-    // quantifier: {
-    //   type: 'quantifier',
-    //   offset: 4,
-    //   text: '*',
-    //   min: 0,
-    //   max: Infinity,
-    //   greedy: true
-    // }
-    quantifier: function quantifier(node) {
-      var min = Math.max(node.min, 0);
-      var max = isFinite(node.max) ? node.max : min + Random.integer(3, 7);
-      return Random.integer(min, max);
-    },
-    charset: function charset(node, result, cache) {
-      // node.invert
-      if (node.invert) {
-        return handler['invert-charset'](node, result, cache);
-      } // node.body []
-
-
-      var literal = Random.pick(node.body);
-      return handler.gen(literal, result, cache);
-    },
-    'invert-charset': function invertCharset(node, result, cache) {
-      var pool = PRINTABLE;
-
-      for (var i = 0, item = void 0; i < node.body.length; i++) {
-        item = node.body[i];
-
-        switch (item.type) {
-          case 'literal':
-            pool = pool.replace(item.body, '');
-            break;
-
-          case 'range':
-            var min = handler.gen(item.start, result, cache).charCodeAt();
-            var max = handler.gen(item.end, result, cache).charCodeAt();
-
-            for (var ii = min; ii <= max; ii++) {
-              pool = pool.replace(String.fromCharCode(ii), '');
-            }
-
-          /* falls through */
-
-          default:
-            var characters = CHARACTER_CLASSES[item.text];
-
-            if (characters) {
-              for (var iii = 0; iii <= characters.length; iii++) {
-                pool = pool.replace(characters[iii], '');
+      },
+      // {
+      //   type: 'alternate',
+      //   offset: 0,
+      //   text: '',
+      //   left: {
+      //     boyd: []
+      //   },
+      //   right: {
+      //     boyd: []
+      //   }
+      // }
+      alternate: function (node, result, cache) {
+          // node.left/right {}
+          return handler.gen(Random.boolean() ? node.left : node.right, result, cache);
+      },
+      // {
+      //   type: 'match',
+      //   offset: 0,
+      //   text: '',
+      //   body: []
+      // }
+      match: function (node, result, cache) {
+          result = '';
+          // node.body []
+          for (var i = 0; i < node.body.length; i++) {
+              result += handler.gen(node.body[i], result, cache);
+          }
+          return result;
+      },
+      // ()
+      'capture-group': function (node, result, cache) {
+          // node.body {}
+          result = handler.gen(node.body, result, cache);
+          cache[cache.guid++] = result;
+          return result;
+      },
+      // (?:...)
+      'non-capture-group': function (node, result, cache) {
+          // node.body {}
+          return handler.gen(node.body, result, cache);
+      },
+      // (?=p)
+      'positive-lookahead': function (node, result, cache) {
+          // node.body
+          return handler.gen(node.body, result, cache);
+      },
+      // (?!p)
+      'negative-lookahead': function () {
+          // node.body
+          return '';
+      },
+      // {
+      //   type: 'quantified',
+      //   offset: 3,
+      //   text: 'c*',
+      //   body: {
+      //     type: 'literal',
+      //     offset: 3,
+      //     text: 'c',
+      //     body: 'c',
+      //     escaped: false
+      //   },
+      //   quantifier: {
+      //     type: 'quantifier',
+      //     offset: 4,
+      //     text: '*',
+      //     min: 0,
+      //     max: Infinity,
+      //     greedy: true
+      //   }
+      // }
+      quantified: function (node, result, cache) {
+          result = '';
+          // node.quantifier {}
+          var count = handler.quantifier(node.quantifier);
+          // node.body {}
+          for (var i = 0; i < count; i++) {
+              result += handler.gen(node.body, result, cache);
+          }
+          return result;
+      },
+      // quantifier: {
+      //   type: 'quantifier',
+      //   offset: 4,
+      //   text: '*',
+      //   min: 0,
+      //   max: Infinity,
+      //   greedy: true
+      // }
+      quantifier: function (node) {
+          var min = Math.max(node.min, 0);
+          var max = isFinite(node.max) ? node.max : min + Random.integer(3, 7);
+          return Random.integer(min, max);
+      },
+      charset: function (node, result, cache) {
+          // node.invert
+          if (node.invert) {
+              return handler['invert-charset'](node, result, cache);
+          }
+          // node.body []
+          var literal = Random.pick(node.body);
+          return handler.gen(literal, result, cache);
+      },
+      'invert-charset': function (node, result, cache) {
+          var pool = PRINTABLE;
+          for (var i = 0, item = void 0; i < node.body.length; i++) {
+              item = node.body[i];
+              switch (item.type) {
+                  case 'literal':
+                      pool = pool.replace(item.body, '');
+                      break;
+                  case 'range':
+                      var min = handler.gen(item.start, result, cache).charCodeAt();
+                      var max = handler.gen(item.end, result, cache).charCodeAt();
+                      for (var ii = min; ii <= max; ii++) {
+                          pool = pool.replace(String.fromCharCode(ii), '');
+                      }
+                  /* falls through */
+                  default:
+                      var characters = CHARACTER_CLASSES[item.text];
+                      if (characters) {
+                          for (var iii = 0; iii <= characters.length; iii++) {
+                              pool = pool.replace(characters[iii], '');
+                          }
+                      }
               }
-            }
-
-        }
+          }
+          return Random.pick(pool.split(''));
+      },
+      range: function (node, result, cache) {
+          // node.start, node.end
+          var min = handler.gen(node.start, result, cache).charCodeAt();
+          var max = handler.gen(node.end, result, cache).charCodeAt();
+          return String.fromCharCode(Random.integer(min, max));
+      },
+      literal: function (node) {
+          return node.escaped ? node.body : node.text;
+      },
+      // Unicode \u
+      unicode: function (node) {
+          return String.fromCharCode(parseInt(node.code, 16));
+      },
+      // 十六进制 \xFF
+      hex: function (node) {
+          return String.fromCharCode(parseInt(node.code, 16));
+      },
+      octal: function (node) {
+          return String.fromCharCode(parseInt(node.code, 8));
+      },
+      // 反向引用
+      'back-reference': function (node, result, cache) {
+          return cache[node.code] || '';
+      },
+      // http://en.wikipedia.org/wiki/C0_and_C1_control_codes
+      CONTROL_CHARACTER_MAP: function () {
+          var CONTROL_CHARACTER = '@ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [ \\ ] ^ _'.split(' ');
+          var CONTROL_CHARACTER_UNICODE = '\u0000 \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \u0008 \u0009 \u000A \u000B \u000C \u000D \u000E \u000F \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001A \u001B \u001C \u001D \u001E \u001F'.split(' ');
+          var map = {};
+          for (var i = 0; i < CONTROL_CHARACTER.length; i++) {
+              map[CONTROL_CHARACTER[i]] = CONTROL_CHARACTER_UNICODE[i];
+          }
+          return map;
+      }(),
+      'control-character': function (node) {
+          return this.CONTROL_CHARACTER_MAP[node.code];
       }
-
-      return Random.pick(pool.split(''));
-    },
-    range: function range(node, result, cache) {
-      // node.start, node.end
-      var min = handler.gen(node.start, result, cache).charCodeAt();
-      var max = handler.gen(node.end, result, cache).charCodeAt();
-      return String.fromCharCode(Random.integer(min, max));
-    },
-    literal: function literal(node) {
-      return node.escaped ? node.body : node.text;
-    },
-    // Unicode \u
-    unicode: function unicode(node) {
-      return String.fromCharCode(parseInt(node.code, 16));
-    },
-    // 十六进制 \xFF
-    hex: function hex(node) {
-      return String.fromCharCode(parseInt(node.code, 16));
-    },
-    octal: function octal(node) {
-      return String.fromCharCode(parseInt(node.code, 8));
-    },
-    // 反向引用
-    'back-reference': function backReference(node, result, cache) {
-      return cache[node.code] || '';
-    },
-    // http://en.wikipedia.org/wiki/C0_and_C1_control_codes
-    CONTROL_CHARACTER_MAP: function () {
-      var CONTROL_CHARACTER = '@ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [ \\ ] ^ _'.split(' ');
-      var CONTROL_CHARACTER_UNICODE = "\0 \x01 \x02 \x03 \x04 \x05 \x06 \x07 \b \t \n \x0B \f \r \x0E \x0F \x10 \x11 \x12 \x13 \x14 \x15 \x16 \x17 \x18 \x19 \x1A \x1B \x1C \x1D \x1E \x1F".split(' ');
-      var map = {};
-
-      for (var i = 0; i < CONTROL_CHARACTER.length; i++) {
-        map[CONTROL_CHARACTER[i]] = CONTROL_CHARACTER_UNICODE[i];
-      }
-
-      return map;
-    }(),
-    'control-character': function controlCharacter(node) {
-      return this.CONTROL_CHARACTER_MAP[node.code];
-    }
   };
 
   // https://github.com/nuysoft/regexp
   // forked from https://github.com/ForbesLindesay/regexp
-  function Token(n) {
+  function Token (n) {
     this.type = n, this.offset = Token.offset(), this.text = Token.text();
   }
 
-  function Alternate(n, l) {
+  function Alternate (n, l) {
     Token.call(this, 'alternate'), this.left = n, this.right = l;
   }
 
-  function Match(n) {
+  function Match (n) {
     Token.call(this, 'match'), this.body = n.filter(Boolean);
   }
 
-  function Group(n, l) {
+  function Group (n, l) {
     Token.call(this, n), this.body = l;
   }
 
-  function CaptureGroup(n) {
-    Group.call(this, 'capture-group'), this.index = cgs[this.offset] || (cgs[this.offset] = index++), this.body = n;
+  function CaptureGroup (n) {
+    Group.call(this, 'capture-group'), this.index = cgs[this.offset] || (cgs[this.offset] = index++),
+      this.body = n;
   }
 
-  function Quantified(n, l) {
+  function Quantified (n, l) {
     Token.call(this, 'quantified'), this.body = n, this.quantifier = l;
   }
 
-  function Quantifier(n, l) {
+  function Quantifier (n, l) {
     Token.call(this, 'quantifier'), this.min = n, this.max = l, this.greedy = !0;
   }
 
-  function CharSet(n, l) {
+  function CharSet (n, l) {
     Token.call(this, 'charset'), this.invert = n, this.body = l;
   }
 
-  function CharacterRange(n, l) {
+  function CharacterRange (n, l) {
     Token.call(this, 'range'), this.start = n, this.end = l;
   }
 
-  function Literal(n) {
+  function Literal (n) {
     Token.call(this, 'literal'), this.body = n, this.escaped = this.body != this.text;
   }
 
-  function Unicode(n) {
+  function Unicode (n) {
     Token.call(this, 'unicode'), this.code = n.toUpperCase();
   }
 
-  function Hex(n) {
+  function Hex (n) {
     Token.call(this, 'hex'), this.code = n.toUpperCase();
   }
 
-  function Octal(n) {
+  function Octal (n) {
     Token.call(this, 'octal'), this.code = n.toUpperCase();
   }
 
-  function BackReference(n) {
+  function BackReference (n) {
     Token.call(this, 'back-reference'), this.code = n.toUpperCase();
   }
 
-  function ControlCharacter(n) {
+  function ControlCharacter (n) {
     Token.call(this, 'control-character'), this.code = n.toUpperCase();
   }
 
   var parser = function () {
-    function n(n, l) {
-      function u() {
+    function n (n, l) {
+      function u () {
         this.constructor = n;
       }
 
       u.prototype = l.prototype, n.prototype = new u();
     }
 
-    function l(n, l, u, t, r) {
-      function e(n, l) {
-        function u(n) {
-          function l(n) {
-            return n.charCodeAt(0).toString(16).toUpperCase();
+    function l (n, l, u, t, r) {
+      function e (n, l) {
+        function u (n) {
+          function l (n) {
+            return n.charCodeAt(0).toString(16).toUpperCase()
           }
 
           return n.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\x08/g, '\\b').replace(/\t/g, '\\t').replace(/\n/g, '\\n').replace(/\f/g, '\\f').replace(/\r/g, '\\r').replace(/[\x00-\x07\x0B\x0E\x0F]/g, function (n) {
-            return '\\x0' + l(n);
+            return '\\x0' + l(n)
           }).replace(/[\x10-\x1F\x80-\xFF]/g, function (n) {
-            return '\\x' + l(n);
+            return '\\x' + l(n)
           }).replace(/[\u0180-\u0FFF]/g, function (n) {
-            return "\\u0" + l(n);
+            return '\\u0' + l(n)
           }).replace(/[\u1080-\uFFFF]/g, function (n) {
-            return "\\u" + l(n);
-          });
+            return '\\u' + l(n)
+          })
         }
 
         var t, r;
-
         switch (n.length) {
           case 0:
             t = 'end of input';
-            break;
+            break
 
           case 1:
             t = n[0];
-            break;
+            break
 
           default:
             t = n.slice(0, -1).join(', ') + ' or ' + n[n.length - 1];
         }
-
-        return r = l ? '"' + u(l) + '"' : 'end of input', 'Expected ' + t + ' but ' + r + ' found.';
+        return r = l ? '"' + u(l) + '"' : 'end of input', 'Expected ' + t + ' but ' + r + ' found.'
       }
 
-      this.expected = n, this.found = l, this.offset = u, this.line = t, this.column = r, this.name = 'SyntaxError', this.message = e(n, l);
+      this.expected = n, this.found = l, this.offset = u, this.line = t, this.column = r,
+        this.name = 'SyntaxError', this.message = e(n, l);
     }
 
-    function u(n) {
-      function u() {
-        return n.substring(Lt, qt);
+    function u (n) {
+      function u () {
+        return n.substring(Lt, qt)
       }
 
-      function t() {
-        return Lt;
+      function t () {
+        return Lt
       }
 
-      function r(l) {
-        function u(l, u, t) {
+      function r (l) {
+        function u (l, u, t) {
           var r, e;
-
-          for (r = u; t > r; r++) {
-            e = n.charAt(r), '\n' === e ? (l.seenCR || l.line++, l.column = 1, l.seenCR = !1) : '\r' === e || "\u2028" === e || "\u2029" === e ? (l.line++, l.column = 1, l.seenCR = !0) : (l.column++, l.seenCR = !1);
-          }
+          for (r = u; t > r; r++) e = n.charAt(r), '\n' === e ? (l.seenCR || l.line++, l.column = 1,
+            l.seenCR = !1) : '\r' === e || '\u2028' === e || '\u2029' === e ? (l.line++, l.column = 1,
+            l.seenCR = !0) : (l.column++, l.seenCR = !1);
         }
 
         return Mt !== l && (Mt > l && (Mt = 0, Dt = {
           line: 1,
           column: 1,
           seenCR: !1
-        }), u(Dt, Mt, l), Mt = l), Dt;
+        }), u(Dt, Mt, l), Mt = l), Dt
       }
 
-      function e(n) {
+      function e (n) {
         Ht > qt || (qt > Ht && (Ht = qt, Ot = []), Ot.push(n));
       }
 
-      function o(n) {
+      function o (n) {
         var l = 0;
-
-        for (n.sort(); l < n.length;) {
-          n[l - 1] === n[l] ? n.splice(l, 1) : l++;
-        }
+        for (n.sort(); l < n.length;) n[l - 1] === n[l] ? n.splice(l, 1) : l++;
       }
 
-      function c() {
+      function c () {
         var l, u, t, r, o;
-        return l = qt, u = i(), null !== u ? (t = qt, 124 === n.charCodeAt(qt) ? (r = fl, qt++) : (r = null, 0 === Wt && e(sl)), null !== r ? (o = c(), null !== o ? (r = [r, o], t = r) : (qt = t, t = il)) : (qt = t, t = il), null === t && (t = al), null !== t ? (Lt = l, u = hl(u, t), null === u ? (qt = l, l = u) : l = u) : (qt = l, l = il)) : (qt = l, l = il), l;
+        return l = qt, u = i(), null !== u ? (t = qt, 124 === n.charCodeAt(qt) ? (r = fl,
+          qt++) : (r = null, 0 === Wt && e(sl)), null !== r ? (o = c(), null !== o ? (r = [r, o],
+          t = r) : (qt = t, t = il)) : (qt = t, t = il), null === t && (t = al), null !== t ? (Lt = l,
+          u = hl(u, t), null === u ? (qt = l, l = u) : l = u) : (qt = l, l = il)) : (qt = l,
+          l = il), l
       }
 
-      function i() {
+      function i () {
         var n, l, u, t, r;
-        if (n = qt, l = f(), null === l && (l = al), null !== l) {
-          if (u = qt, Wt++, t = d(), Wt--, null === t ? u = al : (qt = u, u = il), null !== u) {
-            for (t = [], r = h(), null === r && (r = a()); null !== r;) {
-              t.push(r), r = h(), null === r && (r = a());
-            }
-
-            null !== t ? (r = s(), null === r && (r = al), null !== r ? (Lt = n, l = dl(l, t, r), null === l ? (qt = n, n = l) : n = l) : (qt = n, n = il)) : (qt = n, n = il);
-          } else qt = n, n = il;
-        } else qt = n, n = il;
-        return n;
+        if (n = qt, l = f(), null === l && (l = al), null !== l) if (u = qt, Wt++, t = d(),
+            Wt--, null === t ? u = al : (qt = u, u = il), null !== u) {
+          for (t = [], r = h(), null === r && (r = a()); null !== r;) t.push(r), r = h(),
+          null === r && (r = a());
+          null !== t ? (r = s(), null === r && (r = al), null !== r ? (Lt = n, l = dl(l, t, r),
+            null === l ? (qt = n, n = l) : n = l) : (qt = n, n = il)) : (qt = n, n = il);
+        } else qt = n, n = il; else qt = n, n = il;
+        return n
       }
 
-      function a() {
+      function a () {
         var n;
-        return n = x(), null === n && (n = Q(), null === n && (n = B())), n;
+        return n = x(), null === n && (n = Q(), null === n && (n = B())), n
       }
 
-      function f() {
+      function f () {
         var l, u;
-        return l = qt, 94 === n.charCodeAt(qt) ? (u = pl, qt++) : (u = null, 0 === Wt && e(vl)), null !== u && (Lt = l, u = wl()), null === u ? (qt = l, l = u) : l = u, l;
+        return l = qt, 94 === n.charCodeAt(qt) ? (u = pl, qt++) : (u = null, 0 === Wt && e(vl)),
+        null !== u && (Lt = l, u = wl()), null === u ? (qt = l, l = u) : l = u, l
       }
 
-      function s() {
+      function s () {
         var l, u;
-        return l = qt, 36 === n.charCodeAt(qt) ? (u = Al, qt++) : (u = null, 0 === Wt && e(Cl)), null !== u && (Lt = l, u = gl()), null === u ? (qt = l, l = u) : l = u, l;
+        return l = qt, 36 === n.charCodeAt(qt) ? (u = Al, qt++) : (u = null, 0 === Wt && e(Cl)),
+        null !== u && (Lt = l, u = gl()), null === u ? (qt = l, l = u) : l = u, l
       }
 
-      function h() {
+      function h () {
         var n, l, u;
-        return n = qt, l = a(), null !== l ? (u = d(), null !== u ? (Lt = n, l = bl(l, u), null === l ? (qt = n, n = l) : n = l) : (qt = n, n = il)) : (qt = n, n = il), n;
+        return n = qt, l = a(), null !== l ? (u = d(), null !== u ? (Lt = n, l = bl(l, u),
+          null === l ? (qt = n, n = l) : n = l) : (qt = n, n = il)) : (qt = n, n = il), n
       }
 
-      function d() {
+      function d () {
         var n, l, u;
-        return Wt++, n = qt, l = p(), null !== l ? (u = k(), null === u && (u = al), null !== u ? (Lt = n, l = Tl(l, u), null === l ? (qt = n, n = l) : n = l) : (qt = n, n = il)) : (qt = n, n = il), Wt--, null === n && (l = null, 0 === Wt && e(kl)), n;
+        return Wt++, n = qt, l = p(), null !== l ? (u = k(), null === u && (u = al), null !== u ? (Lt = n,
+          l = Tl(l, u), null === l ? (qt = n, n = l) : n = l) : (qt = n, n = il)) : (qt = n,
+          n = il), Wt--, null === n && (l = null, 0 === Wt && e(kl)), n
       }
 
-      function p() {
+      function p () {
         var n;
-        return n = v(), null === n && (n = w(), null === n && (n = A(), null === n && (n = C(), null === n && (n = g(), null === n && (n = b()))))), n;
+        return n = v(), null === n && (n = w(), null === n && (n = A(), null === n && (n = C(),
+        null === n && (n = g(), null === n && (n = b()))))), n
       }
 
-      function v() {
+      function v () {
         var l, u, t, r, o, c;
-        return l = qt, 123 === n.charCodeAt(qt) ? (u = xl, qt++) : (u = null, 0 === Wt && e(yl)), null !== u ? (t = T(), null !== t ? (44 === n.charCodeAt(qt) ? (r = ml, qt++) : (r = null, 0 === Wt && e(Rl)), null !== r ? (o = T(), null !== o ? (125 === n.charCodeAt(qt) ? (c = Fl, qt++) : (c = null, 0 === Wt && e(Ql)), null !== c ? (Lt = l, u = Sl(t, o), null === u ? (qt = l, l = u) : l = u) : (qt = l, l = il)) : (qt = l, l = il)) : (qt = l, l = il)) : (qt = l, l = il)) : (qt = l, l = il), l;
+        return l = qt, 123 === n.charCodeAt(qt) ? (u = xl, qt++) : (u = null, 0 === Wt && e(yl)),
+          null !== u ? (t = T(), null !== t ? (44 === n.charCodeAt(qt) ? (r = ml, qt++) : (r = null,
+          0 === Wt && e(Rl)), null !== r ? (o = T(), null !== o ? (125 === n.charCodeAt(qt) ? (c = Fl,
+            qt++) : (c = null, 0 === Wt && e(Ql)), null !== c ? (Lt = l, u = Sl(t, o), null === u ? (qt = l,
+            l = u) : l = u) : (qt = l, l = il)) : (qt = l, l = il)) : (qt = l, l = il)) : (qt = l,
+            l = il)) : (qt = l, l = il), l
       }
 
-      function w() {
+      function w () {
         var l, u, t, r;
-        return l = qt, 123 === n.charCodeAt(qt) ? (u = xl, qt++) : (u = null, 0 === Wt && e(yl)), null !== u ? (t = T(), null !== t ? (n.substr(qt, 2) === Ul ? (r = Ul, qt += 2) : (r = null, 0 === Wt && e(El)), null !== r ? (Lt = l, u = Gl(t), null === u ? (qt = l, l = u) : l = u) : (qt = l, l = il)) : (qt = l, l = il)) : (qt = l, l = il), l;
+        return l = qt, 123 === n.charCodeAt(qt) ? (u = xl, qt++) : (u = null, 0 === Wt && e(yl)),
+          null !== u ? (t = T(), null !== t ? (n.substr(qt, 2) === Ul ? (r = Ul, qt += 2) : (r = null,
+          0 === Wt && e(El)), null !== r ? (Lt = l, u = Gl(t), null === u ? (qt = l, l = u) : l = u) : (qt = l,
+            l = il)) : (qt = l, l = il)) : (qt = l, l = il), l
       }
 
-      function A() {
+      function A () {
         var l, u, t, r;
-        return l = qt, 123 === n.charCodeAt(qt) ? (u = xl, qt++) : (u = null, 0 === Wt && e(yl)), null !== u ? (t = T(), null !== t ? (125 === n.charCodeAt(qt) ? (r = Fl, qt++) : (r = null, 0 === Wt && e(Ql)), null !== r ? (Lt = l, u = Bl(t), null === u ? (qt = l, l = u) : l = u) : (qt = l, l = il)) : (qt = l, l = il)) : (qt = l, l = il), l;
+        return l = qt, 123 === n.charCodeAt(qt) ? (u = xl, qt++) : (u = null, 0 === Wt && e(yl)),
+          null !== u ? (t = T(), null !== t ? (125 === n.charCodeAt(qt) ? (r = Fl, qt++) : (r = null,
+          0 === Wt && e(Ql)), null !== r ? (Lt = l, u = Bl(t), null === u ? (qt = l, l = u) : l = u) : (qt = l,
+            l = il)) : (qt = l, l = il)) : (qt = l, l = il), l
       }
 
-      function C() {
+      function C () {
         var l, u;
-        return l = qt, 43 === n.charCodeAt(qt) ? (u = jl, qt++) : (u = null, 0 === Wt && e($l)), null !== u && (Lt = l, u = ql()), null === u ? (qt = l, l = u) : l = u, l;
+        return l = qt, 43 === n.charCodeAt(qt) ? (u = jl, qt++) : (u = null, 0 === Wt && e($l)),
+        null !== u && (Lt = l, u = ql()), null === u ? (qt = l, l = u) : l = u, l
       }
 
-      function g() {
+      function g () {
         var l, u;
-        return l = qt, 42 === n.charCodeAt(qt) ? (u = Ll, qt++) : (u = null, 0 === Wt && e(Ml)), null !== u && (Lt = l, u = Dl()), null === u ? (qt = l, l = u) : l = u, l;
+        return l = qt, 42 === n.charCodeAt(qt) ? (u = Ll, qt++) : (u = null, 0 === Wt && e(Ml)),
+        null !== u && (Lt = l, u = Dl()), null === u ? (qt = l, l = u) : l = u, l
       }
 
-      function b() {
+      function b () {
         var l, u;
-        return l = qt, 63 === n.charCodeAt(qt) ? (u = Hl, qt++) : (u = null, 0 === Wt && e(Ol)), null !== u && (Lt = l, u = Wl()), null === u ? (qt = l, l = u) : l = u, l;
+        return l = qt, 63 === n.charCodeAt(qt) ? (u = Hl, qt++) : (u = null, 0 === Wt && e(Ol)),
+        null !== u && (Lt = l, u = Wl()), null === u ? (qt = l, l = u) : l = u, l
       }
 
-      function k() {
+      function k () {
         var l;
-        return 63 === n.charCodeAt(qt) ? (l = Hl, qt++) : (l = null, 0 === Wt && e(Ol)), l;
+        return 63 === n.charCodeAt(qt) ? (l = Hl, qt++) : (l = null, 0 === Wt && e(Ol)),
+          l
       }
 
-      function T() {
+      function T () {
         var l, u, t;
-        if (l = qt, u = [], zl.test(n.charAt(qt)) ? (t = n.charAt(qt), qt++) : (t = null, 0 === Wt && e(Il)), null !== t) for (; null !== t;) {
-          u.push(t), zl.test(n.charAt(qt)) ? (t = n.charAt(qt), qt++) : (t = null, 0 === Wt && e(Il));
-        } else u = il;
-        return null !== u && (Lt = l, u = Jl(u)), null === u ? (qt = l, l = u) : l = u, l;
+        if (l = qt, u = [], zl.test(n.charAt(qt)) ? (t = n.charAt(qt), qt++) : (t = null,
+          0 === Wt && e(Il)), null !== t) for (; null !== t;) u.push(t), zl.test(n.charAt(qt)) ? (t = n.charAt(qt),
+          qt++) : (t = null, 0 === Wt && e(Il)); else u = il;
+        return null !== u && (Lt = l, u = Jl(u)), null === u ? (qt = l, l = u) : l = u,
+          l
       }
 
-      function x() {
+      function x () {
         var l, u, t, r;
-        return l = qt, 40 === n.charCodeAt(qt) ? (u = Kl, qt++) : (u = null, 0 === Wt && e(Nl)), null !== u ? (t = R(), null === t && (t = F(), null === t && (t = m(), null === t && (t = y()))), null !== t ? (41 === n.charCodeAt(qt) ? (r = Pl, qt++) : (r = null, 0 === Wt && e(Vl)), null !== r ? (Lt = l, u = Xl(t), null === u ? (qt = l, l = u) : l = u) : (qt = l, l = il)) : (qt = l, l = il)) : (qt = l, l = il), l;
+        return l = qt, 40 === n.charCodeAt(qt) ? (u = Kl, qt++) : (u = null, 0 === Wt && e(Nl)),
+          null !== u ? (t = R(), null === t && (t = F(), null === t && (t = m(), null === t && (t = y()))),
+            null !== t ? (41 === n.charCodeAt(qt) ? (r = Pl, qt++) : (r = null, 0 === Wt && e(Vl)),
+              null !== r ? (Lt = l, u = Xl(t), null === u ? (qt = l, l = u) : l = u) : (qt = l,
+                l = il)) : (qt = l, l = il)) : (qt = l, l = il), l
       }
 
-      function y() {
+      function y () {
         var n, l;
-        return n = qt, l = c(), null !== l && (Lt = n, l = Yl(l)), null === l ? (qt = n, n = l) : n = l, n;
+        return n = qt, l = c(), null !== l && (Lt = n, l = Yl(l)), null === l ? (qt = n,
+          n = l) : n = l, n
       }
 
-      function m() {
+      function m () {
         var l, u, t;
-        return l = qt, n.substr(qt, 2) === Zl ? (u = Zl, qt += 2) : (u = null, 0 === Wt && e(_l)), null !== u ? (t = c(), null !== t ? (Lt = l, u = nu(t), null === u ? (qt = l, l = u) : l = u) : (qt = l, l = il)) : (qt = l, l = il), l;
+        return l = qt, n.substr(qt, 2) === Zl ? (u = Zl, qt += 2) : (u = null, 0 === Wt && e(_l)),
+          null !== u ? (t = c(), null !== t ? (Lt = l, u = nu(t), null === u ? (qt = l, l = u) : l = u) : (qt = l,
+            l = il)) : (qt = l, l = il), l
       }
 
-      function R() {
+      function R () {
         var l, u, t;
-        return l = qt, n.substr(qt, 2) === lu ? (u = lu, qt += 2) : (u = null, 0 === Wt && e(uu)), null !== u ? (t = c(), null !== t ? (Lt = l, u = tu(t), null === u ? (qt = l, l = u) : l = u) : (qt = l, l = il)) : (qt = l, l = il), l;
+        return l = qt, n.substr(qt, 2) === lu ? (u = lu, qt += 2) : (u = null, 0 === Wt && e(uu)),
+          null !== u ? (t = c(), null !== t ? (Lt = l, u = tu(t), null === u ? (qt = l, l = u) : l = u) : (qt = l,
+            l = il)) : (qt = l, l = il), l
       }
 
-      function F() {
+      function F () {
         var l, u, t;
-        return l = qt, n.substr(qt, 2) === ru ? (u = ru, qt += 2) : (u = null, 0 === Wt && e(eu)), null !== u ? (t = c(), null !== t ? (Lt = l, u = ou(t), null === u ? (qt = l, l = u) : l = u) : (qt = l, l = il)) : (qt = l, l = il), l;
+        return l = qt, n.substr(qt, 2) === ru ? (u = ru, qt += 2) : (u = null, 0 === Wt && e(eu)),
+          null !== u ? (t = c(), null !== t ? (Lt = l, u = ou(t), null === u ? (qt = l, l = u) : l = u) : (qt = l,
+            l = il)) : (qt = l, l = il), l
       }
 
-      function Q() {
+      function Q () {
         var l, u, t, r, o;
-        if (Wt++, l = qt, 91 === n.charCodeAt(qt) ? (u = iu, qt++) : (u = null, 0 === Wt && e(au)), null !== u) {
-          if (94 === n.charCodeAt(qt) ? (t = pl, qt++) : (t = null, 0 === Wt && e(vl)), null === t && (t = al), null !== t) {
-            for (r = [], o = S(), null === o && (o = U()); null !== o;) {
-              r.push(o), o = S(), null === o && (o = U());
-            }
-
-            null !== r ? (93 === n.charCodeAt(qt) ? (o = fu, qt++) : (o = null, 0 === Wt && e(su)), null !== o ? (Lt = l, u = hu(t, r), null === u ? (qt = l, l = u) : l = u) : (qt = l, l = il)) : (qt = l, l = il);
-          } else qt = l, l = il;
-        } else qt = l, l = il;
-        return Wt--, null === l && (u = null, 0 === Wt && e(cu)), l;
+        if (Wt++, l = qt, 91 === n.charCodeAt(qt) ? (u = iu, qt++) : (u = null, 0 === Wt && e(au)),
+          null !== u) if (94 === n.charCodeAt(qt) ? (t = pl, qt++) : (t = null, 0 === Wt && e(vl)),
+          null === t && (t = al), null !== t) {
+          for (r = [], o = S(), null === o && (o = U()); null !== o;) r.push(o), o = S(),
+          null === o && (o = U());
+          null !== r ? (93 === n.charCodeAt(qt) ? (o = fu, qt++) : (o = null, 0 === Wt && e(su)),
+            null !== o ? (Lt = l, u = hu(t, r), null === u ? (qt = l, l = u) : l = u) : (qt = l,
+              l = il)) : (qt = l, l = il);
+        } else qt = l, l = il; else qt = l, l = il;
+        return Wt--, null === l && (u = null, 0 === Wt && e(cu)), l
       }
 
-      function S() {
+      function S () {
         var l, u, t, r;
-        return Wt++, l = qt, u = U(), null !== u ? (45 === n.charCodeAt(qt) ? (t = pu, qt++) : (t = null, 0 === Wt && e(vu)), null !== t ? (r = U(), null !== r ? (Lt = l, u = wu(u, r), null === u ? (qt = l, l = u) : l = u) : (qt = l, l = il)) : (qt = l, l = il)) : (qt = l, l = il), Wt--, null === l && (u = null, 0 === Wt && e(du)), l;
+        return Wt++, l = qt, u = U(), null !== u ? (45 === n.charCodeAt(qt) ? (t = pu, qt++) : (t = null,
+        0 === Wt && e(vu)), null !== t ? (r = U(), null !== r ? (Lt = l, u = wu(u, r), null === u ? (qt = l,
+          l = u) : l = u) : (qt = l, l = il)) : (qt = l, l = il)) : (qt = l, l = il), Wt--,
+        null === l && (u = null, 0 === Wt && e(du)), l
       }
 
-      function U() {
+      function U () {
         var n;
-        return Wt++, n = G(), null === n && (n = E()), Wt--, null === n && (0 === Wt && e(Au)), n;
+        return Wt++, n = G(), null === n && (n = E()), Wt--, null === n && (0 === Wt && e(Au)),
+          n
       }
 
-      function E() {
+      function E () {
         var l, u;
-        return l = qt, Cu.test(n.charAt(qt)) ? (u = n.charAt(qt), qt++) : (u = null, 0 === Wt && e(gu)), null !== u && (Lt = l, u = bu(u)), null === u ? (qt = l, l = u) : l = u, l;
+        return l = qt, Cu.test(n.charAt(qt)) ? (u = n.charAt(qt), qt++) : (u = null, 0 === Wt && e(gu)),
+        null !== u && (Lt = l, u = bu(u)), null === u ? (qt = l, l = u) : l = u, l
       }
 
-      function G() {
+      function G () {
         var n;
-        return n = L(), null === n && (n = Y(), null === n && (n = H(), null === n && (n = O(), null === n && (n = W(), null === n && (n = z(), null === n && (n = I(), null === n && (n = J(), null === n && (n = K(), null === n && (n = N(), null === n && (n = P(), null === n && (n = V(), null === n && (n = X(), null === n && (n = _(), null === n && (n = nl(), null === n && (n = ll(), null === n && (n = ul(), null === n && (n = tl()))))))))))))))))), n;
+        return n = L(), null === n && (n = Y(), null === n && (n = H(), null === n && (n = O(),
+        null === n && (n = W(), null === n && (n = z(), null === n && (n = I(), null === n && (n = J(),
+        null === n && (n = K(), null === n && (n = N(), null === n && (n = P(), null === n && (n = V(),
+        null === n && (n = X(), null === n && (n = _(), null === n && (n = nl(), null === n && (n = ll(),
+        null === n && (n = ul(), null === n && (n = tl()))))))))))))))))), n
       }
 
-      function B() {
+      function B () {
         var n;
-        return n = j(), null === n && (n = q(), null === n && (n = $())), n;
+        return n = j(), null === n && (n = q(), null === n && (n = $())), n
       }
 
-      function j() {
+      function j () {
         var l, u;
-        return l = qt, 46 === n.charCodeAt(qt) ? (u = ku, qt++) : (u = null, 0 === Wt && e(Tu)), null !== u && (Lt = l, u = xu()), null === u ? (qt = l, l = u) : l = u, l;
+        return l = qt, 46 === n.charCodeAt(qt) ? (u = ku, qt++) : (u = null, 0 === Wt && e(Tu)),
+        null !== u && (Lt = l, u = xu()), null === u ? (qt = l, l = u) : l = u, l
       }
 
-      function $() {
+      function $ () {
         var l, u;
-        return Wt++, l = qt, mu.test(n.charAt(qt)) ? (u = n.charAt(qt), qt++) : (u = null, 0 === Wt && e(Ru)), null !== u && (Lt = l, u = bu(u)), null === u ? (qt = l, l = u) : l = u, Wt--, null === l && (u = null, 0 === Wt && e(yu)), l;
+        return Wt++, l = qt, mu.test(n.charAt(qt)) ? (u = n.charAt(qt), qt++) : (u = null,
+        0 === Wt && e(Ru)), null !== u && (Lt = l, u = bu(u)), null === u ? (qt = l, l = u) : l = u,
+          Wt--, null === l && (u = null, 0 === Wt && e(yu)), l
       }
 
-      function q() {
+      function q () {
         var n;
-        return n = M(), null === n && (n = D(), null === n && (n = Y(), null === n && (n = H(), null === n && (n = O(), null === n && (n = W(), null === n && (n = z(), null === n && (n = I(), null === n && (n = J(), null === n && (n = K(), null === n && (n = N(), null === n && (n = P(), null === n && (n = V(), null === n && (n = X(), null === n && (n = Z(), null === n && (n = _(), null === n && (n = nl(), null === n && (n = ll(), null === n && (n = ul(), null === n && (n = tl()))))))))))))))))))), n;
+        return n = M(), null === n && (n = D(), null === n && (n = Y(), null === n && (n = H(),
+        null === n && (n = O(), null === n && (n = W(), null === n && (n = z(), null === n && (n = I(),
+        null === n && (n = J(), null === n && (n = K(), null === n && (n = N(), null === n && (n = P(),
+        null === n && (n = V(), null === n && (n = X(), null === n && (n = Z(), null === n && (n = _(),
+        null === n && (n = nl(), null === n && (n = ll(), null === n && (n = ul(), null === n && (n = tl()))))))))))))))))))),
+          n
       }
 
-      function L() {
+      function L () {
         var l, u;
-        return l = qt, n.substr(qt, 2) === Fu ? (u = Fu, qt += 2) : (u = null, 0 === Wt && e(Qu)), null !== u && (Lt = l, u = Su()), null === u ? (qt = l, l = u) : l = u, l;
+        return l = qt, n.substr(qt, 2) === Fu ? (u = Fu, qt += 2) : (u = null, 0 === Wt && e(Qu)),
+        null !== u && (Lt = l, u = Su()), null === u ? (qt = l, l = u) : l = u, l
       }
 
-      function M() {
+      function M () {
         var l, u;
-        return l = qt, n.substr(qt, 2) === Fu ? (u = Fu, qt += 2) : (u = null, 0 === Wt && e(Qu)), null !== u && (Lt = l, u = Uu()), null === u ? (qt = l, l = u) : l = u, l;
+        return l = qt, n.substr(qt, 2) === Fu ? (u = Fu, qt += 2) : (u = null, 0 === Wt && e(Qu)),
+        null !== u && (Lt = l, u = Uu()), null === u ? (qt = l, l = u) : l = u, l
       }
 
-      function D() {
+      function D () {
         var l, u;
-        return l = qt, n.substr(qt, 2) === Eu ? (u = Eu, qt += 2) : (u = null, 0 === Wt && e(Gu)), null !== u && (Lt = l, u = Bu()), null === u ? (qt = l, l = u) : l = u, l;
+        return l = qt, n.substr(qt, 2) === Eu ? (u = Eu, qt += 2) : (u = null, 0 === Wt && e(Gu)),
+        null !== u && (Lt = l, u = Bu()), null === u ? (qt = l, l = u) : l = u, l
       }
 
-      function H() {
+      function H () {
         var l, u;
-        return l = qt, n.substr(qt, 2) === ju ? (u = ju, qt += 2) : (u = null, 0 === Wt && e($u)), null !== u && (Lt = l, u = qu()), null === u ? (qt = l, l = u) : l = u, l;
+        return l = qt, n.substr(qt, 2) === ju ? (u = ju, qt += 2) : (u = null, 0 === Wt && e($u)),
+        null !== u && (Lt = l, u = qu()), null === u ? (qt = l, l = u) : l = u, l
       }
 
-      function O() {
+      function O () {
         var l, u;
-        return l = qt, n.substr(qt, 2) === Lu ? (u = Lu, qt += 2) : (u = null, 0 === Wt && e(Mu)), null !== u && (Lt = l, u = Du()), null === u ? (qt = l, l = u) : l = u, l;
+        return l = qt, n.substr(qt, 2) === Lu ? (u = Lu, qt += 2) : (u = null, 0 === Wt && e(Mu)),
+        null !== u && (Lt = l, u = Du()), null === u ? (qt = l, l = u) : l = u, l
       }
 
-      function W() {
+      function W () {
         var l, u;
-        return l = qt, n.substr(qt, 2) === Hu ? (u = Hu, qt += 2) : (u = null, 0 === Wt && e(Ou)), null !== u && (Lt = l, u = Wu()), null === u ? (qt = l, l = u) : l = u, l;
+        return l = qt, n.substr(qt, 2) === Hu ? (u = Hu, qt += 2) : (u = null, 0 === Wt && e(Ou)),
+        null !== u && (Lt = l, u = Wu()), null === u ? (qt = l, l = u) : l = u, l
       }
 
-      function z() {
+      function z () {
         var l, u;
-        return l = qt, n.substr(qt, 2) === zu ? (u = zu, qt += 2) : (u = null, 0 === Wt && e(Iu)), null !== u && (Lt = l, u = Ju()), null === u ? (qt = l, l = u) : l = u, l;
+        return l = qt, n.substr(qt, 2) === zu ? (u = zu, qt += 2) : (u = null, 0 === Wt && e(Iu)),
+        null !== u && (Lt = l, u = Ju()), null === u ? (qt = l, l = u) : l = u, l
       }
 
-      function I() {
+      function I () {
         var l, u;
-        return l = qt, n.substr(qt, 2) === Ku ? (u = Ku, qt += 2) : (u = null, 0 === Wt && e(Nu)), null !== u && (Lt = l, u = Pu()), null === u ? (qt = l, l = u) : l = u, l;
+        return l = qt, n.substr(qt, 2) === Ku ? (u = Ku, qt += 2) : (u = null, 0 === Wt && e(Nu)),
+        null !== u && (Lt = l, u = Pu()), null === u ? (qt = l, l = u) : l = u, l
       }
 
-      function J() {
+      function J () {
         var l, u;
-        return l = qt, n.substr(qt, 2) === Vu ? (u = Vu, qt += 2) : (u = null, 0 === Wt && e(Xu)), null !== u && (Lt = l, u = Yu()), null === u ? (qt = l, l = u) : l = u, l;
+        return l = qt, n.substr(qt, 2) === Vu ? (u = Vu, qt += 2) : (u = null, 0 === Wt && e(Xu)),
+        null !== u && (Lt = l, u = Yu()), null === u ? (qt = l, l = u) : l = u, l
       }
 
-      function K() {
+      function K () {
         var l, u;
-        return l = qt, n.substr(qt, 2) === Zu ? (u = Zu, qt += 2) : (u = null, 0 === Wt && e(_u)), null !== u && (Lt = l, u = nt()), null === u ? (qt = l, l = u) : l = u, l;
+        return l = qt, n.substr(qt, 2) === Zu ? (u = Zu, qt += 2) : (u = null, 0 === Wt && e(_u)),
+        null !== u && (Lt = l, u = nt()), null === u ? (qt = l, l = u) : l = u, l
       }
 
-      function N() {
+      function N () {
         var l, u;
-        return l = qt, n.substr(qt, 2) === lt ? (u = lt, qt += 2) : (u = null, 0 === Wt && e(ut)), null !== u && (Lt = l, u = tt()), null === u ? (qt = l, l = u) : l = u, l;
+        return l = qt, n.substr(qt, 2) === lt ? (u = lt, qt += 2) : (u = null, 0 === Wt && e(ut)),
+        null !== u && (Lt = l, u = tt()), null === u ? (qt = l, l = u) : l = u, l
       }
 
-      function P() {
+      function P () {
         var l, u;
-        return l = qt, n.substr(qt, 2) === rt ? (u = rt, qt += 2) : (u = null, 0 === Wt && e(et)), null !== u && (Lt = l, u = ot()), null === u ? (qt = l, l = u) : l = u, l;
+        return l = qt, n.substr(qt, 2) === rt ? (u = rt, qt += 2) : (u = null, 0 === Wt && e(et)),
+        null !== u && (Lt = l, u = ot()), null === u ? (qt = l, l = u) : l = u, l
       }
 
-      function V() {
+      function V () {
         var l, u;
-        return l = qt, n.substr(qt, 2) === ct ? (u = ct, qt += 2) : (u = null, 0 === Wt && e(it)), null !== u && (Lt = l, u = at()), null === u ? (qt = l, l = u) : l = u, l;
+        return l = qt, n.substr(qt, 2) === ct ? (u = ct, qt += 2) : (u = null, 0 === Wt && e(it)),
+        null !== u && (Lt = l, u = at()), null === u ? (qt = l, l = u) : l = u, l
       }
 
-      function X() {
+      function X () {
         var l, u;
-        return l = qt, n.substr(qt, 2) === ft ? (u = ft, qt += 2) : (u = null, 0 === Wt && e(st)), null !== u && (Lt = l, u = ht()), null === u ? (qt = l, l = u) : l = u, l;
+        return l = qt, n.substr(qt, 2) === ft ? (u = ft, qt += 2) : (u = null, 0 === Wt && e(st)),
+        null !== u && (Lt = l, u = ht()), null === u ? (qt = l, l = u) : l = u, l
       }
 
-      function Y() {
+      function Y () {
         var l, u, t;
-        return l = qt, n.substr(qt, 2) === dt ? (u = dt, qt += 2) : (u = null, 0 === Wt && e(pt)), null !== u ? (n.length > qt ? (t = n.charAt(qt), qt++) : (t = null, 0 === Wt && e(vt)), null !== t ? (Lt = l, u = wt(t), null === u ? (qt = l, l = u) : l = u) : (qt = l, l = il)) : (qt = l, l = il), l;
+        return l = qt, n.substr(qt, 2) === dt ? (u = dt, qt += 2) : (u = null, 0 === Wt && e(pt)),
+          null !== u ? (n.length > qt ? (t = n.charAt(qt), qt++) : (t = null, 0 === Wt && e(vt)),
+            null !== t ? (Lt = l, u = wt(t), null === u ? (qt = l, l = u) : l = u) : (qt = l,
+              l = il)) : (qt = l, l = il), l
       }
 
-      function Z() {
+      function Z () {
         var l, u, t;
-        return l = qt, 92 === n.charCodeAt(qt) ? (u = At, qt++) : (u = null, 0 === Wt && e(Ct)), null !== u ? (gt.test(n.charAt(qt)) ? (t = n.charAt(qt), qt++) : (t = null, 0 === Wt && e(bt)), null !== t ? (Lt = l, u = kt(t), null === u ? (qt = l, l = u) : l = u) : (qt = l, l = il)) : (qt = l, l = il), l;
+        return l = qt, 92 === n.charCodeAt(qt) ? (u = At, qt++) : (u = null, 0 === Wt && e(Ct)),
+          null !== u ? (gt.test(n.charAt(qt)) ? (t = n.charAt(qt), qt++) : (t = null, 0 === Wt && e(bt)),
+            null !== t ? (Lt = l, u = kt(t), null === u ? (qt = l, l = u) : l = u) : (qt = l,
+              l = il)) : (qt = l, l = il), l
       }
 
-      function _() {
+      function _ () {
         var l, u, t, r;
-
-        if (l = qt, n.substr(qt, 2) === Tt ? (u = Tt, qt += 2) : (u = null, 0 === Wt && e(xt)), null !== u) {
-          if (t = [], yt.test(n.charAt(qt)) ? (r = n.charAt(qt), qt++) : (r = null, 0 === Wt && e(mt)), null !== r) for (; null !== r;) {
-            t.push(r), yt.test(n.charAt(qt)) ? (r = n.charAt(qt), qt++) : (r = null, 0 === Wt && e(mt));
-          } else t = il;
-          null !== t ? (Lt = l, u = Rt(t), null === u ? (qt = l, l = u) : l = u) : (qt = l, l = il);
+        if (l = qt, n.substr(qt, 2) === Tt ? (u = Tt, qt += 2) : (u = null, 0 === Wt && e(xt)),
+          null !== u) {
+          if (t = [], yt.test(n.charAt(qt)) ? (r = n.charAt(qt), qt++) : (r = null, 0 === Wt && e(mt)),
+            null !== r) for (; null !== r;) t.push(r), yt.test(n.charAt(qt)) ? (r = n.charAt(qt),
+            qt++) : (r = null, 0 === Wt && e(mt)); else t = il;
+          null !== t ? (Lt = l, u = Rt(t), null === u ? (qt = l, l = u) : l = u) : (qt = l,
+            l = il);
         } else qt = l, l = il;
-
-        return l;
+        return l
       }
 
-      function nl() {
+      function nl () {
         var l, u, t, r;
-
-        if (l = qt, n.substr(qt, 2) === Ft ? (u = Ft, qt += 2) : (u = null, 0 === Wt && e(Qt)), null !== u) {
-          if (t = [], St.test(n.charAt(qt)) ? (r = n.charAt(qt), qt++) : (r = null, 0 === Wt && e(Ut)), null !== r) for (; null !== r;) {
-            t.push(r), St.test(n.charAt(qt)) ? (r = n.charAt(qt), qt++) : (r = null, 0 === Wt && e(Ut));
-          } else t = il;
-          null !== t ? (Lt = l, u = Et(t), null === u ? (qt = l, l = u) : l = u) : (qt = l, l = il);
+        if (l = qt, n.substr(qt, 2) === Ft ? (u = Ft, qt += 2) : (u = null, 0 === Wt && e(Qt)),
+          null !== u) {
+          if (t = [], St.test(n.charAt(qt)) ? (r = n.charAt(qt), qt++) : (r = null, 0 === Wt && e(Ut)),
+            null !== r) for (; null !== r;) t.push(r), St.test(n.charAt(qt)) ? (r = n.charAt(qt),
+            qt++) : (r = null, 0 === Wt && e(Ut)); else t = il;
+          null !== t ? (Lt = l, u = Et(t), null === u ? (qt = l, l = u) : l = u) : (qt = l,
+            l = il);
         } else qt = l, l = il;
-
-        return l;
+        return l
       }
 
-      function ll() {
+      function ll () {
         var l, u, t, r;
-
-        if (l = qt, n.substr(qt, 2) === Gt ? (u = Gt, qt += 2) : (u = null, 0 === Wt && e(Bt)), null !== u) {
-          if (t = [], St.test(n.charAt(qt)) ? (r = n.charAt(qt), qt++) : (r = null, 0 === Wt && e(Ut)), null !== r) for (; null !== r;) {
-            t.push(r), St.test(n.charAt(qt)) ? (r = n.charAt(qt), qt++) : (r = null, 0 === Wt && e(Ut));
-          } else t = il;
-          null !== t ? (Lt = l, u = jt(t), null === u ? (qt = l, l = u) : l = u) : (qt = l, l = il);
+        if (l = qt, n.substr(qt, 2) === Gt ? (u = Gt, qt += 2) : (u = null, 0 === Wt && e(Bt)),
+          null !== u) {
+          if (t = [], St.test(n.charAt(qt)) ? (r = n.charAt(qt), qt++) : (r = null, 0 === Wt && e(Ut)),
+            null !== r) for (; null !== r;) t.push(r), St.test(n.charAt(qt)) ? (r = n.charAt(qt),
+            qt++) : (r = null, 0 === Wt && e(Ut)); else t = il;
+          null !== t ? (Lt = l, u = jt(t), null === u ? (qt = l, l = u) : l = u) : (qt = l,
+            l = il);
         } else qt = l, l = il;
-
-        return l;
+        return l
       }
 
-      function ul() {
+      function ul () {
         var l, u;
-        return l = qt, n.substr(qt, 2) === Tt ? (u = Tt, qt += 2) : (u = null, 0 === Wt && e(xt)), null !== u && (Lt = l, u = $t()), null === u ? (qt = l, l = u) : l = u, l;
+        return l = qt, n.substr(qt, 2) === Tt ? (u = Tt, qt += 2) : (u = null, 0 === Wt && e(xt)),
+        null !== u && (Lt = l, u = $t()), null === u ? (qt = l, l = u) : l = u, l
       }
 
-      function tl() {
+      function tl () {
         var l, u, t;
-        return l = qt, 92 === n.charCodeAt(qt) ? (u = At, qt++) : (u = null, 0 === Wt && e(Ct)), null !== u ? (n.length > qt ? (t = n.charAt(qt), qt++) : (t = null, 0 === Wt && e(vt)), null !== t ? (Lt = l, u = bu(t), null === u ? (qt = l, l = u) : l = u) : (qt = l, l = il)) : (qt = l, l = il), l;
+        return l = qt, 92 === n.charCodeAt(qt) ? (u = At, qt++) : (u = null, 0 === Wt && e(Ct)),
+          null !== u ? (n.length > qt ? (t = n.charAt(qt), qt++) : (t = null, 0 === Wt && e(vt)),
+            null !== t ? (Lt = l, u = bu(t), null === u ? (qt = l, l = u) : l = u) : (qt = l,
+              l = il)) : (qt = l, l = il), l
       }
 
-      var rl,
-          el = arguments.length > 1 ? arguments[1] : {},
-          ol = {
-        regexp: c
-      },
-          cl = c,
-          il = null,
-          al = '',
-          fl = '|',
-          sl = '"|"',
-          hl = function hl(n, l) {
-        return l ? new Alternate(n, l[1]) : n;
-      },
-          dl = function dl(n, l, u) {
-        return new Match([n].concat(l).concat([u]));
-      },
-          pl = '^',
-          vl = '"^"',
-          wl = function wl() {
-        return new Token('start');
-      },
-          Al = '$',
-          Cl = '"$"',
-          gl = function gl() {
-        return new Token('end');
-      },
-          bl = function bl(n, l) {
-        return new Quantified(n, l);
-      },
-          kl = 'Quantifier',
-          Tl = function Tl(n, l) {
-        return l && (n.greedy = !1), n;
-      },
-          xl = '{',
-          yl = '"{"',
-          ml = ',',
-          Rl = '","',
-          Fl = '}',
-          Ql = '"}"',
-          Sl = function Sl(n, l) {
-        return new Quantifier(n, l);
-      },
-          Ul = ',}',
-          El = '",}"',
-          Gl = function Gl(n) {
-        return new Quantifier(n, 1 / 0);
-      },
-          Bl = function Bl(n) {
-        return new Quantifier(n, n);
-      },
-          jl = '+',
-          $l = '"+"',
-          ql = function ql() {
-        return new Quantifier(1, 1 / 0);
-      },
-          Ll = '*',
-          Ml = '"*"',
-          Dl = function Dl() {
-        return new Quantifier(0, 1 / 0);
-      },
-          Hl = '?',
-          Ol = '"?"',
-          Wl = function Wl() {
-        return new Quantifier(0, 1);
-      },
-          zl = /^[0-9]/,
-          Il = '[0-9]',
-          Jl = function Jl(n) {
-        return +n.join('');
-      },
-          Kl = '(',
-          Nl = '"("',
-          Pl = ')',
-          Vl = '")"',
-          Xl = function Xl(n) {
-        return n;
-      },
-          Yl = function Yl(n) {
-        return new CaptureGroup(n);
-      },
-          Zl = '?:',
-          _l = '"?:"',
-          nu = function nu(n) {
-        return new Group('non-capture-group', n);
-      },
-          lu = '?=',
-          uu = '"?="',
-          tu = function tu(n) {
-        return new Group('positive-lookahead', n);
-      },
-          ru = '?!',
-          eu = '"?!"',
-          ou = function ou(n) {
-        return new Group('negative-lookahead', n);
-      },
-          cu = 'CharacterSet',
-          iu = '[',
-          au = '"["',
-          fu = ']',
-          su = '"]"',
-          hu = function hu(n, l) {
-        return new CharSet(!!n, l);
-      },
-          du = 'CharacterRange',
-          pu = '-',
-          vu = '"-"',
-          wu = function wu(n, l) {
-        return new CharacterRange(n, l);
-      },
-          Au = 'Character',
-          Cu = /^[^\\\]]/,
-          gu = '[^\\\\\\]]',
-          bu = function bu(n) {
-        return new Literal(n);
-      },
-          ku = '.',
-          Tu = '"."',
-          xu = function xu() {
-        return new Token('any-character');
-      },
-          yu = 'Literal',
-          mu = /^[^|\\\/.[()?+*$\^]/,
-          Ru = '[^|\\\\\\/.[()?+*$\\^]',
-          Fu = '\\b',
-          Qu = '"\\\\b"',
-          Su = function Su() {
-        return new Token('backspace');
-      },
-          Uu = function Uu() {
-        return new Token('word-boundary');
-      },
-          Eu = '\\B',
-          Gu = '"\\\\B"',
-          Bu = function Bu() {
-        return new Token('non-word-boundary');
-      },
-          ju = '\\d',
-          $u = '"\\\\d"',
-          qu = function qu() {
-        return new Token('digit');
-      },
-          Lu = '\\D',
-          Mu = '"\\\\D"',
-          Du = function Du() {
-        return new Token('non-digit');
-      },
-          Hu = '\\f',
-          Ou = '"\\\\f"',
-          Wu = function Wu() {
-        return new Token('form-feed');
-      },
-          zu = '\\n',
-          Iu = '"\\\\n"',
-          Ju = function Ju() {
-        return new Token('line-feed');
-      },
-          Ku = '\\r',
-          Nu = '"\\\\r"',
-          Pu = function Pu() {
-        return new Token('carriage-return');
-      },
-          Vu = '\\s',
-          Xu = '"\\\\s"',
-          Yu = function Yu() {
-        return new Token('white-space');
-      },
-          Zu = '\\S',
-          _u = '"\\\\S"',
-          nt = function nt() {
-        return new Token('non-white-space');
-      },
-          lt = '\\t',
-          ut = '"\\\\t"',
-          tt = function tt() {
-        return new Token('tab');
-      },
-          rt = '\\v',
-          et = '"\\\\v"',
-          ot = function ot() {
-        return new Token('vertical-tab');
-      },
-          ct = '\\w',
-          it = '"\\\\w"',
-          at = function at() {
-        return new Token('word');
-      },
-          ft = '\\W',
-          st = '"\\\\W"',
-          ht = function ht() {
-        return new Token('non-word');
-      },
-          dt = '\\c',
-          pt = '"\\\\c"',
-          vt = 'any character',
-          wt = function wt(n) {
-        return new ControlCharacter(n);
-      },
-          At = '\\',
-          Ct = '"\\\\"',
-          gt = /^[1-9]/,
-          bt = '[1-9]',
-          kt = function kt(n) {
-        return new BackReference(n);
-      },
-          Tt = '\\0',
-          xt = '"\\\\0"',
-          yt = /^[0-7]/,
-          mt = '[0-7]',
-          Rt = function Rt(n) {
-        return new Octal(n.join(''));
-      },
-          Ft = '\\x',
-          Qt = '"\\\\x"',
-          St = /^[0-9a-fA-F]/,
-          Ut = '[0-9a-fA-F]',
-          Et = function Et(n) {
-        return new Hex(n.join(''));
-      },
-          Gt = "\\u",
-          Bt = "\"\\\\u\"",
-          jt = function jt(n) {
-        return new Unicode(n.join(''));
-      },
-          $t = function $t() {
-        return new Token('null-character');
-      },
-          qt = 0,
-          Lt = 0,
-          Mt = 0,
-          Dt = {
-        line: 1,
-        column: 1,
-        seenCR: !1
-      },
-          Ht = 0,
-          Ot = [],
-          Wt = 0;
-
+      var rl, el = arguments.length > 1 ? arguments[1] : {}, ol = {
+          regexp: c
+        }, cl = c, il = null, al = '', fl = '|', sl = '"|"', hl = function (n, l) {
+          return l ? new Alternate(n, l[1]) : n
+        }, dl = function (n, l, u) {
+          return new Match([n].concat(l).concat([u]))
+        }, pl = '^', vl = '"^"', wl = function () {
+          return new Token('start')
+        }, Al = '$', Cl = '"$"', gl = function () {
+          return new Token('end')
+        }, bl = function (n, l) {
+          return new Quantified(n, l)
+        }, kl = 'Quantifier', Tl = function (n, l) {
+          return l && (n.greedy = !1), n
+        }, xl = '{', yl = '"{"', ml = ',', Rl = '","', Fl = '}', Ql = '"}"', Sl = function (n, l) {
+          return new Quantifier(n, l)
+        }, Ul = ',}', El = '",}"', Gl = function (n) {
+          return new Quantifier(n, 1 / 0)
+        }, Bl = function (n) {
+          return new Quantifier(n, n)
+        }, jl = '+', $l = '"+"', ql = function () {
+          return new Quantifier(1, 1 / 0)
+        }, Ll = '*', Ml = '"*"', Dl = function () {
+          return new Quantifier(0, 1 / 0)
+        }, Hl = '?', Ol = '"?"', Wl = function () {
+          return new Quantifier(0, 1)
+        }, zl = /^[0-9]/, Il = '[0-9]', Jl = function (n) {
+          return +n.join('')
+        }, Kl = '(', Nl = '"("', Pl = ')', Vl = '")"', Xl = function (n) {
+          return n
+        }, Yl = function (n) {
+          return new CaptureGroup(n)
+        }, Zl = '?:', _l = '"?:"', nu = function (n) {
+          return new Group('non-capture-group', n)
+        }, lu = '?=', uu = '"?="', tu = function (n) {
+          return new Group('positive-lookahead', n)
+        }, ru = '?!', eu = '"?!"', ou = function (n) {
+          return new Group('negative-lookahead', n)
+        }, cu = 'CharacterSet', iu = '[', au = '"["', fu = ']', su = '"]"', hu = function (n, l) {
+          return new CharSet(!!n, l)
+        }, du = 'CharacterRange', pu = '-', vu = '"-"', wu = function (n, l) {
+          return new CharacterRange(n, l)
+        }, Au = 'Character', Cu = /^[^\\\]]/, gu = '[^\\\\\\]]', bu = function (n) {
+          return new Literal(n)
+        }, ku = '.', Tu = '"."', xu = function () {
+          return new Token('any-character')
+        }, yu = 'Literal', mu = /^[^|\\\/.[()?+*$\^]/, Ru = '[^|\\\\\\/.[()?+*$\\^]', Fu = '\\b', Qu = '"\\\\b"',
+        Su = function () {
+          return new Token('backspace')
+        }, Uu = function () {
+          return new Token('word-boundary')
+        }, Eu = '\\B', Gu = '"\\\\B"', Bu = function () {
+          return new Token('non-word-boundary')
+        }, ju = '\\d', $u = '"\\\\d"', qu = function () {
+          return new Token('digit')
+        }, Lu = '\\D', Mu = '"\\\\D"', Du = function () {
+          return new Token('non-digit')
+        }, Hu = '\\f', Ou = '"\\\\f"', Wu = function () {
+          return new Token('form-feed')
+        }, zu = '\\n', Iu = '"\\\\n"', Ju = function () {
+          return new Token('line-feed')
+        }, Ku = '\\r', Nu = '"\\\\r"', Pu = function () {
+          return new Token('carriage-return')
+        }, Vu = '\\s', Xu = '"\\\\s"', Yu = function () {
+          return new Token('white-space')
+        }, Zu = '\\S', _u = '"\\\\S"', nt = function () {
+          return new Token('non-white-space')
+        }, lt = '\\t', ut = '"\\\\t"', tt = function () {
+          return new Token('tab')
+        }, rt = '\\v', et = '"\\\\v"', ot = function () {
+          return new Token('vertical-tab')
+        }, ct = '\\w', it = '"\\\\w"', at = function () {
+          return new Token('word')
+        }, ft = '\\W', st = '"\\\\W"', ht = function () {
+          return new Token('non-word')
+        }, dt = '\\c', pt = '"\\\\c"', vt = 'any character', wt = function (n) {
+          return new ControlCharacter(n)
+        }, At = '\\', Ct = '"\\\\"', gt = /^[1-9]/, bt = '[1-9]', kt = function (n) {
+          return new BackReference(n)
+        }, Tt = '\\0', xt = '"\\\\0"', yt = /^[0-7]/, mt = '[0-7]', Rt = function (n) {
+          return new Octal(n.join(''))
+        }, Ft = '\\x', Qt = '"\\\\x"', St = /^[0-9a-fA-F]/, Ut = '[0-9a-fA-F]', Et = function (n) {
+          return new Hex(n.join(''))
+        }, Gt = '\\u', Bt = '"\\\\u"', jt = function (n) {
+          return new Unicode(n.join(''))
+        }, $t = function () {
+          return new Token('null-character')
+        }, qt = 0, Lt = 0, Mt = 0, Dt = {
+          line: 1,
+          column: 1,
+          seenCR: !1
+        }, Ht = 0, Ot = [], Wt = 0;
       if ('startRule' in el) {
-        if (!(el.startRule in ol)) throw new Error('Can\'t start parsing from rule "' + el.startRule + '".');
+        if (!(el.startRule in ol)) throw new Error('Can\'t start parsing from rule "' + el.startRule + '".')
         cl = ol[el.startRule];
       }
-
-      if (Token.offset = t, Token.text = u, rl = cl(), null !== rl && qt === n.length) return rl;
-      throw o(Ot), Lt = Math.max(qt, Ht), new l(Ot, Lt < n.length ? n.charAt(Lt) : null, Lt, r(Lt).line, r(Lt).column);
+      if (Token.offset = t, Token.text = u, rl = cl(), null !== rl && qt === n.length) return rl
+      throw o(Ot), Lt = Math.max(qt, Ht), new l(Ot, Lt < n.length ? n.charAt(Lt) : null, Lt, r(Lt).line, r(Lt).column)
     }
 
     return n(l, Error), {
       SyntaxError: l,
       parse: u
-    };
-  }(),
-      index = 1,
-      cgs = {};
+    }
+  }(), index = 1, cgs = {};
 
   var RE = {
-    Parser: parser,
-    Handler: handler
+      Parser: parser,
+      Handler: handler
   };
 
+  // 处理数据模板。
   var handler$1 = {
-    // template        属性值（即数据模板）
-    // name            属性名
-    // context         数据上下文，生成后的数据
-    // templateContext 模板上下文，
-    //
-    // Handle.gen(template, name, options)
-    // context
-    //     currentContext, templateCurrentContext,
-    //     path, templatePath
-    //     root, templateRoot
-    gen: function gen(template, name, context) {
-      name = name === undefined ? '' : name.toString();
-      context = context || {};
-      context = {
-        // 当前访问路径，只有属性名，不包括生成规则
-        path: context.path || [constant.GUID],
-        templatePath: context.templatePath || [constant.GUID++],
-        currentContext: context.currentContext,
-        templateCurrentContext: context.templateCurrentContext || template,
-        root: context.root || context.currentContext,
-        templateRoot: context.templateRoot || context.templateCurrentContext || template
-      };
-      var rule = parse(name);
-      var type$1 = type(template);
-      var data;
-
-      if (handler$1[type$1]) {
-        data = handler$1[type$1]({
-          type: type$1,
-          template: template,
-          name: name,
-          rule: rule,
-          context: context,
-          parsedName: name ? name.replace(constant.RE_KEY, '$1') : name
-        });
-
-        if (!context.root) {
-          context.root = data;
-        }
-
-        return data;
-      }
-
-      return template;
-    },
-    array: function array(options) {
-      var result = []; // 'name|1': []
-      // 'name|count': []
-      // 'name|min-max': []
-
-      if (options.template.length === 0) return result; // 'arr': [{ 'email': '@EMAIL' }, { 'email': '@EMAIL' }]
-
-      if (!options.rule.parameters) {
-        for (var i = 0; i < options.template.length; i++) {
-          options.context.path.push(i);
-          options.context.templatePath.push(i);
-          result.push(handler$1.gen(options.template[i], i, {
-            path: options.context.path,
-            templatePath: options.context.templatePath,
-            currentContext: result,
-            templateCurrentContext: options.template,
-            root: options.context.root || result,
-            templateRoot: options.context.templateRoot || options.template
-          }));
-          options.context.path.pop();
-          options.context.templatePath.pop();
-        }
-      } else {
-        // 'method|1': ['GET', 'POST', 'HEAD', 'DELETE']
-        if (options.rule.min === 1 && options.rule.max === undefined) {
-          // fix Mock.js#17
-          options.context.path.push(options.name);
-          options.context.templatePath.push(options.name);
-          result = Random.pick(handler$1.gen(options.template, undefined, {
-            path: options.context.path,
-            templatePath: options.context.templatePath,
-            currentContext: result,
-            templateCurrentContext: options.template,
-            root: options.context.root || result,
-            templateRoot: options.context.templateRoot || options.template
-          }));
-          options.context.path.pop();
-          options.context.templatePath.pop();
-        } else {
-          // 'data|+1': [{}, {}]
-          if (options.rule.parameters[2]) {
-            options.template.__order_index = options.template.__order_index || 0;
-            options.context.path.push(options.name);
-            options.context.templatePath.push(options.name);
-            result = handler$1.gen(options.template, undefined, {
-              path: options.context.path,
-              templatePath: options.context.templatePath,
-              currentContext: result,
-              templateCurrentContext: options.template,
-              root: options.context.root || result,
-              templateRoot: options.context.templateRoot || options.template
-            })[options.template.__order_index % options.template.length];
-            options.template.__order_index += +options.rule.parameters[2];
-            options.context.path.pop();
-            options.context.templatePath.pop();
-          } else {
-            // 'data|1-10': [{}]
-            for (var i = 0; i < options.rule.count; i++) {
-              // 'data|1-10': [{}, {}]
-              for (var ii = 0; ii < options.template.length; ii++) {
-                options.context.path.push(result.length);
-                options.context.templatePath.push(ii);
-                result.push(handler$1.gen(options.template[ii], result.length, {
-                  path: options.context.path,
-                  templatePath: options.context.templatePath,
-                  currentContext: result,
-                  templateCurrentContext: options.template,
-                  root: options.context.root || result,
-                  templateRoot: options.context.templateRoot || options.template
-                }));
-                options.context.path.pop();
-                options.context.templatePath.pop();
+      // template        属性值（即数据模板）
+      // name            属性名
+      // context         数据上下文，生成后的数据
+      // templateContext 模板上下文，
+      //
+      // Handle.gen(template, name, options)
+      // context
+      //     currentContext, templateCurrentContext,
+      //     path, templatePath
+      //     root, templateRoot
+      gen: function (template, name, context) {
+          name = name === undefined ? '' : name.toString();
+          context = context || {};
+          context = {
+              // 当前访问路径，只有属性名，不包括生成规则
+              path: context.path || [constant.GUID],
+              templatePath: context.templatePath || [constant.GUID++],
+              currentContext: context.currentContext,
+              templateCurrentContext: context.templateCurrentContext || template,
+              root: context.root || context.currentContext,
+              templateRoot: context.templateRoot || context.templateCurrentContext || template
+          };
+          var rule = parse(name);
+          var type$1 = type(template);
+          var data;
+          if (handler$1[type$1]) {
+              data = handler$1[type$1]({
+                  type: type$1,
+                  template: template,
+                  name: name,
+                  rule: rule,
+                  context: context,
+                  parsedName: name ? name.replace(constant.RE_KEY, '$1') : name,
+              });
+              if (!context.root) {
+                  context.root = data;
               }
-            }
+              return data;
           }
-        }
-      }
-
-      return result;
-    },
-    object: function object(options) {
-      var result = {};
-      var keys$1;
-      var fnKeys;
-      var key;
-      var parsedKey;
-      var inc;
-      var i; // 'obj|min-max': {}
-
-      if (options.rule.min != undefined) {
-        keys$1 = keys(options.template);
-        keys$1 = Random.shuffle(keys$1);
-        keys$1 = keys$1.slice(0, options.rule.count);
-
-        for (i = 0; i < keys$1.length; i++) {
-          key = keys$1[i];
-          parsedKey = key.replace(constant.RE_KEY, '$1');
-          options.context.path.push(parsedKey);
-          options.context.templatePath.push(key);
-          result[parsedKey] = handler$1.gen(options.template[key], key, {
-            path: options.context.path,
-            templatePath: options.context.templatePath,
-            currentContext: result,
-            templateCurrentContext: options.template,
-            root: options.context.root || result,
-            templateRoot: options.context.templateRoot || options.template
-          });
-          options.context.path.pop();
-          options.context.templatePath.pop();
-        }
-      } else {
-        // 'obj': {}
-        keys$1 = [];
-        fnKeys = []; // Mock.js#25 改变了非函数属性的顺序，查找起来不方便
-
-        for (key in options.template) {
-          var target = typeof options.template[key] === 'function' ? fnKeys : keys$1;
-          target.push(key);
-        }
-
-        keys$1 = keys$1.concat(fnKeys);
-
-        for (i = 0; i < keys$1.length; i++) {
-          key = keys$1[i];
-          parsedKey = key.replace(constant.RE_KEY, '$1');
-          options.context.path.push(parsedKey);
-          options.context.templatePath.push(key);
-          result[parsedKey] = handler$1.gen(options.template[key], key, {
-            path: options.context.path,
-            templatePath: options.context.templatePath,
-            currentContext: result,
-            templateCurrentContext: options.template,
-            root: options.context.root || result,
-            templateRoot: options.context.templateRoot || options.template
-          });
-          options.context.path.pop();
-          options.context.templatePath.pop(); // 'id|+1': 1
-
-          inc = key.match(constant.RE_KEY);
-
-          if (inc && inc[2] && type(options.template[key]) === 'number') {
-            options.template[key] += parseInt(inc[2], 10);
+          return template;
+      },
+      array: function (options) {
+          var result = [];
+          // 'name|1': []
+          // 'name|count': []
+          // 'name|min-max': []
+          if (options.template.length === 0)
+              return result;
+          // 'arr': [{ 'email': '@EMAIL' }, { 'email': '@EMAIL' }]
+          if (!options.rule.parameters) {
+              for (var i = 0; i < options.template.length; i++) {
+                  options.context.path.push(i);
+                  options.context.templatePath.push(i);
+                  result.push(handler$1.gen(options.template[i], i, {
+                      path: options.context.path,
+                      templatePath: options.context.templatePath,
+                      currentContext: result,
+                      templateCurrentContext: options.template,
+                      root: options.context.root || result,
+                      templateRoot: options.context.templateRoot || options.template
+                  }));
+                  options.context.path.pop();
+                  options.context.templatePath.pop();
+              }
           }
-        }
-      }
-
-      return result;
-    },
-    number: function number(options) {
-      var result;
-      var parts;
-
-      if (options.rule.decimal) {
-        // float
-        options.template += '';
-        parts = options.template.split('.'); // 'float1|.1-10': 10,
-        // 'float2|1-100.1-10': 1,
-        // 'float3|999.1-10': 1,
-        // 'float4|.3-10': 123.123,
-
-        parts[0] = options.rule.range ? options.rule.count : parts[0];
-        parts[1] = (parts[1] || '').slice(0, options.rule.dcount);
-
-        while (parts[1].length < options.rule.dcount) {
-          parts[1] += // 最后一位不能为 0：如果最后一位为 0，会被 JS 引擎忽略掉。
-          parts[1].length < options.rule.dcount - 1 ? Random.character('number') : Random.character('123456789');
-        }
-
-        result = parseFloat(parts.join('.'));
-      } else {
-        // integer
-        // 'grade1|1-100': 1,
-        result = options.rule.range && !options.rule.parameters[2] ? options.rule.count : options.template;
-      }
-
-      return result;
-    },
-    "boolean": function boolean(options) {
-      // 'prop|multiple': false, 当前值是相反值的概率倍数
-      // 'prop|probability-probability': false, 当前值与相反值的概率
-      var result = options.rule.parameters ? Random.bool(options.rule.min, options.rule.max, options.template) : options.template;
-      return result;
-    },
-    string: function string(options) {
-      var result = '';
-      var placeholders;
-      var ph;
-      var phed;
-
-      if (options.template.length) {
-        // 'foo': '★',
-        if (options.rule.count == undefined) {
-          result += options.template;
-        } // 'star|1-5': '★',
-
-
-        for (var i = 0; i < options.rule.count; i++) {
-          result += options.template;
-        } // 'email|1-10': '@EMAIL, ',
-
-
-        placeholders = result.match(constant.RE_PLACEHOLDER) || []; // A-Z_0-9 > \w_
-
-        for (var i = 0; i < placeholders.length; i++) {
-          ph = placeholders[i]; // 遇到转义斜杠，不需要解析占位符
-
-          if (/^\\/.test(ph)) {
-            placeholders.splice(i--, 1);
-            continue;
+          else {
+              // 'method|1': ['GET', 'POST', 'HEAD', 'DELETE']
+              if (options.rule.min === 1 && options.rule.max === undefined) {
+                  // fix Mock.js#17
+                  options.context.path.push(options.name);
+                  options.context.templatePath.push(options.name);
+                  result = Random.pick(handler$1.gen(options.template, undefined, {
+                      path: options.context.path,
+                      templatePath: options.context.templatePath,
+                      currentContext: result,
+                      templateCurrentContext: options.template,
+                      root: options.context.root || result,
+                      templateRoot: options.context.templateRoot || options.template
+                  }));
+                  options.context.path.pop();
+                  options.context.templatePath.pop();
+              }
+              else {
+                  // 'data|+1': [{}, {}]
+                  if (options.rule.parameters[2]) {
+                      options.template.__order_index = options.template.__order_index || 0;
+                      options.context.path.push(options.name);
+                      options.context.templatePath.push(options.name);
+                      result = handler$1.gen(options.template, undefined, {
+                          path: options.context.path,
+                          templatePath: options.context.templatePath,
+                          currentContext: result,
+                          templateCurrentContext: options.template,
+                          root: options.context.root || result,
+                          templateRoot: options.context.templateRoot || options.template
+                      })[options.template.__order_index % options.template.length];
+                      options.template.__order_index += +options.rule.parameters[2];
+                      options.context.path.pop();
+                      options.context.templatePath.pop();
+                  }
+                  else {
+                      // 'data|1-10': [{}]
+                      for (var i = 0; i < options.rule.count; i++) {
+                          // 'data|1-10': [{}, {}]
+                          for (var ii = 0; ii < options.template.length; ii++) {
+                              options.context.path.push(result.length);
+                              options.context.templatePath.push(ii);
+                              result.push(handler$1.gen(options.template[ii], result.length, {
+                                  path: options.context.path,
+                                  templatePath: options.context.templatePath,
+                                  currentContext: result,
+                                  templateCurrentContext: options.template,
+                                  root: options.context.root || result,
+                                  templateRoot: options.context.templateRoot || options.template
+                              }));
+                              options.context.path.pop();
+                              options.context.templatePath.pop();
+                          }
+                      }
+                  }
+              }
           }
-
-          phed = handler$1.placeholder(ph, options.context.currentContext, options.context.templateCurrentContext, options); // 只有一个占位符，并且没有其他字符
-
-          if (placeholders.length === 1 && ph === result && _typeof(phed) !== _typeof(result)) {
-            result = phed;
-            break;
+          return result;
+      },
+      object: function (options) {
+          var result = {};
+          var keys$1;
+          var fnKeys;
+          var key;
+          var parsedKey;
+          var inc;
+          var i;
+          // 'obj|min-max': {}
+          if (options.rule.min != undefined) {
+              keys$1 = keys(options.template);
+              keys$1 = Random.shuffle(keys$1);
+              keys$1 = keys$1.slice(0, options.rule.count);
+              for (i = 0; i < keys$1.length; i++) {
+                  key = keys$1[i];
+                  parsedKey = key.replace(constant.RE_KEY, '$1');
+                  options.context.path.push(parsedKey);
+                  options.context.templatePath.push(key);
+                  result[parsedKey] = handler$1.gen(options.template[key], key, {
+                      path: options.context.path,
+                      templatePath: options.context.templatePath,
+                      currentContext: result,
+                      templateCurrentContext: options.template,
+                      root: options.context.root || result,
+                      templateRoot: options.context.templateRoot || options.template
+                  });
+                  options.context.path.pop();
+                  options.context.templatePath.pop();
+              }
           }
-
-          result = result.replace(ph, phed);
-        }
-      } else {
-        // 'ASCII|1-10': '',
-        // 'ASCII': '',
-        result = options.rule.range ? Random.string(options.rule.count) : options.template;
-      }
-
-      return result;
-    },
-    "function": function _function(options) {
-      // ( context, options )
-      return options.template.call(options.context.currentContext, options);
-    },
-    regexp: function regexp(options) {
-      var source = ''; // 'name': /regexp/,
-
-      if (options.rule.count == undefined) {
-        source += options.template.source; // regexp.source
-      } // 'name|1-5': /regexp/,
-
-
-      for (var i = 0; i < options.rule.count; i++) {
-        source += options.template.source;
-      }
-
-      return RE.Handler.gen(RE.Parser.parse(source));
-    },
-    _all: function _all() {
-      var re = {};
-
-      for (var key in Random) {
-        re[key.toLowerCase()] = key;
-      }
-
-      return re;
-    },
-    // 处理占位符，转换为最终值
-    placeholder: function placeholder(_placeholder, obj, templateContext, options) {
-      // 1 key, 2 params
-      // regexp init
-      constant.RE_PLACEHOLDER.exec('');
-      var parts = constant.RE_PLACEHOLDER.exec(_placeholder);
-      var key = parts && parts[1];
-      var lkey = key && key.toLowerCase();
-
-      var okey = handler$1._all()[lkey];
-
-      var paramsInput = parts && parts[2] || '';
-      var pathParts = handler$1.splitPathToArray(key);
-      var params = []; // 解析占位符的参数
-
-      try {
-        // 1. 尝试保持参数的类型
-        // #24 [Window Firefox 30.0 引用 占位符 抛错](https://github.com/nuysoft/Mock/issues/24)
-        // [BX9056: 各浏览器下 window.eval 方法的执行上下文存在差异](http://www.w3help.org/zh-cn/causes/BX9056)
-        // 应该属于 Window Firefox 30.0 的 BUG
-        params = eval('(function(){ return [].splice.call(arguments, 0 ) })(' + paramsInput + ')');
-      } catch (error) {
-        // 2. 如果失败，只能解析为字符串
-        params = paramsInput.split(/,\s*/);
-      } // 占位符优先引用数据模板中的属性
-      // { first: '@EMAIL', full: '@first' } =>  { first: 'dsa@163.com', full: 'dsa@163.com' }
-
-
-      if (obj && key in obj) {
-        return obj[key];
-      } // 绝对路径 or 相对路径
-
-
-      if (key.charAt(0) === '/' || pathParts.length > 1) {
-        return handler$1.getValueByKeyPath(key, options);
-      } // 递归引用数据模板中的属性
-      // fix Mock.js#15 避免自己依赖自己)
-
-
-      if (templateContext && _typeof(templateContext) === 'object' && key in templateContext && _placeholder !== templateContext[key]) {
-        // 先计算被引用的属性值
-        templateContext[key] = handler$1.gen(templateContext[key], key, {
-          currentContext: obj,
-          templateCurrentContext: templateContext
-        });
-        return templateContext[key];
-      } // 如果未找到，则原样返回
-
-
-      if (!(key in Random) && !(lkey in Random) && !(okey in Random)) {
-        return _placeholder;
-      } // 递归解析参数中的占位符
-
-
-      for (var i = 0; i < params.length; i++) {
-        constant.RE_PLACEHOLDER.exec('');
-
-        if (constant.RE_PLACEHOLDER.test(params[i])) {
-          params[i] = handler$1.placeholder(params[i], obj, templateContext, options);
-        }
-      }
-
-      var handle = Random[key] || Random[lkey] || Random[okey];
-
-      switch (type(handle)) {
-        case 'array':
-          // 自动从数组中取一个，例如 @areas
-          return Random.pick(handle);
-
-        case 'function':
-          // 执行占位符方法（大多数情况）
-          handle.options = options;
-          var re = handle.apply(Random, params); // 因为是在字符串中，所以默认为空字符串。
-
-          if (re === undefined) {
-            re = '';
+          else {
+              // 'obj': {}
+              keys$1 = [];
+              fnKeys = []; // Mock.js#25 改变了非函数属性的顺序，查找起来不方便
+              for (key in options.template) {
+                  var target = typeof options.template[key] === 'function' ? fnKeys : keys$1;
+                  target.push(key);
+              }
+              keys$1 = keys$1.concat(fnKeys);
+              for (i = 0; i < keys$1.length; i++) {
+                  key = keys$1[i];
+                  parsedKey = key.replace(constant.RE_KEY, '$1');
+                  options.context.path.push(parsedKey);
+                  options.context.templatePath.push(key);
+                  result[parsedKey] = handler$1.gen(options.template[key], key, {
+                      path: options.context.path,
+                      templatePath: options.context.templatePath,
+                      currentContext: result,
+                      templateCurrentContext: options.template,
+                      root: options.context.root || result,
+                      templateRoot: options.context.templateRoot || options.template
+                  });
+                  options.context.path.pop();
+                  options.context.templatePath.pop();
+                  // 'id|+1': 1
+                  inc = key.match(constant.RE_KEY);
+                  if (inc && inc[2] && type(options.template[key]) === 'number') {
+                      options.template[key] += parseInt(inc[2], 10);
+                  }
+              }
           }
-
-          delete handle.options;
+          return result;
+      },
+      number: function (options) {
+          var result;
+          var parts;
+          if (options.rule.decimal) {
+              // float
+              options.template += '';
+              parts = options.template.split('.');
+              // 'float1|.1-10': 10,
+              // 'float2|1-100.1-10': 1,
+              // 'float3|999.1-10': 1,
+              // 'float4|.3-10': 123.123,
+              parts[0] = options.rule.range ? options.rule.count : parts[0];
+              parts[1] = (parts[1] || '').slice(0, options.rule.dcount);
+              while (parts[1].length < options.rule.dcount) {
+                  parts[1] += // 最后一位不能为 0：如果最后一位为 0，会被 JS 引擎忽略掉。
+                      parts[1].length < options.rule.dcount - 1 ? Random.character('number') : Random.character('123456789');
+              }
+              result = parseFloat(parts.join('.'));
+          }
+          else {
+              // integer
+              // 'grade1|1-100': 1,
+              result = options.rule.range && !options.rule.parameters[2] ? options.rule.count : options.template;
+          }
+          return result;
+      },
+      boolean: function (options) {
+          // 'prop|multiple': false, 当前值是相反值的概率倍数
+          // 'prop|probability-probability': false, 当前值与相反值的概率
+          var result = options.rule.parameters
+              ? Random.bool(options.rule.min, options.rule.max, options.template)
+              : options.template;
+          return result;
+      },
+      string: function (options) {
+          var result = '';
+          var placeholders;
+          var ph;
+          var phed;
+          if (options.template.length) {
+              // 'foo': '★',
+              if (options.rule.count == undefined) {
+                  result += options.template;
+              }
+              // 'star|1-5': '★',
+              for (var i = 0; i < options.rule.count; i++) {
+                  result += options.template;
+              }
+              // 'email|1-10': '@EMAIL, ',
+              placeholders = result.match(constant.RE_PLACEHOLDER) || []; // A-Z_0-9 > \w_
+              for (var i = 0; i < placeholders.length; i++) {
+                  ph = placeholders[i];
+                  // 遇到转义斜杠，不需要解析占位符
+                  if (/^\\/.test(ph)) {
+                      placeholders.splice(i--, 1);
+                      continue;
+                  }
+                  phed = handler$1.placeholder(ph, options.context.currentContext, options.context.templateCurrentContext, options);
+                  // 只有一个占位符，并且没有其他字符
+                  if (placeholders.length === 1 && ph === result && typeof phed !== typeof result) {
+                      result = phed;
+                      break;
+                  }
+                  result = result.replace(ph, phed);
+              }
+          }
+          else {
+              // 'ASCII|1-10': '',
+              // 'ASCII': '',
+              result = options.rule.range ? Random.string(options.rule.count) : options.template;
+          }
+          return result;
+      },
+      function: function (options) {
+          // ( context, options )
+          return options.template.call(options.context.currentContext, options);
+      },
+      regexp: function (options) {
+          var source = '';
+          // 'name': /regexp/,
+          if (options.rule.count == undefined) {
+              source += options.template.source; // regexp.source
+          }
+          // 'name|1-5': /regexp/,
+          for (var i = 0; i < options.rule.count; i++) {
+              source += options.template.source;
+          }
+          return RE.Handler.gen(RE.Parser.parse(source));
+      },
+      _all: function () {
+          var re = {};
+          for (var key in Random) {
+              re[key.toLowerCase()] = key;
+          }
           return re;
+      },
+      // 处理占位符，转换为最终值
+      placeholder: function (placeholder, obj, templateContext, options) {
+          // 1 key, 2 params
+          // regexp init
+          constant.RE_PLACEHOLDER.exec('');
+          var parts = constant.RE_PLACEHOLDER.exec(placeholder);
+          var key = parts && parts[1];
+          var lkey = key && key.toLowerCase();
+          var okey = handler$1._all()[lkey];
+          var paramsInput = (parts && parts[2]) || '';
+          var pathParts = handler$1.splitPathToArray(key);
+          var params = [];
+          // 解析占位符的参数
+          try {
+              // 1. 尝试保持参数的类型
+              // #24 [Window Firefox 30.0 引用 占位符 抛错](https://github.com/nuysoft/Mock/issues/24)
+              // [BX9056: 各浏览器下 window.eval 方法的执行上下文存在差异](http://www.w3help.org/zh-cn/causes/BX9056)
+              // 应该属于 Window Firefox 30.0 的 BUG
+              params = eval('(function(){ return [].splice.call(arguments, 0 ) })(' + paramsInput + ')');
+          }
+          catch (error) {
+              // 2. 如果失败，只能解析为字符串
+              params = paramsInput.split(/,\s*/);
+          }
+          // 占位符优先引用数据模板中的属性
+          // { first: '@EMAIL', full: '@first' } =>  { first: 'dsa@163.com', full: 'dsa@163.com' }
+          if (obj && key in obj) {
+              return obj[key];
+          }
+          // 绝对路径 or 相对路径
+          if (key.charAt(0) === '/' || pathParts.length > 1) {
+              return handler$1.getValueByKeyPath(key, options);
+          }
+          // 递归引用数据模板中的属性
+          // fix Mock.js#15 避免自己依赖自己)
+          if (templateContext && typeof templateContext === 'object' && key in templateContext && placeholder !== templateContext[key]) {
+              // 先计算被引用的属性值
+              templateContext[key] = handler$1.gen(templateContext[key], key, {
+                  currentContext: obj, templateCurrentContext: templateContext
+              });
+              return templateContext[key];
+          }
+          // 如果未找到，则原样返回
+          if (!(key in Random) && !(lkey in Random) && !(okey in Random)) {
+              return placeholder;
+          }
+          // 递归解析参数中的占位符
+          for (var i = 0; i < params.length; i++) {
+              constant.RE_PLACEHOLDER.exec('');
+              if (constant.RE_PLACEHOLDER.test(params[i])) {
+                  params[i] = handler$1.placeholder(params[i], obj, templateContext, options);
+              }
+          }
+          var handle = Random[key] || Random[lkey] || Random[okey];
+          switch (type(handle)) {
+              case 'array':
+                  // 自动从数组中取一个，例如 @areas
+                  return Random.pick(handle);
+              case 'function':
+                  // 执行占位符方法（大多数情况）
+                  handle.options = options;
+                  var re = handle.apply(Random, params);
+                  // 因为是在字符串中，所以默认为空字符串。
+                  if (re === undefined) {
+                      re = '';
+                  }
+                  delete handle.options;
+                  return re;
+          }
+      },
+      getValueByKeyPath: function (key, options) {
+          var originalKey = key;
+          var keyPathParts = handler$1.splitPathToArray(key);
+          var absolutePathParts = [];
+          // 绝对路径
+          if (key.charAt(0) === '/') {
+              absolutePathParts = [options.context.path[0]].concat(handler$1.normalizePath(keyPathParts));
+          }
+          else {
+              // 相对路径
+              if (keyPathParts.length > 1) {
+                  absolutePathParts = options.context.path.slice(0);
+                  absolutePathParts.pop();
+                  absolutePathParts = handler$1.normalizePath(absolutePathParts.concat(keyPathParts));
+              }
+          }
+          key = keyPathParts[keyPathParts.length - 1];
+          var currentContext = options.context.root;
+          var templateCurrentContext = options.context.templateRoot;
+          for (var i = 1; i < absolutePathParts.length - 1; i++) {
+              currentContext = currentContext[absolutePathParts[i]];
+              templateCurrentContext = templateCurrentContext[absolutePathParts[i]];
+          }
+          // 引用的值已经计算好
+          if (currentContext && key in currentContext) {
+              return currentContext[key];
+          }
+          // 尚未计算，递归引用数据模板中的属性
+          // fix #15 避免自己依赖自己
+          if (templateCurrentContext &&
+              typeof templateCurrentContext === 'object' &&
+              key in templateCurrentContext &&
+              originalKey !== templateCurrentContext[key]) {
+              // 先计算被引用的属性值
+              templateCurrentContext[key] = handler$1.gen(templateCurrentContext[key], key, {
+                  currentContext: currentContext, templateCurrentContext: templateCurrentContext
+              });
+              return templateCurrentContext[key];
+          }
+      },
+      // https://github.com/kissyteam/kissy/blob/master/src/path/src/path.js
+      normalizePath: function (pathParts) {
+          var newPathParts = [];
+          for (var i = 0; i < pathParts.length; i++) {
+              switch (pathParts[i]) {
+                  case '..':
+                      newPathParts.pop();
+                      break;
+                  case '.':
+                      break;
+                  default:
+                      newPathParts.push(pathParts[i]);
+              }
+          }
+          return newPathParts;
+      },
+      splitPathToArray: function (path) {
+          return path.split(/\/+/).filter(function (_) { return _; });
       }
-    },
-    getValueByKeyPath: function getValueByKeyPath(key, options) {
-      var originalKey = key;
-      var keyPathParts = handler$1.splitPathToArray(key);
-      var absolutePathParts = []; // 绝对路径
-
-      if (key.charAt(0) === '/') {
-        absolutePathParts = [options.context.path[0]].concat(handler$1.normalizePath(keyPathParts));
-      } else {
-        // 相对路径
-        if (keyPathParts.length > 1) {
-          absolutePathParts = options.context.path.slice(0);
-          absolutePathParts.pop();
-          absolutePathParts = handler$1.normalizePath(absolutePathParts.concat(keyPathParts));
-        }
-      }
-
-      key = keyPathParts[keyPathParts.length - 1];
-      var currentContext = options.context.root;
-      var templateCurrentContext = options.context.templateRoot;
-
-      for (var i = 1; i < absolutePathParts.length - 1; i++) {
-        currentContext = currentContext[absolutePathParts[i]];
-        templateCurrentContext = templateCurrentContext[absolutePathParts[i]];
-      } // 引用的值已经计算好
-
-
-      if (currentContext && key in currentContext) {
-        return currentContext[key];
-      } // 尚未计算，递归引用数据模板中的属性
-      // fix #15 避免自己依赖自己
-
-
-      if (templateCurrentContext && _typeof(templateCurrentContext) === 'object' && key in templateCurrentContext && originalKey !== templateCurrentContext[key]) {
-        // 先计算被引用的属性值
-        templateCurrentContext[key] = handler$1.gen(templateCurrentContext[key], key, {
-          currentContext: currentContext,
-          templateCurrentContext: templateCurrentContext
-        });
-        return templateCurrentContext[key];
-      }
-    },
-    // https://github.com/kissyteam/kissy/blob/master/src/path/src/path.js
-    normalizePath: function normalizePath(pathParts) {
-      var newPathParts = [];
-
-      for (var i = 0; i < pathParts.length; i++) {
-        switch (pathParts[i]) {
-          case '..':
-            newPathParts.pop();
-            break;
-
-          case '.':
-            break;
-
-          default:
-            newPathParts.push(pathParts[i]);
-        }
-      }
-
-      return newPathParts;
-    },
-    splitPathToArray: function splitPathToArray(path) {
-      return path.split(/\/+/).filter(function (_) {
-        return _;
-      });
-    }
   };
 
   // 把 Mock.js 风格的数据模板转换成 JSON Schema。
-
-  function toJSONSchema(template, name, path
-  /* Internal Use Only */
-  ) {
-    // type rule properties items
-    path = path || [];
-    var result = {
-      name: typeof name === 'string' ? name.replace(constant.RE_KEY, '$1') : name,
-      template: template,
-      type: type(template),
-      rule: parse(name)
-    };
-    result.path = path.slice(0);
-    result.path.push(name === undefined ? 'ROOT' : result.name);
-
-    switch (result.type) {
-      case 'array':
-        result.items = [];
-        each(template, function (value, index) {
-          result.items.push(toJSONSchema(value, index, result.path));
-        });
-        break;
-
-      case 'object':
-        result.properties = [];
-        each(template, function (value, key) {
-          result.properties.push(toJSONSchema(value, key, result.path));
-        });
-        break;
-    }
-
-    return result;
+  function toJSONSchema(template, name, path /* Internal Use Only */) {
+      // type rule properties items
+      path = path || [];
+      var result = {
+          name: typeof name === 'string' ? name.replace(constant.RE_KEY, '$1') : name,
+          template: template,
+          type: type(template),
+          rule: parse(name)
+      };
+      result.path = path.slice(0);
+      result.path.push(name === undefined ? 'ROOT' : result.name);
+      switch (result.type) {
+          case 'array':
+              result.items = [];
+              each(template, function (value, index) {
+                  result.items.push(toJSONSchema(value, index, result.path));
+              });
+              break;
+          case 'object':
+              result.properties = [];
+              each(template, function (value, key) {
+                  result.properties.push(toJSONSchema(value, key, result.path));
+              });
+              break;
+      }
+      return result;
   }
 
   // ## valid(template, data)
+  // ## name
   //     有生成规则：比较解析后的 name
   //     无生成规则：直接比较
   // ## type
@@ -8211,267 +7905,225 @@
   //             `'name|min-max': [{}, {} ...]`      检测个数，继续递归
   //             `'name|count': [{}, {} ...]`        检测个数，继续递归
   //         无生成规则：检测全部的元素个数，继续递归
-
   var Diff = {
-    diff: function diff(schema, data, name
-    /* Internal Use Only */
-    ) {
-      var result = []; // 先检测名称 name 和类型 type，如果匹配，才有必要继续检测
-
-      if (this.name(schema, data, name, result) && this.type(schema, data, name, result)) {
-        this.value(schema, data, name, result);
-        this.properties(schema, data, name, result);
-        this.items(schema, data, name, result);
-      }
-
-      return result;
-    },
-
-    /* jshint unused:false */
-    name: function name(schema, data, _name, result) {
-      var length = result.length;
-      Assert.equal('name', schema.path, _name + '', schema.name + '', result);
-      return result.length === length;
-    },
-    type: function type$1(schema, data, name, result) {
-      var length = result.length;
-
-      switch (schema.type) {
-        case 'string':
-          // 跳过含有『占位符』的属性值，因为『占位符』返回值的类型可能和模板不一致，例如 '@int' 会返回一个整形值
-          if (schema.template.match(constant.RE_PLACEHOLDER)) return true;
-          break;
-
-        case 'array':
-          if (schema.rule.parameters) {
-            // name|count: array
-            if (schema.rule.min !== undefined && schema.rule.max === undefined) {
-              // 跳过 name|1: array，因为最终值的类型（很可能）不是数组，也不一定与 `array` 中的类型一致
-              if (schema.rule.count === 1) {
-                return true;
-              }
-            } // 跳过 name|+inc: array
-
-
-            if (schema.rule.parameters[2]) {
-              return true;
-            }
+      diff: function diff(schema, data, name /* Internal Use Only */) {
+          var result = [];
+          // 先检测名称 name 和类型 type，如果匹配，才有必要继续检测
+          if (this.name(schema, data, name, result) && this.type(schema, data, name, result)) {
+              this.value(schema, data, name, result);
+              this.properties(schema, data, name, result);
+              this.items(schema, data, name, result);
           }
-
-          break;
-
-        case 'function':
-          // 跳过 `'name': function`，因为函数可以返回任何类型的值。
-          return true;
-      }
-
-      Assert.equal('type', schema.path, type(data), schema.type, result);
-      return result.length === length;
-    },
-    value: function value(schema, data, name, result) {
-      var length = result.length;
-      var rule = schema.rule;
-      var templateType = schema.type;
-
-      if (templateType === 'object' || templateType === 'array' || templateType === 'function') {
-        return true;
-      } // 无生成规则
-
-
-      if (!rule.parameters) {
-        switch (templateType) {
-          case 'regexp':
-            Assert.match('value', schema.path, data, schema.template, result);
-            return result.length === length;
-
-          case 'string':
-            // 同样跳过含有『占位符』的属性值，因为『占位符』的返回值会通常会与模板不一致
-            if (schema.template.match(constant.RE_PLACEHOLDER)) {
-              return result.length === length;
-            }
-
-            break;
-        }
-
-        Assert.equal('value', schema.path, data, schema.template, result);
-        return result.length === length;
-      } // 有生成规则
-
-
-      var actualRepeatCount;
-
-      switch (templateType) {
-        case 'number':
-          var parts = (data + '').split('.');
-          parts[0] = +parts[0]; // 整数部分
-          // |min-max
-
-          if (rule.min !== undefined && rule.max !== undefined) {
-            Assert.greaterThanOrEqualTo('value', schema.path, parts[0], Math.min(rule.min, rule.max), result); // , 'numeric instance is lower than the required minimum (minimum: {expected}, found: {actual})')
-
-            Assert.lessThanOrEqualTo('value', schema.path, parts[0], Math.max(rule.min, rule.max), result);
-          } // |count
-
-
-          if (rule.min !== undefined && rule.max === undefined) {
-            Assert.equal('value', schema.path, parts[0], rule.min, result, '[value] ' + name);
-          } // 小数部分
-
-
-          if (rule.decimal) {
-            // |dmin-dmax
-            if (rule.dmin !== undefined && rule.dmax !== undefined) {
-              Assert.greaterThanOrEqualTo('value', schema.path, parts[1].length, rule.dmin, result);
-              Assert.lessThanOrEqualTo('value', schema.path, parts[1].length, rule.dmax, result);
-            } // |dcount
-
-
-            if (rule.dmin !== undefined && rule.dmax === undefined) {
-              Assert.equal('value', schema.path, parts[1].length, rule.dmin, result);
-            }
-          }
-
-          break;
-
-        case 'boolean':
-          break;
-
-        case 'string':
-          // 'aaa'.match(/a/g)
-          actualRepeatCount = data.match(new RegExp(schema.template, 'g'));
-          actualRepeatCount = actualRepeatCount ? actualRepeatCount.length : 0; // |min-max
-
-          if (rule.min !== undefined && rule.max !== undefined) {
-            Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.min, result);
-            Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.max, result);
-          } // |count
-
-
-          if (rule.min !== undefined && rule.max === undefined) {
-            Assert.equal('repeat count', schema.path, actualRepeatCount, rule.min, result);
-          }
-
-          break;
-
-        case 'regexp':
-          actualRepeatCount = data.match(new RegExp(schema.template.source.replace(/^\^|\$$/g, ''), 'g'));
-          actualRepeatCount = actualRepeatCount ? actualRepeatCount.length : 0; // |min-max
-
-          if (rule.min !== undefined && rule.max !== undefined) {
-            Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.min, result);
-            Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.max, result);
-          } // |count
-
-
-          if (rule.min !== undefined && rule.max === undefined) {
-            Assert.equal('repeat count', schema.path, actualRepeatCount, rule.min, result);
-          }
-
-          break;
-      }
-
-      return result.length === length;
-    },
-    properties: function properties(schema, data, name, result) {
-      var length = result.length;
-      var rule = schema.rule;
-      var keys$1 = keys(data);
-
-      if (!schema.properties) {
-        return;
-      } // 无生成规则
-
-
-      if (!schema.rule.parameters) {
-        Assert.equal('properties length', schema.path, keys$1.length, schema.properties.length, result);
-      } else {
-        // 有生成规则
-        // |min-max
-        if (rule.min !== undefined && rule.max !== undefined) {
-          Assert.greaterThanOrEqualTo('properties length', schema.path, keys$1.length, Math.min(rule.min, rule.max), result);
-          Assert.lessThanOrEqualTo('properties length', schema.path, keys$1.length, Math.max(rule.min, rule.max), result);
-        } // |count
-
-
-        if (rule.min !== undefined && rule.max === undefined) {
-          // |1, |>1
-          if (rule.count !== 1) {
-            Assert.equal('properties length', schema.path, keys$1.length, rule.min, result);
-          }
-        }
-      }
-
-      if (result.length !== length) {
-        return false;
-      }
-
-      var _loop_1 = function _loop_1(i) {
-        var property;
-        each(schema.properties, function (item
-        /*, index*/
-        ) {
-          if (item.name === keys$1[i]) {
-            property = item;
-          }
-        });
-        property = property || schema.properties[i];
-        result.push.apply(result, this_1.diff(property, data[keys$1[i]], keys$1[i]));
-      };
-
-      var this_1 = this;
-
-      for (var i = 0; i < keys$1.length; i++) {
-        _loop_1(i);
-      }
-
-      return result.length === length;
-    },
-    items: function items(schema, data, name, result) {
-      var length = result.length;
-
-      if (!schema.items) {
-        return;
-      }
-
-      var rule = schema.rule; // 无生成规则
-
-      if (!schema.rule.parameters) {
-        Assert.equal('items length', schema.path, data.length, schema.items.length, result);
-      } else {
-        // 有生成规则
-        // |min-max
-        if (rule.min !== undefined && rule.max !== undefined) {
-          Assert.greaterThanOrEqualTo('items', schema.path, data.length, Math.min(rule.min, rule.max) * schema.items.length, result, '[{utype}] array is too short: {path} must have at least {expected} elements but instance has {actual} elements');
-          Assert.lessThanOrEqualTo('items', schema.path, data.length, Math.max(rule.min, rule.max) * schema.items.length, result, '[{utype}] array is too long: {path} must have at most {expected} elements but instance has {actual} elements');
-        } // |count
-
-
-        if (rule.min !== undefined && rule.max === undefined) {
-          // |1, |>1
-          if (rule.count === 1) {
-            return result.length === length;
-          } else {
-            Assert.equal('items length', schema.path, data.length, rule.min * schema.items.length, result);
-          }
-        } // |+inc
-
-
-        if (rule.parameters[2]) {
+          return result;
+      },
+      /* jshint unused:false */
+      name: function (schema, data, name, result) {
+          var length = result.length;
+          Assert.equal('name', schema.path, name + '', schema.name + '', result);
           return result.length === length;
-        }
+      },
+      type: function (schema, data, name, result) {
+          var length = result.length;
+          switch (schema.type) {
+              case 'string':
+                  // 跳过含有『占位符』的属性值，因为『占位符』返回值的类型可能和模板不一致，例如 '@int' 会返回一个整形值
+                  if (schema.template.match(constant.RE_PLACEHOLDER))
+                      return true;
+                  break;
+              case 'array':
+                  if (schema.rule.parameters) {
+                      // name|count: array
+                      if (schema.rule.min !== undefined && schema.rule.max === undefined) {
+                          // 跳过 name|1: array，因为最终值的类型（很可能）不是数组，也不一定与 `array` 中的类型一致
+                          if (schema.rule.count === 1) {
+                              return true;
+                          }
+                      }
+                      // 跳过 name|+inc: array
+                      if (schema.rule.parameters[2]) {
+                          return true;
+                      }
+                  }
+                  break;
+              case 'function':
+                  // 跳过 `'name': function`，因为函数可以返回任何类型的值。
+                  return true;
+          }
+          Assert.equal('type', schema.path, type(data), schema.type, result);
+          return result.length === length;
+      },
+      value: function (schema, data, name, result) {
+          var length = result.length;
+          var rule = schema.rule;
+          var templateType = schema.type;
+          if (templateType === 'object' || templateType === 'array' || templateType === 'function') {
+              return true;
+          }
+          // 无生成规则
+          if (!rule.parameters) {
+              switch (templateType) {
+                  case 'regexp':
+                      Assert.match('value', schema.path, data, schema.template, result);
+                      return result.length === length;
+                  case 'string':
+                      // 同样跳过含有『占位符』的属性值，因为『占位符』的返回值会通常会与模板不一致
+                      if (schema.template.match(constant.RE_PLACEHOLDER)) {
+                          return result.length === length;
+                      }
+                      break;
+              }
+              Assert.equal('value', schema.path, data, schema.template, result);
+              return result.length === length;
+          }
+          // 有生成规则
+          var actualRepeatCount;
+          switch (templateType) {
+              case 'number':
+                  var parts = (data + '').split('.');
+                  parts[0] = +parts[0];
+                  // 整数部分
+                  // |min-max
+                  if (rule.min !== undefined && rule.max !== undefined) {
+                      Assert.greaterThanOrEqualTo('value', schema.path, parts[0], Math.min(rule.min, rule.max), result);
+                      // , 'numeric instance is lower than the required minimum (minimum: {expected}, found: {actual})')
+                      Assert.lessThanOrEqualTo('value', schema.path, parts[0], Math.max(rule.min, rule.max), result);
+                  }
+                  // |count
+                  if (rule.min !== undefined && rule.max === undefined) {
+                      Assert.equal('value', schema.path, parts[0], rule.min, result, '[value] ' + name);
+                  }
+                  // 小数部分
+                  if (rule.decimal) {
+                      // |dmin-dmax
+                      if (rule.dmin !== undefined && rule.dmax !== undefined) {
+                          Assert.greaterThanOrEqualTo('value', schema.path, parts[1].length, rule.dmin, result);
+                          Assert.lessThanOrEqualTo('value', schema.path, parts[1].length, rule.dmax, result);
+                      }
+                      // |dcount
+                      if (rule.dmin !== undefined && rule.dmax === undefined) {
+                          Assert.equal('value', schema.path, parts[1].length, rule.dmin, result);
+                      }
+                  }
+                  break;
+              case 'boolean':
+                  break;
+              case 'string':
+                  // 'aaa'.match(/a/g)
+                  actualRepeatCount = data.match(new RegExp(schema.template, 'g'));
+                  actualRepeatCount = actualRepeatCount ? actualRepeatCount.length : 0;
+                  // |min-max
+                  if (rule.min !== undefined && rule.max !== undefined) {
+                      Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.min, result);
+                      Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.max, result);
+                  }
+                  // |count
+                  if (rule.min !== undefined && rule.max === undefined) {
+                      Assert.equal('repeat count', schema.path, actualRepeatCount, rule.min, result);
+                  }
+                  break;
+              case 'regexp':
+                  actualRepeatCount = data.match(new RegExp(schema.template.source.replace(/^\^|\$$/g, ''), 'g'));
+                  actualRepeatCount = actualRepeatCount ? actualRepeatCount.length : 0;
+                  // |min-max
+                  if (rule.min !== undefined && rule.max !== undefined) {
+                      Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.min, result);
+                      Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.max, result);
+                  }
+                  // |count
+                  if (rule.min !== undefined && rule.max === undefined) {
+                      Assert.equal('repeat count', schema.path, actualRepeatCount, rule.min, result);
+                  }
+                  break;
+          }
+          return result.length === length;
+      },
+      properties: function (schema, data, name, result) {
+          var length = result.length;
+          var rule = schema.rule;
+          var keys$1 = keys(data);
+          if (!schema.properties) {
+              return;
+          }
+          // 无生成规则
+          if (!schema.rule.parameters) {
+              Assert.equal('properties length', schema.path, keys$1.length, schema.properties.length, result);
+          }
+          else {
+              // 有生成规则
+              // |min-max
+              if (rule.min !== undefined && rule.max !== undefined) {
+                  Assert.greaterThanOrEqualTo('properties length', schema.path, keys$1.length, Math.min(rule.min, rule.max), result);
+                  Assert.lessThanOrEqualTo('properties length', schema.path, keys$1.length, Math.max(rule.min, rule.max), result);
+              }
+              // |count
+              if (rule.min !== undefined && rule.max === undefined) {
+                  // |1, |>1
+                  if (rule.count !== 1) {
+                      Assert.equal('properties length', schema.path, keys$1.length, rule.min, result);
+                  }
+              }
+          }
+          if (result.length !== length) {
+              return false;
+          }
+          var _loop_1 = function (i) {
+              var property;
+              each(schema.properties, function (item /*, index*/) {
+                  if (item.name === keys$1[i]) {
+                      property = item;
+                  }
+              });
+              property = property || schema.properties[i];
+              result.push.apply(result, this_1.diff(property, data[keys$1[i]], keys$1[i]));
+          };
+          var this_1 = this;
+          for (var i = 0; i < keys$1.length; i++) {
+              _loop_1(i);
+          }
+          return result.length === length;
+      },
+      items: function (schema, data, name, result) {
+          var length = result.length;
+          if (!schema.items) {
+              return;
+          }
+          var rule = schema.rule;
+          // 无生成规则
+          if (!schema.rule.parameters) {
+              Assert.equal('items length', schema.path, data.length, schema.items.length, result);
+          }
+          else {
+              // 有生成规则
+              // |min-max
+              if (rule.min !== undefined && rule.max !== undefined) {
+                  Assert.greaterThanOrEqualTo('items', schema.path, data.length, (Math.min(rule.min, rule.max) * schema.items.length), result, '[{utype}] array is too short: {path} must have at least {expected} elements but instance has {actual} elements');
+                  Assert.lessThanOrEqualTo('items', schema.path, data.length, (Math.max(rule.min, rule.max) * schema.items.length), result, '[{utype}] array is too long: {path} must have at most {expected} elements but instance has {actual} elements');
+              }
+              // |count
+              if (rule.min !== undefined && rule.max === undefined) {
+                  // |1, |>1
+                  if (rule.count === 1) {
+                      return result.length === length;
+                  }
+                  else {
+                      Assert.equal('items length', schema.path, data.length, (rule.min * schema.items.length), result);
+                  }
+              }
+              // |+inc
+              if (rule.parameters[2]) {
+                  return result.length === length;
+              }
+          }
+          if (result.length !== length) {
+              return false;
+          }
+          for (var i = 0; i < data.length; i++) {
+              result.push.apply(result, this.diff(schema.items[i % schema.items.length], data[i], i % schema.items.length));
+          }
+          return result.length === length;
       }
-
-      if (result.length !== length) {
-        return false;
-      }
-
-      for (var i = 0; i < data.length; i++) {
-        result.push.apply(result, this.diff(schema.items[i % schema.items.length], data[i], i % schema.items.length));
-      }
-
-      return result.length === length;
-    }
-  }; // 完善、友好的提示信息
+  };
+  // 完善、友好的提示信息
   //
   // Equal, not equal to, greater than, less than, greater than or equal to, less than or equal to
   // 路径 验证类型 描述
@@ -8480,585 +8132,512 @@
   //
   //   Expect path.name is less than or equal to expected, but path.name is actual.
   //   Expect path.name is greater than or equal to expected, but path.name is actual.
-
   var Assert = {
-    message: function message(item) {
-      if (item.message) {
-        return item.message;
-      }
-
-      var upperType = item.type.toUpperCase();
-      var lowerType = item.type.toLowerCase();
-      var path = isArray(item.path) && item.path.join('.') || item.path;
-      var action = item.action;
-      var expected = item.expected;
-      var actual = item.actual;
-      return "[" + upperType + "] Expect " + path + "'" + lowerType + " " + action + " " + expected + ", but is " + actual;
-    },
-    equal: function equal(type, path, actual, expected, result, message) {
-      if (actual === expected) {
-        return true;
-      }
-
-      switch (type) {
-        case 'type':
-          // 正则模板 === 字符串最终值
-          if (expected === 'regexp' && actual === 'string') {
-            return true;
+      message: function (item) {
+          if (item.message) {
+              return item.message;
           }
-
-          break;
+          var upperType = item.type.toUpperCase();
+          var lowerType = item.type.toLowerCase();
+          var path = isArray(item.path) && item.path.join('.') || item.path;
+          var action = item.action;
+          var expected = item.expected;
+          var actual = item.actual;
+          return "[" + upperType + "] Expect " + path + "'" + lowerType + " " + action + " " + expected + ", but is " + actual;
+      },
+      equal: function (type, path, actual, expected, result, message) {
+          if (actual === expected) {
+              return true;
+          }
+          switch (type) {
+              case 'type':
+                  // 正则模板 === 字符串最终值
+                  if (expected === 'regexp' && actual === 'string') {
+                      return true;
+                  }
+                  break;
+          }
+          var item = {
+              path: path,
+              type: type,
+              actual: actual,
+              expected: expected,
+              action: 'is equal to',
+              message: message
+          };
+          item.message = Assert.message(item);
+          result.push(item);
+          return false;
+      },
+      // actual matches expected
+      match: function (type, path, actual, expected, result, message) {
+          if (expected.test(actual)) {
+              return true;
+          }
+          var item = {
+              path: path,
+              type: type,
+              actual: actual,
+              expected: expected,
+              action: 'matches',
+              message: message
+          };
+          item.message = Assert.message(item);
+          result.push(item);
+          return false;
+      },
+      notEqual: function (type, path, actual, expected, result, message) {
+          if (actual !== expected) {
+              return true;
+          }
+          var item = {
+              path: path,
+              type: type,
+              actual: actual,
+              expected: expected,
+              action: 'is not equal to',
+              message: message
+          };
+          item.message = Assert.message(item);
+          result.push(item);
+          return false;
+      },
+      greaterThan: function (type, path, actual, expected, result, message) {
+          if (actual > expected) {
+              return true;
+          }
+          var item = {
+              path: path,
+              type: type,
+              actual: actual,
+              expected: expected,
+              action: 'is greater than',
+              message: message
+          };
+          item.message = Assert.message(item);
+          result.push(item);
+          return false;
+      },
+      lessThan: function (type, path, actual, expected, result, message) {
+          if (actual < expected) {
+              return true;
+          }
+          var item = {
+              path: path,
+              type: type,
+              actual: actual,
+              expected: expected,
+              action: 'is less to',
+              message: message
+          };
+          item.message = Assert.message(item);
+          result.push(item);
+          return false;
+      },
+      greaterThanOrEqualTo: function (type, path, actual, expected, result, message) {
+          if (actual >= expected) {
+              return true;
+          }
+          var item = {
+              path: path,
+              type: type,
+              actual: actual,
+              expected: expected,
+              action: 'is greater than or equal to',
+              message: message
+          };
+          item.message = Assert.message(item);
+          result.push(item);
+          return false;
+      },
+      lessThanOrEqualTo: function (type, path, actual, expected, result, message) {
+          if (actual <= expected) {
+              return true;
+          }
+          var item = {
+              path: path,
+              type: type,
+              actual: actual,
+              expected: expected,
+              action: 'is less than or equal to',
+              message: message
+          };
+          item.message = Assert.message(item);
+          result.push(item);
+          return false;
       }
-
-      var item = {
-        path: path,
-        type: type,
-        actual: actual,
-        expected: expected,
-        action: 'is equal to',
-        message: message
-      };
-      item.message = Assert.message(item);
-      result.push(item);
-      return false;
-    },
-    // actual matches expected
-    match: function match(type, path, actual, expected, result, message) {
-      if (expected.test(actual)) {
-        return true;
-      }
-
-      var item = {
-        path: path,
-        type: type,
-        actual: actual,
-        expected: expected,
-        action: 'matches',
-        message: message
-      };
-      item.message = Assert.message(item);
-      result.push(item);
-      return false;
-    },
-    notEqual: function notEqual(type, path, actual, expected, result, message) {
-      if (actual !== expected) {
-        return true;
-      }
-
-      var item = {
-        path: path,
-        type: type,
-        actual: actual,
-        expected: expected,
-        action: 'is not equal to',
-        message: message
-      };
-      item.message = Assert.message(item);
-      result.push(item);
-      return false;
-    },
-    greaterThan: function greaterThan(type, path, actual, expected, result, message) {
-      if (actual > expected) {
-        return true;
-      }
-
-      var item = {
-        path: path,
-        type: type,
-        actual: actual,
-        expected: expected,
-        action: 'is greater than',
-        message: message
-      };
-      item.message = Assert.message(item);
-      result.push(item);
-      return false;
-    },
-    lessThan: function lessThan(type, path, actual, expected, result, message) {
-      if (actual < expected) {
-        return true;
-      }
-
-      var item = {
-        path: path,
-        type: type,
-        actual: actual,
-        expected: expected,
-        action: 'is less to',
-        message: message
-      };
-      item.message = Assert.message(item);
-      result.push(item);
-      return false;
-    },
-    greaterThanOrEqualTo: function greaterThanOrEqualTo(type, path, actual, expected, result, message) {
-      if (actual >= expected) {
-        return true;
-      }
-
-      var item = {
-        path: path,
-        type: type,
-        actual: actual,
-        expected: expected,
-        action: 'is greater than or equal to',
-        message: message
-      };
-      item.message = Assert.message(item);
-      result.push(item);
-      return false;
-    },
-    lessThanOrEqualTo: function lessThanOrEqualTo(type, path, actual, expected, result, message) {
-      if (actual <= expected) {
-        return true;
-      }
-
-      var item = {
-        path: path,
-        type: type,
-        actual: actual,
-        expected: expected,
-        action: 'is less than or equal to',
-        message: message
-      };
-      item.message = Assert.message(item);
-      result.push(item);
-      return false;
-    }
   };
-
   var valid = function valid(template, data) {
-    var schema = toJSONSchema(template);
-    return Diff.diff(schema, data);
+      var schema = toJSONSchema(template);
+      return Diff.diff(schema, data);
   };
-
   valid.Diff = Diff;
   valid.Assert = Assert;
 
+  // 备份原生 XMLHttpRequest
   var _XMLHttpRequest = XMLHttpRequest;
-  var _ActiveXObject = window.ActiveXObject; // PhantomJS
+  var _ActiveXObject = window.ActiveXObject;
+  // PhantomJS
   // TypeError: '[object EventConstructor]' is not a constructor (evaluating 'new Event("readystatechange")')
   // https://github.com/bluerail/twitter-bootstrap-rails-confirm/issues/18
   // https://github.com/ariya/phantomjs/issues/11289
-
   try {
-    new Event('custom');
-  } catch (exception) {
-    window.Event = function (type, bubbles, cancelable, detail) {
-      var event = document.createEvent('CustomEvent'); // MUST be 'CustomEvent'
-
-      event.initCustomEvent(type, bubbles, cancelable, detail);
-      return event;
-    };
+      new Event('custom');
   }
-
+  catch (exception) {
+      window.Event = function (type, bubbles, cancelable, detail) {
+          var event = document.createEvent('CustomEvent'); // MUST be 'CustomEvent'
+          event.initCustomEvent(type, bubbles, cancelable, detail);
+          return event;
+      };
+  }
   var XHR_STATES;
-
   (function (XHR_STATES) {
-    // The object has been constructed.
-    XHR_STATES[XHR_STATES["UNSENT"] = 0] = "UNSENT"; // The open() method has been successfully invoked.
-
-    XHR_STATES[XHR_STATES["OPENED"] = 1] = "OPENED"; // All redirects (if any) have been followed and all HTTP headers of the response have been received.
-
-    XHR_STATES[XHR_STATES["HEADERS_RECEIVED"] = 2] = "HEADERS_RECEIVED"; // The response's body is being received.
-
-    XHR_STATES[XHR_STATES["LOADING"] = 3] = "LOADING"; // The data transfer has been completed or something went wrong during the transfer (e.g. infinite redirects).
-
-    XHR_STATES[XHR_STATES["DONE"] = 4] = "DONE";
+      // The object has been constructed.
+      XHR_STATES[XHR_STATES["UNSENT"] = 0] = "UNSENT";
+      // The open() method has been successfully invoked.
+      XHR_STATES[XHR_STATES["OPENED"] = 1] = "OPENED";
+      // All redirects (if any) have been followed and all HTTP headers of the response have been received.
+      XHR_STATES[XHR_STATES["HEADERS_RECEIVED"] = 2] = "HEADERS_RECEIVED";
+      // The response's body is being received.
+      XHR_STATES[XHR_STATES["LOADING"] = 3] = "LOADING";
+      // The data transfer has been completed or something went wrong during the transfer (e.g. infinite redirects).
+      XHR_STATES[XHR_STATES["DONE"] = 4] = "DONE";
   })(XHR_STATES || (XHR_STATES = {}));
-
   var XHR_EVENTS = ['readystatechange', 'loadstart', 'progress', 'abort', 'error', 'load', 'timeout', 'loadend'];
   var XHR_REQUEST_PROPERTIES = ['timeout', 'withCredentials'];
-  var XHR_RESPONSE_PROPERTIES = ['readyState', 'responseURL', 'status', 'statusText', 'responseType', 'response', 'responseText', 'responseXML'];
-
-  var MockXMLHttpRequest =
-  /** @class */
-  function () {
-    function MockXMLHttpRequest() {
-      // 标记当前对象为 MockXMLHttpRequest
-      this.mock = true; // 是否拦截 Ajax 请求
-
-      this.match = false;
-      this.timeout = 0;
-      this.readyState = XHR_STATES.UNSENT;
-      this.withCredentials = false; // https://xhr.spec.whatwg.org/#the-send()-method
-
-      this.upload = {};
-      this.responseURL = '';
-      this.status = XHR_STATES.UNSENT;
-      this.statusText = ''; // '', 'text', 'arraybuffer', 'blob', 'document', 'json'
-
-      this.responseType = '';
-      this.response = null;
-      this.responseText = '';
-      this.responseXML = '';
-      this.UNSENT = XHR_STATES.UNSENT;
-      this.OPENED = XHR_STATES.OPENED;
-      this.HEADERS_RECEIVED = XHR_STATES.HEADERS_RECEIVED;
-      this.LOADING = XHR_STATES.LOADING;
-      this.DONE = XHR_STATES.DONE; // 初始化 custom 对象，用于存储自定义属性
-
-      this.custom = {
-        events: {},
-        requestHeaders: {},
-        responseHeaders: {},
-        timeout: 0,
-        options: {},
-        xhr: null,
-        template: null,
-        async: true
-      };
-    }
-
-    MockXMLHttpRequest.prototype.open = function (method, url, async, username, password) {
-      var _this = this;
-
-      if (async === void 0) {
-        async = true;
+  var XHR_RESPONSE_PROPERTIES = [
+      'readyState',
+      'responseURL',
+      'status',
+      'statusText',
+      'responseType',
+      'response',
+      'responseText',
+      'responseXML'
+  ];
+  var MockXMLHttpRequest = /** @class */ (function () {
+      function MockXMLHttpRequest() {
+          // 标记当前对象为 MockXMLHttpRequest
+          this.mock = true;
+          // 是否拦截 Ajax 请求
+          this.match = false;
+          this.timeout = 0;
+          this.readyState = XHR_STATES.UNSENT;
+          this.withCredentials = false;
+          // https://xhr.spec.whatwg.org/#the-send()-method
+          this.upload = {};
+          this.responseURL = '';
+          this.status = XHR_STATES.UNSENT;
+          this.statusText = '';
+          // '', 'text', 'arraybuffer', 'blob', 'document', 'json'
+          this.responseType = '';
+          this.response = null;
+          this.responseText = '';
+          this.responseXML = '';
+          this.UNSENT = XHR_STATES.UNSENT;
+          this.OPENED = XHR_STATES.OPENED;
+          this.HEADERS_RECEIVED = XHR_STATES.HEADERS_RECEIVED;
+          this.LOADING = XHR_STATES.LOADING;
+          this.DONE = XHR_STATES.DONE;
+          // 初始化 custom 对象，用于存储自定义属性
+          this.custom = {
+              events: {},
+              requestHeaders: {},
+              responseHeaders: {},
+              timeout: 0,
+              options: {},
+              xhr: null,
+              template: null,
+              async: true
+          };
       }
-
-      objectAssign(this.custom, {
-        method: method,
-        url: url,
-        async: typeof async === 'boolean' ? async : true,
-        username: username,
-        password: password,
-        options: {
-          url: url,
-          type: method
-        }
-      });
-
-      this.custom.timeout = function (timeout) {
-        if (typeof timeout === 'number') {
-          return timeout;
-        }
-
-        if (typeof timeout === 'string' && !~timeout.indexOf('-')) {
-          return parseInt(timeout, 10);
-        }
-
-        if (typeof timeout === 'string' && ~timeout.indexOf('-')) {
-          var tmp = timeout.split('-');
-          var min = parseInt(tmp[0], 10);
-          var max = parseInt(tmp[1], 10);
-          return Math.round(Math.random() * (max - min)) + min;
-        }
-
-        return 0;
-      }(MockXMLHttpRequest.settings.timeout); // 查找与请求参数匹配的数据模板
-
-
-      var item = find(this.custom.options); // 如果未找到匹配的数据模板，则采用原生 XHR 发送请求。
-
-      if (!item) {
-        // 创建原生 XHR 对象，调用原生 open()，监听所有原生事件
-        var xhr_1 = createNativeXMLHttpRequest();
-        this.custom.xhr = xhr_1; // 初始化所有事件，用于监听原生 XHR 对象的事件
-
-        for (var i = 0; i < XHR_EVENTS.length; i++) {
-          xhr_1.addEventListener(XHR_EVENTS[i], function (event) {
-            // 同步属性 NativeXMLHttpRequest => MockXMLHttpRequest
-            for (var i_1 = 0; i_1 < XHR_RESPONSE_PROPERTIES.length; i_1++) {
-              try {
-                _this[XHR_RESPONSE_PROPERTIES[i_1]] = xhr_1[XHR_RESPONSE_PROPERTIES[i_1]];
-              } catch (e) {}
-            } // 触发 MockXMLHttpRequest 上的同名事件
-
-
-            _this.dispatchEvent(new Event(event.type));
+      MockXMLHttpRequest.prototype.open = function (method, url, async, username, password) {
+          var _this = this;
+          if (async === void 0) { async = true; }
+          objectAssign(this.custom, {
+              method: method,
+              url: url,
+              async: typeof async === 'boolean' ? async : true,
+              username: username,
+              password: password,
+              options: {
+                  url: url,
+                  type: method
+              }
           });
-        } // xhr.open()
-
-
-        if (username) {
-          xhr_1.open(method, url, async, username, password);
-        } else {
-          xhr_1.open(method, url, async);
-        } // 同步属性 MockXMLHttpRequest => NativeXMLHttpRequest
-
-
-        for (var i = 0; i < XHR_REQUEST_PROPERTIES.length; i++) {
-          try {
-            xhr_1[XHR_REQUEST_PROPERTIES[i]] = this[XHR_REQUEST_PROPERTIES[i]];
-          } catch (e) {}
-        }
-
-        return;
-      } // 找到了匹配的数据模板，开始拦截 XHR 请求
-
-
-      this.match = true;
-      this.custom.template = item;
-      this.readyState = XHR_STATES.OPENED;
-      this.dispatchEvent(new Event('readystatechange'));
-    }; // Combines a header in author request headers.
-
-
-    MockXMLHttpRequest.prototype.setRequestHeader = function (name, value) {
-      // 原生 XHR
-      if (!this.match) {
-        this.custom.xhr.setRequestHeader(name, value);
-        return;
-      } // 拦截 XHR
-
-
-      var requestHeaders = this.custom.requestHeaders;
-
-      if (requestHeaders[name]) {
-        requestHeaders[name] += ',' + value;
-      } else {
-        requestHeaders[name] = value;
-      }
-    }; // Initiates the request.
-
-
-    MockXMLHttpRequest.prototype.send = function (data) {
-      var _this = this;
-
-      this.custom.options.body = data; // 原生 XHR
-
-      if (!this.match) {
-        this.custom.xhr.send(data);
-        return;
-      } // 拦截 XHR
-      // X-Requested-With header
-
-
-      this.setRequestHeader('X-Requested-With', 'MockXMLHttpRequest'); // loadstart The fetch initiates.
-
-      this.dispatchEvent(new Event('loadstart'));
-
-      var done = function done() {
-        _this.readyState = XHR_STATES.HEADERS_RECEIVED;
-
-        _this.dispatchEvent(new Event('readystatechange'));
-
-        _this.readyState = XHR_STATES.LOADING;
-
-        _this.dispatchEvent(new Event('readystatechange'));
-
-        _this.status = 200;
-        _this.statusText = 'OK'; // fix #92 #93 by @qddegtya
-
-        _this.response = _this.responseText = JSON.stringify(convert(_this.custom.template, _this.custom.options), null, 4);
-        _this.readyState = XHR_STATES.DONE;
-
-        _this.dispatchEvent(new Event('readystatechange'));
-
-        _this.dispatchEvent(new Event('load'));
-
-        _this.dispatchEvent(new Event('loadend'));
+          this.custom.timeout = (function (timeout) {
+              if (typeof timeout === 'number') {
+                  return timeout;
+              }
+              if (typeof timeout === 'string' && !~timeout.indexOf('-')) {
+                  return parseInt(timeout, 10);
+              }
+              if (typeof timeout === 'string' && ~timeout.indexOf('-')) {
+                  var tmp = timeout.split('-');
+                  var min = parseInt(tmp[0], 10);
+                  var max = parseInt(tmp[1], 10);
+                  return Math.round(Math.random() * (max - min)) + min;
+              }
+              return 0;
+          })(MockXMLHttpRequest.settings.timeout);
+          // 查找与请求参数匹配的数据模板
+          var item = find(this.custom.options);
+          // 如果未找到匹配的数据模板，则采用原生 XHR 发送请求。
+          if (!item) {
+              // 创建原生 XHR 对象，调用原生 open()，监听所有原生事件
+              var xhr_1 = createNativeXMLHttpRequest();
+              this.custom.xhr = xhr_1;
+              // 初始化所有事件，用于监听原生 XHR 对象的事件
+              for (var i = 0; i < XHR_EVENTS.length; i++) {
+                  xhr_1.addEventListener(XHR_EVENTS[i], function (event) {
+                      // 同步属性 NativeXMLHttpRequest => MockXMLHttpRequest
+                      for (var i_1 = 0; i_1 < XHR_RESPONSE_PROPERTIES.length; i_1++) {
+                          try {
+                              _this[XHR_RESPONSE_PROPERTIES[i_1]] = xhr_1[XHR_RESPONSE_PROPERTIES[i_1]];
+                          }
+                          catch (e) { }
+                      }
+                      // 触发 MockXMLHttpRequest 上的同名事件
+                      _this.dispatchEvent(new Event(event.type));
+                  });
+              }
+              // xhr.open()
+              if (username) {
+                  xhr_1.open(method, url, async, username, password);
+              }
+              else {
+                  xhr_1.open(method, url, async);
+              }
+              // 同步属性 MockXMLHttpRequest => NativeXMLHttpRequest
+              for (var i = 0; i < XHR_REQUEST_PROPERTIES.length; i++) {
+                  try {
+                      xhr_1[XHR_REQUEST_PROPERTIES[i]] = this[XHR_REQUEST_PROPERTIES[i]];
+                  }
+                  catch (e) { }
+              }
+              return;
+          }
+          // 找到了匹配的数据模板，开始拦截 XHR 请求
+          this.match = true;
+          this.custom.template = item;
+          this.readyState = XHR_STATES.OPENED;
+          this.dispatchEvent(new Event('readystatechange'));
       };
-
-      if (this.custom.async) {
-        // 异步
-        setTimeout(done, this.custom.timeout);
-      } else {
-        // 同步
-        done();
-      }
-    }; // https://xhr.spec.whatwg.org/#the-abort()-method
-    // Cancels any network activity.
-
-
-    MockXMLHttpRequest.prototype.abort = function () {
-      // 原生 XHR
-      if (!this.match) {
-        this.custom.xhr.abort();
-        return;
-      } // 拦截 XHR
-
-
-      this.readyState = XHR_STATES.UNSENT;
-      this.dispatchEvent(new window.Event('abort', false, false, this));
-      this.dispatchEvent(new window.Event('error', false, false, this));
-    }; // https://xhr.spec.whatwg.org/#the-getresponseheader()-method
-
-
-    MockXMLHttpRequest.prototype.getResponseHeader = function (name) {
-      // 原生 XHR
-      if (!this.match) {
-        return this.custom.xhr.getResponseHeader(name);
-      } // 拦截 XHR
-
-
-      return this.custom.responseHeaders[name.toLowerCase()];
-    }; // https://xhr.spec.whatwg.org/#the-getallresponseheaders()-method
-    // http://www.utf8-chartable.de/
-
-
-    MockXMLHttpRequest.prototype.getAllResponseHeaders = function () {
-      // 原生 XHR
-      if (!this.match) {
-        return this.custom.xhr.getAllResponseHeaders();
-      } // 拦截 XHR
-
-
-      var responseHeaders = this.custom.responseHeaders;
-      var headers = '';
-
-      for (var h in responseHeaders) {
-        if (!responseHeaders.hasOwnProperty(h)) {
-          continue;
-        }
-
-        headers += h + ': ' + responseHeaders[h] + '\r\n';
-      }
-
-      return headers;
-    };
-
-    MockXMLHttpRequest.prototype.overrideMimeType = function () {};
-
-    MockXMLHttpRequest.prototype.addEventListener = function (type, handle) {
-      var events = this.custom.events;
-
-      if (!events[type]) {
-        events[type] = [];
-      }
-
-      events[type].push(handle);
-    };
-
-    MockXMLHttpRequest.prototype.removeEventListener = function (type, handle) {
-      var handles = this.custom.events[type] || [];
-
-      for (var i = 0; i < handles.length; i++) {
-        if (handles[i] === handle) {
-          handles.splice(i--, 1);
-        }
-      }
-    };
-
-    MockXMLHttpRequest.prototype.dispatchEvent = function (event) {
-      var handles = this.custom.events[event.type] || [];
-
-      for (var i = 0; i < handles.length; i++) {
-        handles[i].call(this, event);
-      }
-
-      var onType = 'on' + event.type;
-
-      if (this[onType]) {
-        this[onType](event);
-      }
-    };
-
-    MockXMLHttpRequest.settings = {
-      timeout: '10-100'
-    };
-
-    MockXMLHttpRequest.setup = function (settings) {
-      objectAssign(MockXMLHttpRequest.settings, settings);
-      return MockXMLHttpRequest.settings;
-    };
-
-    MockXMLHttpRequest.Mock = {};
-    MockXMLHttpRequest.UNSENT = XHR_STATES.UNSENT;
-    MockXMLHttpRequest.OPENED = XHR_STATES.OPENED;
-    MockXMLHttpRequest.HEADERS_RECEIVED = XHR_STATES.HEADERS_RECEIVED;
-    MockXMLHttpRequest.LOADING = XHR_STATES.LOADING;
-    MockXMLHttpRequest.DONE = XHR_STATES.DONE;
-    return MockXMLHttpRequest;
-  }(); // Inspired by jQuery
-
-
+      // Combines a header in author request headers.
+      MockXMLHttpRequest.prototype.setRequestHeader = function (name, value) {
+          // 原生 XHR
+          if (!this.match) {
+              this.custom.xhr.setRequestHeader(name, value);
+              return;
+          }
+          // 拦截 XHR
+          var requestHeaders = this.custom.requestHeaders;
+          if (requestHeaders[name]) {
+              requestHeaders[name] += ',' + value;
+          }
+          else {
+              requestHeaders[name] = value;
+          }
+      };
+      // Initiates the request.
+      MockXMLHttpRequest.prototype.send = function (data) {
+          var _this = this;
+          this.custom.options.body = data;
+          // 原生 XHR
+          if (!this.match) {
+              this.custom.xhr.send(data);
+              return;
+          }
+          // 拦截 XHR
+          // X-Requested-With header
+          this.setRequestHeader('X-Requested-With', 'MockXMLHttpRequest');
+          // loadstart The fetch initiates.
+          this.dispatchEvent(new Event('loadstart'));
+          var done = function () {
+              _this.readyState = XHR_STATES.HEADERS_RECEIVED;
+              _this.dispatchEvent(new Event('readystatechange'));
+              _this.readyState = XHR_STATES.LOADING;
+              _this.dispatchEvent(new Event('readystatechange'));
+              _this.status = 200;
+              _this.statusText = 'OK';
+              // fix #92 #93 by @qddegtya
+              _this.response = _this.responseText = JSON.stringify(convert(_this.custom.template, _this.custom.options), null, 4);
+              _this.readyState = XHR_STATES.DONE;
+              _this.dispatchEvent(new Event('readystatechange'));
+              _this.dispatchEvent(new Event('load'));
+              _this.dispatchEvent(new Event('loadend'));
+          };
+          if (this.custom.async) {
+              // 异步
+              setTimeout(done, this.custom.timeout);
+          }
+          else {
+              // 同步
+              done();
+          }
+      };
+      // https://xhr.spec.whatwg.org/#the-abort()-method
+      // Cancels any network activity.
+      MockXMLHttpRequest.prototype.abort = function () {
+          // 原生 XHR
+          if (!this.match) {
+              this.custom.xhr.abort();
+              return;
+          }
+          // 拦截 XHR
+          this.readyState = XHR_STATES.UNSENT;
+          this.dispatchEvent(new window.Event('abort', false, false, this));
+          this.dispatchEvent(new window.Event('error', false, false, this));
+      };
+      // https://xhr.spec.whatwg.org/#the-getresponseheader()-method
+      MockXMLHttpRequest.prototype.getResponseHeader = function (name) {
+          // 原生 XHR
+          if (!this.match) {
+              return this.custom.xhr.getResponseHeader(name);
+          }
+          // 拦截 XHR
+          return this.custom.responseHeaders[name.toLowerCase()];
+      };
+      // https://xhr.spec.whatwg.org/#the-getallresponseheaders()-method
+      // http://www.utf8-chartable.de/
+      MockXMLHttpRequest.prototype.getAllResponseHeaders = function () {
+          // 原生 XHR
+          if (!this.match) {
+              return this.custom.xhr.getAllResponseHeaders();
+          }
+          // 拦截 XHR
+          var responseHeaders = this.custom.responseHeaders;
+          var headers = '';
+          for (var h in responseHeaders) {
+              if (!responseHeaders.hasOwnProperty(h)) {
+                  continue;
+              }
+              headers += h + ': ' + responseHeaders[h] + '\r\n';
+          }
+          return headers;
+      };
+      MockXMLHttpRequest.prototype.overrideMimeType = function () { };
+      MockXMLHttpRequest.prototype.addEventListener = function (type, handle) {
+          var events = this.custom.events;
+          if (!events[type]) {
+              events[type] = [];
+          }
+          events[type].push(handle);
+      };
+      MockXMLHttpRequest.prototype.removeEventListener = function (type, handle) {
+          var handles = this.custom.events[type] || [];
+          for (var i = 0; i < handles.length; i++) {
+              if (handles[i] === handle) {
+                  handles.splice(i--, 1);
+              }
+          }
+      };
+      MockXMLHttpRequest.prototype.dispatchEvent = function (event) {
+          var handles = this.custom.events[event.type] || [];
+          for (var i = 0; i < handles.length; i++) {
+              handles[i].call(this, event);
+          }
+          var onType = 'on' + event.type;
+          if (this[onType]) {
+              this[onType](event);
+          }
+      };
+      MockXMLHttpRequest.settings = {
+          timeout: '10-100'
+      };
+      MockXMLHttpRequest.setup = function (settings) {
+          objectAssign(MockXMLHttpRequest.settings, settings);
+          return MockXMLHttpRequest.settings;
+      };
+      MockXMLHttpRequest.Mock = {};
+      MockXMLHttpRequest.UNSENT = XHR_STATES.UNSENT;
+      MockXMLHttpRequest.OPENED = XHR_STATES.OPENED;
+      MockXMLHttpRequest.HEADERS_RECEIVED = XHR_STATES.HEADERS_RECEIVED;
+      MockXMLHttpRequest.LOADING = XHR_STATES.LOADING;
+      MockXMLHttpRequest.DONE = XHR_STATES.DONE;
+      return MockXMLHttpRequest;
+  }());
+  // Inspired by jQuery
   function createNativeXMLHttpRequest() {
-    var isLocal = function () {
-      var rLocalProtocol = /^(?:about|app|app-storage|.+-extension|file|res|widget):$/;
-      var rUrl = /^([\w.+-]+:)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/;
-      var ajaxLocation = location.href;
-      var ajaxLocParts = rUrl.exec(ajaxLocation.toLowerCase()) || [];
-      return rLocalProtocol.test(ajaxLocParts[1]);
-    }();
-
-    return window.ActiveXObject ? !isLocal && createStandardXHR() || createActiveXHR() : createStandardXHR();
-
-    function createStandardXHR() {
-      try {
-        return new _XMLHttpRequest();
-      } catch (e) {}
-    }
-
-    function createActiveXHR() {
-      try {
-        return new _ActiveXObject('Microsoft.XMLHTTP');
-      } catch (e) {}
-    }
-  } // 查找与请求参数匹配的数据模板：URL，Type
-
-
+      var isLocal = (function () {
+          var rLocalProtocol = /^(?:about|app|app-storage|.+-extension|file|res|widget):$/;
+          var rUrl = /^([\w.+-]+:)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/;
+          var ajaxLocation = location.href;
+          var ajaxLocParts = rUrl.exec(ajaxLocation.toLowerCase()) || [];
+          return rLocalProtocol.test(ajaxLocParts[1]);
+      })();
+      return window.ActiveXObject ? (!isLocal && createStandardXHR()) || createActiveXHR() : createStandardXHR();
+      function createStandardXHR() {
+          try {
+              return new _XMLHttpRequest();
+          }
+          catch (e) { }
+      }
+      function createActiveXHR() {
+          try {
+              return new _ActiveXObject('Microsoft.XMLHTTP');
+          }
+          catch (e) { }
+      }
+  }
+  // 查找与请求参数匹配的数据模板：URL，Type
   function find(options) {
-    var mockedItems = values(MockXMLHttpRequest.Mock.mocked);
-
-    for (var i = 0; i < mockedItems.length; i++) {
-      var item = mockedItems[i];
-      var urlMatched = matchUrl(item.rurl, options.url);
-      var typeMatched = matchType(item.rtype, options.type);
-
-      if (!item.rtype && urlMatched) {
-        return item;
+      var mockedItems = values(MockXMLHttpRequest.Mock.mocked);
+      for (var i = 0; i < mockedItems.length; i++) {
+          var item = mockedItems[i];
+          var urlMatched = matchUrl(item.rurl, options.url);
+          var typeMatched = matchType(item.rtype, options.type);
+          if (!item.rtype && urlMatched) {
+              return item;
+          }
+          if (urlMatched && typeMatched) {
+              return item;
+          }
       }
-
-      if (urlMatched && typeMatched) {
-        return item;
+      function matchUrl(expected, actual) {
+          if (isString(expected)) {
+              if (expected === actual) {
+                  return true;
+              }
+              // expected: /hello/world
+              // actual: /hello/world?type=1
+              if (actual.indexOf(expected) === 0 && actual[expected.length] === '?') {
+                  return true;
+              }
+          }
+          if (isRegExp(expected)) {
+              return expected.test(actual);
+          }
+          return false;
       }
-    }
-
-    function matchUrl(expected, actual) {
-      if (isString(expected)) {
-        if (expected === actual) {
-          return true;
-        } // expected: /hello/world
-        // actual: /hello/world?type=1
-
-
-        if (actual.indexOf(expected) === 0 && actual[expected.length] === '?') {
-          return true;
-        }
+      function matchType(expected, actual) {
+          if (isString(expected) || isRegExp(expected)) {
+              return new RegExp(expected, 'i').test(actual);
+          }
+          return false;
       }
-
-      if (isRegExp(expected)) {
-        return expected.test(actual);
-      }
-
-      return false;
-    }
-
-    function matchType(expected, actual) {
-      if (isString(expected) || isRegExp(expected)) {
-        return new RegExp(expected, 'i').test(actual);
-      }
-
-      return false;
-    }
-  } // 数据模板 ＝> 响应数据
-
+  }
+  // 数据模板 ＝> 响应数据
   function convert(item, options) {
-    return isFunction(item.template) ? item.template(options) : MockXMLHttpRequest.Mock.mock(item.template);
+      return isFunction(item.template) ? item.template(options) : MockXMLHttpRequest.Mock.mock(item.template);
   }
 
   var _nativeFetch = fetch;
   var _nativeRequest = Request;
-
   function extendRequest(request, input, init) {
-    if (isString(input)) {
-      request['_actualUrl'] = input;
-    }
-
-    if (init && init.body) {
-      request['_actualBody'] = init.body;
-    }
-
-    if (input instanceof _nativeRequest && !init) {
-      request['_actualUrl'] = input['_actualUrl'];
-      request['_actualBody'] = input['_actualBody'];
-    }
-
-    return request;
+      if (isString(input)) {
+          request['_actualUrl'] = input;
+      }
+      if (init && init.body) {
+          request['_actualBody'] = init.body;
+      }
+      if (input instanceof _nativeRequest && !init) {
+          request['_actualUrl'] = input['_actualUrl'];
+          request['_actualBody'] = input['_actualBody'];
+      }
+      return request;
   }
-
   var MockRequest;
   /**
    * 拦截 window.Request 实例化
@@ -9069,113 +8648,97 @@
    *   const request = new Request('/path/to', { method: 'POST', body: 'foo=1' })
    *   console.log(request.body) => undefined
    */
-
   if (window.Proxy) {
-    MockRequest = new Proxy(_nativeRequest, {
-      construct: function construct(target, _a) {
-        var input = _a[0],
-            init = _a[1];
-        var request = new target(input, init);
-        return extendRequest(request, input, init);
-      }
-    });
-  } else {
-    MockRequest = function MockRequest(input, init) {
-      var request = new _nativeRequest(input, init);
-      return extendRequest(request, input, init);
-    };
-
-    MockRequest.prototype = _nativeRequest.prototype;
-  } // 拦截 fetch 方法
-  // https://developer.mozilla.org/zh-CN/docs/Web/API/WindowOrWorkerGlobalScope/fetch
-
-
-  function MockFetch(input, init) {
-    var request;
-
-    if (input instanceof Request && !init) {
-      request = input;
-    } else {
-      request = new Request(input, init);
-    } // 优先获取自己扩展的 _actualUrl 和 _actualBody
-
-
-    var options = {
-      url: request['_actualUrl'] || request.url,
-      type: request.method,
-      body: request['_actualBody'] || request.body || null
-    }; // 查找与请求参数匹配的数据模板
-
-    var item = find(options); // 如果未找到匹配的数据模板，则采用原生 fetch 发送请求。
-
-    if (!item) {
-      return _nativeFetch(input, init);
-    } // 找到了匹配的数据模板，拦截 fetch 请求
-
-
-    var response = new Response(JSON.stringify(convert(item, options)), {
-      status: 200,
-      statusText: 'ok',
-      headers: request.headers
-    });
-    return Promise.resolve(response);
+      MockRequest = new Proxy(_nativeRequest, {
+          construct: function (target, _a) {
+              var input = _a[0], init = _a[1];
+              var request = new target(input, init);
+              return extendRequest(request, input, init);
+          }
+      });
   }
-
+  else {
+      MockRequest = function MockRequest(input, init) {
+          var request = new _nativeRequest(input, init);
+          return extendRequest(request, input, init);
+      };
+      MockRequest.prototype = _nativeRequest.prototype;
+  }
+  // 拦截 fetch 方法
+  // https://developer.mozilla.org/zh-CN/docs/Web/API/WindowOrWorkerGlobalScope/fetch
+  function MockFetch(input, init) {
+      var request;
+      if (input instanceof Request && !init) {
+          request = input;
+      }
+      else {
+          request = new Request(input, init);
+      }
+      // 优先获取自己扩展的 _actualUrl 和 _actualBody
+      var options = {
+          url: request['_actualUrl'] || request.url,
+          type: request.method,
+          body: request['_actualBody'] || request.body || null
+      };
+      // 查找与请求参数匹配的数据模板
+      var item = find(options);
+      // 如果未找到匹配的数据模板，则采用原生 fetch 发送请求。
+      if (!item) {
+          return _nativeFetch(input, init);
+      }
+      // 找到了匹配的数据模板，拦截 fetch 请求
+      var response = new Response(JSON.stringify(convert(item, options)), {
+          status: 200,
+          statusText: 'ok',
+          headers: request.headers
+      });
+      return Promise.resolve(response);
+  }
   function rewriteFetchAndRequest() {
-    window.Request = MockRequest;
-    window.fetch = MockFetch;
+      window.Request = MockRequest;
+      window.fetch = MockFetch;
   }
 
   // For browser
   var Mock = {
-    Handler: handler$1,
-    Random: Random,
-    Util: Util,
-    XHR: MockXMLHttpRequest,
-    RE: RE,
-    toJSONSchema: toJSONSchema,
-    valid: valid,
-    mock: mock,
-    heredoc: heredoc,
-    setup: function setup(settings) {
-      return MockXMLHttpRequest.setup(settings);
-    },
-    mocked: {},
-    version: '0.1.1'
-  }; // 避免循环依赖
-
+      Handler: handler$1,
+      Random: Random,
+      Util: Util,
+      XHR: MockXMLHttpRequest,
+      RE: RE,
+      toJSONSchema: toJSONSchema,
+      valid: valid,
+      mock: mock,
+      heredoc: heredoc,
+      setup: function (settings) { return MockXMLHttpRequest.setup(settings); },
+      mocked: {},
+      version: '0.1.2'
+  };
+  // 避免循环依赖
   if (MockXMLHttpRequest) {
-    MockXMLHttpRequest.Mock = Mock;
-  } // 根据数据模板生成模拟数据。
-
-
+      MockXMLHttpRequest.Mock = Mock;
+  }
+  // 根据数据模板生成模拟数据。
   function mock(rurl, rtype, template) {
-    assert(arguments.length, 'The mock function needs to pass at least one parameter!'); // Mock.mock(template)
-
-    if (arguments.length === 1) {
-      return handler$1.gen(rurl);
-    } // Mock.mock(url, template)
-
-
-    if (arguments.length === 2) {
-      template = rtype;
-      rtype = undefined;
-    } // 拦截 XHR
-
-
-    window.XMLHttpRequest = MockXMLHttpRequest; // 拦截fetch
-
-    if (window.fetch && isFunction(window.fetch)) {
-      rewriteFetchAndRequest();
-    }
-
-    var key = String(rurl) + String(rtype);
-    Mock.mocked[key] = {
-      rurl: rurl,
-      rtype: rtype,
-      template: template
-    };
-    return Mock;
+      assert(arguments.length, 'The mock function needs to pass at least one parameter!');
+      // Mock.mock(template)
+      if (arguments.length === 1) {
+          return handler$1.gen(rurl);
+      }
+      // Mock.mock(url, template)
+      if (arguments.length === 2) {
+          template = rtype;
+          rtype = undefined;
+      }
+      // 拦截 XHR
+      window.XMLHttpRequest = MockXMLHttpRequest;
+      // 拦截fetch
+      if (window.fetch && isFunction(window.fetch)) {
+          rewriteFetchAndRequest();
+      }
+      var key = String(rurl) + String(rtype);
+      Mock.mocked[key] = { rurl: rurl, rtype: rtype, template: template };
+      return Mock;
   }
 
   return Mock;

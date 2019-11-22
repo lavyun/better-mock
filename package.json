@@ -2,15 +2,15 @@
   "name": "better-mock",
   "description": "Forked from Mockjs. Generate random data & Intercept ajax request",
   "author": "lavyun@163.com",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "main": "./dist/mock.node.js",
   "module": "./dist/mock.browser.esm.js",
   "scripts": {
     "test": "mochify test/**/*.js --timeout=8000",
     "cover": "nyc --reporter=lcov --instrument false mochify --transform [ babelify --ignore [ test ] --plugins [ babel-plugin-istanbul ] ]",
     "coveralls": "cat ./coverage/lcov.info | coveralls",
-    "clear": "rimraf dist",
-    "build": "npm run clear && tsc && node build/build.js && rimraf ts-dist",
+    "dev": "rimraf dist && node build/build.js --watch",
+    "build": "rimraf dist && node build/build.js",
     "doc:dev": "vuepress dev doc",
     "doc:build": "vuepress build doc",
     "doc:deploy": "sh doc/deploy.sh"
@@ -22,13 +22,18 @@
     "mockjs",
     "javascript mocking",
     "intercept request",
-    "ajax"
+    "ajax",
+    "xhr",
+    "XMLHttpRequest",
+    "fetch",
+    "fetch mocking"
   ],
   "files": [
     "bin",
     "dist",
     "src",
     "test",
+    "typings",
     "LICENCE",
     "package.json",
     "README.md",
@@ -62,6 +67,7 @@
     "rollup-plugin-json": "^4.0.0",
     "rollup-plugin-node-resolve": "^5.0.1",
     "rollup-plugin-replace": "^2.2.0",
+    "rollup-plugin-typescript2": "^0.25.2",
     "typescript": "^3.7.2",
     "uglify-js": "^3.6.0",
     "vuepress": "^1.0.3",
@@ -71,10 +77,8 @@
     "type": "git",
     "url": "https://github.com/lavyun/better-mock"
   },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://github.com/lavyun/better-mock/blob/master/LICENSE"
-    }
-  ]
+  "engines": {
+    "node": ">=6"
+  },
+  "license": "MIT"
 }

@@ -1,84 +1,63 @@
 const path = require('path')
 const version = require('../package.json').version
-const babel = require('rollup-plugin-babel')
 const replace = require('rollup-plugin-replace')
 const nodeResolve = require('rollup-plugin-node-resolve')
 const json = require('rollup-plugin-json')
+const typescript = require('rollup-plugin-typescript2')
 
 const resolve = p => {
   return path.resolve(__dirname,  p)
 }
 
-const banner =
-  '/*!\n' +
-  ' * better-mock v' + version + '\n' +
-  ' * (c) 2019-' + new Date().getFullYear() + ' lavyun@163.com' +
-  ' * Released under the MIT License.\n' +
-  ' */'
+const createBanner = (fileName) => {
+  return `/*!
+  * better-mock v${version} (${fileName})
+  * (c) 2019-${new Date().getFullYear()} lavyun@163.com
+  * Released under the MIT License.
+  */
+`
+}
 
 const builds = [
   {
-    entry: resolve('../ts-dist/mock.browser.js'),
+    entry: resolve('../src/mock.browser.ts'),
     dest: resolve('../dist/mock.browser.js'),
     format: 'umd',
-    banner,
-    target: {
-      ie: '9'
-    }
+    banner: createBanner('mock.browser.js')
   },
   {
-    entry: resolve('../ts-dist/mock.browser.js'),
+    entry: resolve('../src/mock.browser.ts'),
     dest: resolve('../dist/mock.browser.min.js'),
     format: 'umd',
-    banner,
-    target: {
-      ie: '9'
-    }
+    banner: createBanner('mock.browser.min.js')
   },
   {
-    entry: resolve('../ts-dist/mock.browser.js'),
+    entry: resolve('../src/mock.browser.ts'),
     dest: resolve('../dist/mock.browser.esm.js'),
     format: 'es',
-    banner,
-    target: {
-      ie: '9'
-    }
+    banner: createBanner('mock.browser.esm.js')
   },
   {
-    entry: resolve('../ts-dist/mock.node.js'),
+    entry: resolve('../src/mock.node.ts'),
     dest: resolve('../dist/mock.node.js'),
     format: 'cjs',
-    banner,
-    target: {
-      node: '6'
-    }
+    banner: createBanner('mock.node.js')
   }
 ]
 
 const genConfig = (name) => {
   const opts = builds[name]
   return {
+    name: opts.name,
     input: opts.entry,
     plugins: [
+      typescript(),
       nodeResolve(),
       replace({
         '__VERSION__': version,
         'process.env.BROWSER': opts.format !== 'cjs'
       }),
-      json(),
-      babel({
-        exclude: 'node_modules/**',
-        runtimeHelpers: true,
-        babelrc: false,
-        presets: [
-          [
-            "@babel/preset-env",
-            {
-              targets: opts.targets
-            }
-          ]
-        ]
-      })
+      json()
     ],
     output: {
       name: 'Mock',
