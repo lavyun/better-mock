@@ -8274,6 +8274,33 @@
   valid.Diff = Diff;
   valid.Assert = Assert;
 
+  function rgx (str, loose) {
+  	if (str instanceof RegExp) return { keys:false, pattern:str };
+  	var c, o, tmp, ext, keys=[], pattern='', arr = str.split('/');
+  	arr[0] || arr.shift();
+
+  	while (tmp = arr.shift()) {
+  		c = tmp[0];
+  		if (c === '*') {
+  			keys.push('wild');
+  			pattern += '/(.*)';
+  		} else if (c === ':') {
+  			o = tmp.indexOf('?', 1);
+  			ext = tmp.indexOf('.', 1);
+  			keys.push( tmp.substring(1, !!~o ? o : !!~ext ? ext : tmp.length) );
+  			pattern += !!~o && !~ext ? '(?:/([^/]+?))?' : '/([^/]+?)';
+  			if (!!~ext) pattern += (!!~o ? '?' : '') + '\\' + tmp.substring(ext);
+  		} else {
+  			pattern += '/' + tmp;
+  		}
+  	}
+
+  	return {
+  		keys: keys,
+  		pattern: new RegExp('^' + pattern + (loose ? '(?=$|\/)' : '\/?$'), 'i')
+  	};
+  }
+
   // 备份原生 XMLHttpRequest
   var _XMLHttpRequest = XMLHttpRequest;
   var _ActiveXObject = window.ActiveXObject;
@@ -8604,6 +8631,9 @@
               // actual: /hello/world?type=1
               if (actual.indexOf(expected) === 0 && actual[expected.length] === '?') {
                   return true;
+              }
+              if (expected.indexOf('/') === 0) {
+                  return rgx(expected).pattern.test(actual);
               }
           }
           if (isRegExp(expected)) {

@@ -46,7 +46,8 @@
   "dependencies": {
     "china-location": "^2.0.0",
     "jimp": "^0.8.5",
-    "promise-synchronizer": "^1.1.4"
+    "promise-synchronizer": "^1.1.4",
+    "regexparam": "^1.3.0"
   },
   "devDependencies": {
     "@babel/core": "^7.4.5",

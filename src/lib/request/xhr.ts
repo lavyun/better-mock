@@ -1,5 +1,6 @@
 import * as util from '../util'
 import { XHRCustom, MockedItem, Settings, XHRCustomOptions } from '../type'
+import rgx from 'regexparam'
 
 // 备份原生 XMLHttpRequest
 const _XMLHttpRequest = XMLHttpRequest
@@ -379,6 +380,10 @@ export function find(options): MockedItem | undefined {
       // actual: /hello/world?type=1
       if (actual.indexOf(expected) === 0 && actual[expected.length] === '?') {
         return true
+      }
+      
+      if (expected.indexOf('/') === 0) {
+        return rgx(expected).pattern.test(actual)
       }
     }
     if (util.isRegExp(expected)) {

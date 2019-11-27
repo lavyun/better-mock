@@ -1,4 +1,4 @@
-import { find, convert } from '../xhr'
+import { find, convert } from './xhr'
 import { isString } from '../util'
 
 const _nativeFetch = fetch
