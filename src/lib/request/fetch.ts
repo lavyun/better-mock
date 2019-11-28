@@ -1,5 +1,6 @@
 import { find, convert } from './xhr'
 import { isString } from '../util'
+import { XHRCustomOptions, StringObject } from '../types'
 
 const _nativeFetch = fetch
 const _nativeRequest = Request
@@ -53,11 +54,18 @@ function MockFetch(input: RequestInfo, init?: RequestInit | undefined): Promise<
     request = new Request(input, init)
   }
 
+  // 收集请求头
+  const headers: StringObject = {}
+  request.headers.forEach((value, key) => {
+    headers[key] = value
+  })
+
   // 优先获取自己扩展的 _actualUrl 和 _actualBody
-  const options = {
+  const options: XHRCustomOptions = {
     url: request['_actualUrl'] || request.url,
     type: request.method,
-    body: request['_actualBody'] || request.body || null
+    body: request['_actualBody'] || request.body || null,
+    headers: headers
   }
 
   // 查找与请求参数匹配的数据模板
@@ -69,7 +77,8 @@ function MockFetch(input: RequestInfo, init?: RequestInit | undefined): Promise<
   }
 
   // 找到了匹配的数据模板，拦截 fetch 请求
-  const response = new Response(JSON.stringify(convert(item, options)), {
+  const body = JSON.stringify(convert(item, options))
+  const response = new Response(body, {
     status: 200,
     statusText: 'ok',
     headers: request.headers

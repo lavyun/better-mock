@@ -8465,6 +8465,7 @@ var MockXMLHttpRequest = /** @class */ (function () {
     MockXMLHttpRequest.prototype.send = function (data) {
         var _this = this;
         this.custom.options.body = data;
+        this.custom.options.headers = this.custom.requestHeaders;
         // 原生 XHR
         if (!this.match) {
             this.custom.xhr.send(data);
@@ -8698,11 +8699,17 @@ function MockFetch(input, init) {
     else {
         request = new Request(input, init);
     }
+    // 收集请求头
+    var headers = {};
+    request.headers.forEach(function (value, key) {
+        headers[key] = value;
+    });
     // 优先获取自己扩展的 _actualUrl 和 _actualBody
     var options = {
         url: request['_actualUrl'] || request.url,
         type: request.method,
-        body: request['_actualBody'] || request.body || null
+        body: request['_actualBody'] || request.body || null,
+        headers: headers
     };
     // 查找与请求参数匹配的数据模板
     var item = find(options);
@@ -8711,7 +8718,8 @@ function MockFetch(input, init) {
         return _nativeFetch(input, init);
     }
     // 找到了匹配的数据模板，拦截 fetch 请求
-    var response = new Response(JSON.stringify(convert(item, options)), {
+    var body = JSON.stringify(convert(item, options));
+    var response = new Response(body, {
         status: 200,
         statusText: 'ok',
         headers: request.headers

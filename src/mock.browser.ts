@@ -7,7 +7,7 @@ import toJSONSchema from './lib/schema/index'
 import valid from './lib/valid/index'
 import XHR from './lib/request/xhr'
 import rewriteFetchAndRequest from './lib/request/fetch'
-import { Mocked } from './lib/type'
+import { Mocked } from './lib/types'
 
 const Mock = {
   Handler,

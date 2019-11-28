@@ -1,5 +1,5 @@
 import * as util from '../util'
-import { XHRCustom, MockedItem, Settings, XHRCustomOptions } from '../type'
+import { XHRCustom, MockedItem, Settings, XHRCustomOptions } from '../types'
 import rgx from 'regexparam'
 
 // 备份原生 XMLHttpRequest
@@ -195,6 +195,7 @@ class MockXMLHttpRequest {
   // Initiates the request.
   send (data: any): void {
     this.custom.options.body = data
+    this.custom.options.headers = this.custom.requestHeaders
 
     // 原生 XHR
     if (!this.match) {
