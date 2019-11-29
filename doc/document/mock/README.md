@@ -52,4 +52,4 @@
 
 ##### options
 
-指向本次请求的 Ajax 选项集，含有 `url`、`type` 和 `body` 三个属性，参见 [XMLHttpRequest 规范](https://xhr.spec.whatwg.org/)。
+指向本次请求的 Ajax 选项集，含有 `url`、`type`、`body`、`headers` 四个属性。

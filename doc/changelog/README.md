@@ -1,5 +1,15 @@
 # 更新日志
 
+## v0.1.3
+
+发布日期：2019-11-29
+
+### Features
+
+* rurl 支持通配符。[Mock.js#177](https://github.com/nuysoft/Mock/issues/177)
+* mock 方法的回调函数增加 headers 字段。 [Mock.js#312](https://github.com/nuysoft/Mock/issues/312)、[Mock.js#358](https://github.com/nuysoft/Mock/issues/358)
+
+
 ## v0.1.0
 
 发布日期：2019-11-21
