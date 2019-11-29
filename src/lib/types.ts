@@ -1,3 +1,7 @@
+export interface StringObject {
+  [key: string]: string
+} 
+
 export interface MockedItem {
   rurl: string | RegExp | undefined,
   rtype: string | RegExp | undefined,
@@ -9,25 +13,22 @@ export interface Mocked {
 }
 
 export interface XHRCustomOptions {
-  url: string
-  type: string
-  body: string
+  url: string,
+  type: string,
+  body: string,
+  headers: StringObject
 }
 
 export interface XHRCustom {
   events: {
     [event: string]: Function[]
-  }
-  requestHeaders: {
-    [name: string]: string
-  }
-  responseHeaders: {
-    [name: string]: string
-  }
-  timeout: number
+  },
+  requestHeaders: StringObject,
+  responseHeaders: StringObject,
+  timeout: number,
   options: Partial<XHRCustomOptions>,
-  xhr: XMLHttpRequest | null
-  template: MockedItem | null
+  xhr: XMLHttpRequest | null,
+  template: MockedItem | null,
   async: boolean
 }
 

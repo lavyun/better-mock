@@ -36,7 +36,7 @@
 
 #### rurl `可选`
 
-表示需要拦截的 URL，可以是 URL 字符串或 URL 正则。例如 `/\/domain\/list\.json/`、`'/domian/list.json'`。
+表示需要拦截的 URL，可以是 URL 字符串、URL 通配符 或者 URL 正则。例如 `/\/domain\/list\.json/`、`'/domain/list/:id'`、`'/domain/list/*'`、`'/domain/list.json'`。
 
 #### rtype `可选`
 
@@ -52,4 +52,4 @@
 
 ##### options
 
-指向本次请求的 Ajax 选项集，含有 `url`、`type` 和 `body` 三个属性，参见 [XMLHttpRequest 规范](https://xhr.spec.whatwg.org/)。
+指向本次请求的 Ajax 选项集，含有 `url`、`type`、`body`、`headers` 四个属性。

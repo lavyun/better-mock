@@ -1,5 +1,5 @@
 /*!
-  * better-mock v0.1.2 (mock.browser.esm.js)
+  * better-mock v0.1.3 (mock.browser.esm.js)
   * (c) 2019-2019 lavyun@163.com
   * Released under the MIT License.
   */
@@ -8268,6 +8268,33 @@ var valid = function valid(template, data) {
 valid.Diff = Diff;
 valid.Assert = Assert;
 
+function rgx (str, loose) {
+	if (str instanceof RegExp) return { keys:false, pattern:str };
+	var c, o, tmp, ext, keys=[], pattern='', arr = str.split('/');
+	arr[0] || arr.shift();
+
+	while (tmp = arr.shift()) {
+		c = tmp[0];
+		if (c === '*') {
+			keys.push('wild');
+			pattern += '/(.*)';
+		} else if (c === ':') {
+			o = tmp.indexOf('?', 1);
+			ext = tmp.indexOf('.', 1);
+			keys.push( tmp.substring(1, !!~o ? o : !!~ext ? ext : tmp.length) );
+			pattern += !!~o && !~ext ? '(?:/([^/]+?))?' : '/([^/]+?)';
+			if (!!~ext) pattern += (!!~o ? '?' : '') + '\\' + tmp.substring(ext);
+		} else {
+			pattern += '/' + tmp;
+		}
+	}
+
+	return {
+		keys: keys,
+		pattern: new RegExp('^' + pattern + (loose ? '(?=$|\/)' : '\/?$'), 'i')
+	};
+}
+
 // 备份原生 XMLHttpRequest
 var _XMLHttpRequest = XMLHttpRequest;
 var _ActiveXObject = window.ActiveXObject;
@@ -8438,6 +8465,7 @@ var MockXMLHttpRequest = /** @class */ (function () {
     MockXMLHttpRequest.prototype.send = function (data) {
         var _this = this;
         this.custom.options.body = data;
+        this.custom.options.headers = this.custom.requestHeaders;
         // 原生 XHR
         if (!this.match) {
             this.custom.xhr.send(data);
@@ -8599,6 +8627,9 @@ function find(options) {
             if (actual.indexOf(expected) === 0 && actual[expected.length] === '?') {
                 return true;
             }
+            if (expected.indexOf('/') === 0) {
+                return rgx(expected).pattern.test(actual);
+            }
         }
         if (isRegExp(expected)) {
             return expected.test(actual);
@@ -8668,11 +8699,17 @@ function MockFetch(input, init) {
     else {
         request = new Request(input, init);
     }
+    // 收集请求头
+    var headers = {};
+    request.headers.forEach(function (value, key) {
+        headers[key] = value;
+    });
     // 优先获取自己扩展的 _actualUrl 和 _actualBody
     var options = {
         url: request['_actualUrl'] || request.url,
         type: request.method,
-        body: request['_actualBody'] || request.body || null
+        body: request['_actualBody'] || request.body || null,
+        headers: headers
     };
     // 查找与请求参数匹配的数据模板
     var item = find(options);
@@ -8681,7 +8718,8 @@ function MockFetch(input, init) {
         return _nativeFetch(input, init);
     }
     // 找到了匹配的数据模板，拦截 fetch 请求
-    var response = new Response(JSON.stringify(convert(item, options)), {
+    var body = JSON.stringify(convert(item, options));
+    var response = new Response(body, {
         status: 200,
         statusText: 'ok',
         headers: request.headers
@@ -8706,7 +8744,7 @@ var Mock = {
     heredoc: heredoc,
     setup: function (settings) { return MockXMLHttpRequest.setup(settings); },
     mocked: {},
-    version: '0.1.2'
+    version: '0.1.3'
 };
 // 避免循环依赖
 if (MockXMLHttpRequest) {

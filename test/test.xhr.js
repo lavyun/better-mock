@@ -7,6 +7,11 @@ describe('XHR', function () {
     return JSON.stringify(json /*, null, 4*/)
   }
 
+  function ajaxFailedHandler (jqXHR, textStatus, errorThrown) {
+    console.log({jqXHR, textStatus, errorThrown})
+    throw new Error('mock error')
+  }
+
   describe('jQuery.ajax()', function () {
     it('', function (done) {
       var that = this
@@ -80,10 +85,108 @@ describe('XHR', function () {
         data.list.forEach(function (item, index) {
           if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
         })
-      }).fail(function (jqXHR, textStatus, errorThrown) {
-        console.log(jqXHR, textStatus, errorThrown)
-      }).always(function () {
+      }).fail(ajaxFailedHandler).always(function () {
         done()
+      })
+    })
+  })
+
+  describe('Mock.mock( rurl, template ) + route_pattern', function () {
+    before(() => {
+      Mock.mock('/rurl_template/route/pattern/:id', {
+        'list|1-10': [{
+          'id|+1': 1,
+          'email': '@EMAIL'
+        }]
+      })
+    })
+
+    it('route_pattern => not found', async () => {
+      try {
+        await $.ajax({ 
+          url: '/rurl_template/route/pattern', 
+          dataType: 'json' 
+        })
+      } catch (jqXHR) {
+        expect([404, 0]).to.include(jqXHR.status)
+      }
+    })
+
+    it('route_pattern => ok', async () => {
+      const data = await $.ajax({ 
+        url: '/rurl_template/route/pattern/1', 
+        dataType: 'json' 
+      })
+
+      expect(data.list.length).to.be.within(1, 10)
+      data.list.forEach(function (item, index) {
+        if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
+      })
+    })
+  })
+
+  describe('Mock.mock( rurl, template ) + route_pattern_regexp', function () {
+    before(() => {
+      Mock.mock('/rurl_template/route/pattern/regexp/:id.(mp4|mov)', {
+        'list|1-10': [{
+          'id|+1': 1,
+          'email': '@EMAIL'
+        }]
+      })
+    })
+
+    it('route_pattern_regexp => not found', async () => {
+      try {
+        await $.ajax({ 
+          url: '/rurl_template/route/pattern/regexp/1', 
+          dataType: 'json' 
+        })
+      } catch (jqXHR) {
+        expect([404, 0]).to.include(jqXHR.status)
+      }
+    })
+
+    it('route_pattern_regexp => ok', async function () {
+      const data = await $.ajax({ 
+        url: '/rurl_template/route/pattern/regexp/1.mp4', 
+        dataType: 'json' 
+      })
+      expect(data.list.length).to.be.within(1, 10)
+      data.list.forEach(function (item, index) {
+        if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
+      })
+    })
+  })
+
+  describe('Mock.mock( rurl, template ) + route_pattern_wild', function () {
+    before(() => {
+      Mock.mock('/rurl_template/route/wild/pattern/*', {
+        'list|1-10': [{
+          'id|+1': 1,
+          'email': '@EMAIL'
+        }]
+      })
+    })
+
+    it('route_pattern_wild => not found', async () => {
+      try {
+        await $.ajax({ 
+          url: '/rurl_template/route/wild/pattern', 
+          dataType: 'json' 
+        })
+      } catch (jqXHR) {
+        expect([404, 0]).to.include(jqXHR.status)
+      }
+    })
+
+    it('route_pattern_wild => ok', async function () {
+      const data = await $.ajax({ 
+        url: '/rurl_template/route/wild/pattern/1/2/3', 
+        dataType: 'json' 
+      })
+      expect(data.list.length).to.be.within(1, 10)
+      data.list.forEach(function (item, index) {
+        if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
       })
     })
   })
@@ -96,9 +199,9 @@ describe('XHR', function () {
       Mock.mock(/rurl_function\.json/, function (options) {
         expect(options).to.not.equal(undefined)
         expect(options.url).to.be.equal(url)
-        console.log(options.url)
         expect(options.type).to.be.equal('GET')
         expect(options.body).to.be.equal(null)
+        expect(options.headers['test-request-header']).to.be.equal('better-mock')
         return Mock.mock({
           'list|1-10': [{
             'id|+1': 1,
@@ -109,16 +212,17 @@ describe('XHR', function () {
 
       $.ajax({
         url: url,
-        dataType: 'json'
+        dataType: 'json',
+        headers: {
+          'test-request-header': 'better-mock'
+        }
       }).done(function (data /*, status, jqXHR*/) {
         that.test.title += url + ' => ' + stringify(data)
         expect(data).to.have.property('list').that.be.an('array').with.length.within(1, 10)
         data.list.forEach(function (item, index) {
           if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
         })
-      }).fail(function (jqXHR, textStatus, errorThrown) {
-        console.log(jqXHR, textStatus, errorThrown)
-      }).always(function () {
+      }).fail(ajaxFailedHandler).always(function () {
         done()
       })
     })
@@ -155,9 +259,7 @@ describe('XHR', function () {
         data.list.forEach(function (item, index) {
           if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
         })
-      }).fail(function (jqXHR, textStatus, errorThrown) {
-        console.log(jqXHR, textStatus, errorThrown)
-      }).always(function () {
+      }).fail(ajaxFailedHandler).always(function () {
         done()
       })
     })
@@ -195,9 +297,7 @@ describe('XHR', function () {
         data.list.forEach(function (item, index) {
           if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
         })
-      }).fail(function (jqXHR, textStatus, errorThrown) {
-        console.log(jqXHR, textStatus, errorThrown)
-      }).always(function () {
+      }).fail(ajaxFailedHandler).always(function () {
         done()
       })
     })
@@ -422,9 +522,7 @@ describe('XHR', function () {
       }).done(function (data /*, status, jqXHR*/) {
         that.test.title += 'GET ' + url + ' => ' + stringify(data)
         expect(data).to.have.property('type', 'get')
-      }).fail(function (jqXHR, textStatus, errorThrown) {
-        console.log(jqXHR, textStatus, errorThrown)
-      }).always(function () {
+      }).fail(ajaxFailedHandler).always(function () {
         done()
       })
     })
@@ -455,13 +553,12 @@ describe('XHR', function () {
       }).done(function (data /*, status, jqXHR*/) {
         that.test.title += 'GET ' + url + ' => ' + stringify(data)
         expect(data).to.have.property('type', 'get')
-      }).fail(function (jqXHR, textStatus, errorThrown) {
-        console.log(jqXHR, textStatus, errorThrown)
-      }).always(function () {
+      }).fail(ajaxFailedHandler).always(function () {
         done()
       })
     })
   })
+  
   describe('#105 addEventListener', function () {
     it('addEventListene => addEventListener', function (done) {
       var xhr = new Mock.XHR()

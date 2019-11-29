@@ -5,9 +5,9 @@ import Random from './lib/random/index'
 import RE from './lib/regexp/index'
 import toJSONSchema from './lib/schema/index'
 import valid from './lib/valid/index'
-import XHR from './lib/xhr'
-import rewriteFetchAndRequest from './lib/fetch'
-import { Mocked } from './lib/type'
+import XHR from './lib/request/xhr'
+import rewriteFetchAndRequest from './lib/request/fetch'
+import { Mocked } from './lib/types'
 
 const Mock = {
   Handler,
