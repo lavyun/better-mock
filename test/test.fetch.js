@@ -109,6 +109,7 @@ describe('Fetch', function() {
         expect(options.url).to.be.equal(url)
         expect(options.type).to.be.equal('GET')
         expect(options.body).to.be.equal(null)
+        expect(options.headers['test-request-header']).to.be.equal('better-mock')
         return Mock.mock({
           'list|1-10': [
             {
@@ -120,7 +121,9 @@ describe('Fetch', function() {
       })
 
       try {
-        const data = await fetch(url).then(res => res.json())
+        const headers = new Headers()
+        headers.append('test-request-header', 'better-mock')
+        const data = await fetch(url, { headers }).then(res => res.json())
         this.test.title += url + ' => ' + stringify(data)
         dataAssert(data)
       } catch (err) {

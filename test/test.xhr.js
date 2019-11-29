@@ -201,6 +201,7 @@ describe('XHR', function () {
         expect(options.url).to.be.equal(url)
         expect(options.type).to.be.equal('GET')
         expect(options.body).to.be.equal(null)
+        expect(options.headers['test-request-header']).to.be.equal('better-mock')
         return Mock.mock({
           'list|1-10': [{
             'id|+1': 1,
@@ -211,7 +212,10 @@ describe('XHR', function () {
 
       $.ajax({
         url: url,
-        dataType: 'json'
+        dataType: 'json',
+        headers: {
+          'test-request-header': 'better-mock'
+        }
       }).done(function (data /*, status, jqXHR*/) {
         that.test.title += url + ' => ' + stringify(data)
         expect(data).to.have.property('list').that.be.an('array').with.length.within(1, 10)
