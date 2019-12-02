@@ -15,9 +15,11 @@ export interface Mocked {
 export interface XHRCustomOptions {
   url: string,
   type: string,
-  body: string,
+  body: XHRBody,
   headers: StringObject
 }
+
+export type XHRBody = Document | BodyInit | null
 
 export interface XHRCustom {
   events: {

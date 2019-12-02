@@ -1,5 +1,5 @@
 import { objectAssign, isString, values, isRegExp, isFunction, createCustomEvent } from '../util'
-import { XHRCustom, MockedItem, Settings, XHRCustomOptions } from '../types'
+import { XHRCustom, MockedItem, Settings, XHRCustomOptions, XHRBody } from '../types'
 import rgx from 'regexparam'
 
 // 备份原生 XMLHttpRequest
@@ -179,7 +179,7 @@ class MockXMLHttpRequest {
   }
 
   // Initiates the request.
-  send (data: any): void {
+  send (data: XHRBody): void {
     this.custom.options.body = data
     this.custom.options.headers = this.custom.requestHeaders
 
@@ -303,7 +303,7 @@ class MockXMLHttpRequest {
     timeout: '10-100'
   }
 
-  static setup = function(settings: object) {
+  static setup = function(settings: Settings) {
     objectAssign(MockXMLHttpRequest.settings, settings)
     return MockXMLHttpRequest.settings
   }
@@ -330,25 +330,21 @@ function createNativeXMLHttpRequest() {
   return window.ActiveXObject ? (!isLocal && createStandardXHR()) || createActiveXHR() : createStandardXHR()
 
   function createStandardXHR() {
-    try {
-      return new _XMLHttpRequest()
-    } catch (e) {}
+    return new _XMLHttpRequest()
   }
 
   function createActiveXHR() {
-    try {
-      return new _ActiveXObject('Microsoft.XMLHTTP')
-    } catch (e) {}
+    return new _ActiveXObject('Microsoft.XMLHTTP')
   }
 }
 
 // 查找与请求参数匹配的数据模板：URL，Type
-export function find(options): MockedItem | undefined {
+export function find(options: Partial<XHRCustomOptions>): MockedItem | undefined {
   const mockedItems: MockedItem[] = values(MockXMLHttpRequest.Mock.mocked)
   for (let i = 0; i < mockedItems.length; i++) {
     const item = mockedItems[i]
-    const urlMatched = matchUrl(item.rurl, options.url)
-    const typeMatched = matchType(item.rtype, options.type)
+    const urlMatched = matchUrl(item.rurl, options.url!)
+    const typeMatched = matchType(item.rtype, options.type!)
     if (!item.rtype && urlMatched) {
       return item
     }
@@ -396,7 +392,7 @@ export default MockXMLHttpRequest
 
 declare global {
   interface Window {
-    ActiveXObject: any
+    ActiveXObject: { new(type: string): XMLHttpRequest }
     XMLHttpRequest: XMLHttpRequest
   }
 }

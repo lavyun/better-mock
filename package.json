@@ -10,7 +10,7 @@
     "test": "mochify test/**/*.js --timeout=8000",
     "cover": "nyc --reporter=lcov --instrument false mochify --transform [ babelify --ignore [ test ] --plugins [ babel-plugin-istanbul ] ]",
     "coveralls": "cat ./coverage/lcov.info | coveralls",
-    "cover:type": "type-coverage --detail --strict --cache --ignore-catch",
+    "cover:type": "type-coverage --detail --strict --cache --ignore-catch --ignore-files 'src/**/*.js'",
     "dev": "rimraf dist && node build/build.js --watch",
     "build": "rimraf dist && node build/build.js",
     "doc:dev": "vuepress dev doc",

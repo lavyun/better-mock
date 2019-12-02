@@ -7,7 +7,7 @@ import toJSONSchema from './lib/schema/index'
 import valid from './lib/valid/index'
 import XHR from './lib/request/xhr'
 import rewriteFetchAndRequest from './lib/request/fetch'
-import { Mocked } from './lib/types'
+import { Mocked, Settings } from './lib/types'
 
 const Mock = {
   Handler,
@@ -19,7 +19,7 @@ const Mock = {
   valid,
   mock,
   heredoc: Util.heredoc,
-  setup: (settings) => XHR.setup(settings),
+  setup: (settings: Settings) => XHR.setup(settings),
   mocked: {} as Mocked,
   version: '__VERSION__'
 }
