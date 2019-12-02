@@ -169,6 +169,25 @@
           throw new Error('[better-mock] ' + error);
       }
   };
+  /**
+   * 创建一个自定义事件，兼容 IE
+   * @param type 一个字符串，表示事件名称。
+   * @param bubbles 一个布尔值，表示该事件能否冒泡。
+   * @param cancelable 一个布尔值，表示该事件是否可以取消。
+   * @param detail 一个任意类型，传递给事件的自定义数据。
+   */
+  var createCustomEvent = function (type, bubbles, cancelable, detail) {
+      if (bubbles === void 0) { bubbles = false; }
+      if (cancelable === void 0) { cancelable = false; }
+      try {
+          return new CustomEvent(type, { bubbles: bubbles, cancelable: cancelable, detail: detail });
+      }
+      catch (e) {
+          var event_1 = document.createEvent('CustomEvent');
+          event_1.initCustomEvent(type, bubbles, cancelable, detail);
+          return event_1;
+      }
+  };
 
   var Util = /*#__PURE__*/Object.freeze({
     objectAssign: objectAssign,
@@ -188,7 +207,8 @@
     heredoc: heredoc,
     noop: noop,
     logInfo: logInfo,
-    assert: assert
+    assert: assert,
+    createCustomEvent: createCustomEvent
   });
 
   var MAX_NATURE_NUMBER = 9007199254740992;
@@ -7906,7 +7926,7 @@
   //             `'name|count': [{}, {} ...]`        检测个数，继续递归
   //         无生成规则：检测全部的元素个数，继续递归
   var Diff = {
-      diff: function diff(schema, data, name /* Internal Use Only */) {
+      diff: function diff(schema, data, name) {
           var result = [];
           // 先检测名称 name 和类型 type，如果匹配，才有必要继续检测
           if (this.name(schema, data, name, result) && this.type(schema, data, name, result)) {
@@ -8304,20 +8324,6 @@
   // 备份原生 XMLHttpRequest
   var _XMLHttpRequest = XMLHttpRequest;
   var _ActiveXObject = window.ActiveXObject;
-  // PhantomJS
-  // TypeError: '[object EventConstructor]' is not a constructor (evaluating 'new Event("readystatechange")')
-  // https://github.com/bluerail/twitter-bootstrap-rails-confirm/issues/18
-  // https://github.com/ariya/phantomjs/issues/11289
-  try {
-      new Event('custom');
-  }
-  catch (exception) {
-      window.Event = function (type, bubbles, cancelable, detail) {
-          var event = document.createEvent('CustomEvent'); // MUST be 'CustomEvent'
-          event.initCustomEvent(type, bubbles, cancelable, detail);
-          return event;
-      };
-  }
   var XHR_STATES;
   (function (XHR_STATES) {
       // The object has been constructed.
@@ -8426,7 +8432,7 @@
                           catch (e) { }
                       }
                       // 触发 MockXMLHttpRequest 上的同名事件
-                      _this.dispatchEvent(new Event(event.type));
+                      _this.dispatchEvent(createCustomEvent(event.type));
                   });
               }
               // xhr.open()
@@ -8449,7 +8455,7 @@
           this.match = true;
           this.custom.template = item;
           this.readyState = XHR_STATES.OPENED;
-          this.dispatchEvent(new Event('readystatechange'));
+          this.dispatchEvent(createCustomEvent('readystatechange'));
       };
       // Combines a header in author request headers.
       MockXMLHttpRequest.prototype.setRequestHeader = function (name, value) {
@@ -8481,20 +8487,20 @@
           // X-Requested-With header
           this.setRequestHeader('X-Requested-With', 'MockXMLHttpRequest');
           // loadstart The fetch initiates.
-          this.dispatchEvent(new Event('loadstart'));
+          this.dispatchEvent(createCustomEvent('loadstart'));
           var done = function () {
               _this.readyState = XHR_STATES.HEADERS_RECEIVED;
-              _this.dispatchEvent(new Event('readystatechange'));
+              _this.dispatchEvent(createCustomEvent('readystatechange'));
               _this.readyState = XHR_STATES.LOADING;
-              _this.dispatchEvent(new Event('readystatechange'));
+              _this.dispatchEvent(createCustomEvent('readystatechange'));
               _this.status = 200;
               _this.statusText = 'OK';
               // fix #92 #93 by @qddegtya
               _this.response = _this.responseText = JSON.stringify(convert(_this.custom.template, _this.custom.options), null, 4);
               _this.readyState = XHR_STATES.DONE;
-              _this.dispatchEvent(new Event('readystatechange'));
-              _this.dispatchEvent(new Event('load'));
-              _this.dispatchEvent(new Event('loadend'));
+              _this.dispatchEvent(createCustomEvent('readystatechange'));
+              _this.dispatchEvent(createCustomEvent('load'));
+              _this.dispatchEvent(createCustomEvent('loadend'));
           };
           if (this.custom.async) {
               // 异步
@@ -8515,8 +8521,8 @@
           }
           // 拦截 XHR
           this.readyState = XHR_STATES.UNSENT;
-          this.dispatchEvent(new window.Event('abort', false, false, this));
-          this.dispatchEvent(new window.Event('error', false, false, this));
+          this.dispatchEvent(createCustomEvent('abort', false, false, this));
+          this.dispatchEvent(createCustomEvent('error', false, false, this));
       };
       // https://xhr.spec.whatwg.org/#the-getresponseheader()-method
       MockXMLHttpRequest.prototype.getResponseHeader = function (name) {

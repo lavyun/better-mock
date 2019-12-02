@@ -165,6 +165,25 @@ var assert = function (condition, error) {
         throw new Error('[better-mock] ' + error);
     }
 };
+/**
+ * 创建一个自定义事件，兼容 IE
+ * @param type 一个字符串，表示事件名称。
+ * @param bubbles 一个布尔值，表示该事件能否冒泡。
+ * @param cancelable 一个布尔值，表示该事件是否可以取消。
+ * @param detail 一个任意类型，传递给事件的自定义数据。
+ */
+var createCustomEvent = function (type, bubbles, cancelable, detail) {
+    if (bubbles === void 0) { bubbles = false; }
+    if (cancelable === void 0) { cancelable = false; }
+    try {
+        return new CustomEvent(type, { bubbles: bubbles, cancelable: cancelable, detail: detail });
+    }
+    catch (e) {
+        var event_1 = document.createEvent('CustomEvent');
+        event_1.initCustomEvent(type, bubbles, cancelable, detail);
+        return event_1;
+    }
+};
 
 var Util = /*#__PURE__*/Object.freeze({
   objectAssign: objectAssign,
@@ -184,7 +203,8 @@ var Util = /*#__PURE__*/Object.freeze({
   heredoc: heredoc,
   noop: noop,
   logInfo: logInfo,
-  assert: assert
+  assert: assert,
+  createCustomEvent: createCustomEvent
 });
 
 var MAX_NATURE_NUMBER = 9007199254740992;
@@ -7922,7 +7942,7 @@ function toJSONSchema(template, name, path /* Internal Use Only */) {
 //             `'name|count': [{}, {} ...]`        检测个数，继续递归
 //         无生成规则：检测全部的元素个数，继续递归
 var Diff = {
-    diff: function diff(schema, data, name /* Internal Use Only */) {
+    diff: function diff(schema, data, name) {
         var result = [];
         // 先检测名称 name 和类型 type，如果匹配，才有必要继续检测
         if (this.name(schema, data, name, result) && this.type(schema, data, name, result)) {

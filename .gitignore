@@ -12,6 +12,7 @@ ts-dist
 coverage
 .dev-doc
 .tmp
+.type-coverage
 example
 doc/.vuepress/dist
 publish.sh

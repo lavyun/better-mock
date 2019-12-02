@@ -57,7 +57,7 @@ import toJSONSchema from '../schema'
 //             `'name|count': [{}, {} ...]`        检测个数，继续递归
 //         无生成规则：检测全部的元素个数，继续递归
 const Diff = {
-  diff: function diff(schema, data, name? /* Internal Use Only */ ) {
+  diff: function diff(schema, data, name?) {
     const result = []
     
     // 先检测名称 name 和类型 type，如果匹配，才有必要继续检测
@@ -457,7 +457,7 @@ const Assert = {
   }
 }
 
-const valid: any = function valid(template, data) {
+const valid = function valid(template, data) {
   const schema = toJSONSchema(template)
   return Diff.diff(schema, data)
 }

@@ -128,3 +128,20 @@ export const assert = function (condition: any, error: string) {
     throw new Error('[better-mock] ' + error)
   }
 }
+
+/**
+ * 创建一个自定义事件，兼容 IE
+ * @param type 一个字符串，表示事件名称。
+ * @param bubbles 一个布尔值，表示该事件能否冒泡。
+ * @param cancelable 一个布尔值，表示该事件是否可以取消。
+ * @param detail 一个任意类型，传递给事件的自定义数据。
+ */
+export const createCustomEvent = function<T = any> (type: string, bubbles: boolean = false, cancelable: boolean = false, detail?: T): CustomEvent<T> {
+  try {
+    return new CustomEvent<T>(type, { bubbles, cancelable, detail })
+  } catch(e) {
+    const event: CustomEvent<T> = document.createEvent('CustomEvent')
+    event.initCustomEvent(type, bubbles, cancelable, detail!)
+    return event
+  }
+}
