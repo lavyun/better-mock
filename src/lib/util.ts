@@ -1,26 +1,3 @@
-export const objectAssign = function (target, args) {
-  // TypeError if undefined or null
-  if (target == null) {
-    throw new TypeError('Cannot convert undefined or null to object')
-  }
-  
-  let to = Object(target)
-  
-  for (let i = 1; i < arguments.length; i++) {
-    const nextSource = arguments[i]
-    
-    if (nextSource != null) { // Skip over if undefined or null
-      for (let nextKey in nextSource) {
-        // Avoid bugs when hasOwnProperty is shadowed
-        if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
-          to[nextKey] = nextSource[nextKey]
-        }
-      }
-    }
-  }
-  return to
-}
-
 export const each = function (obj, iterator, context?) {
   let i, key
   if (type(obj) === 'number') {

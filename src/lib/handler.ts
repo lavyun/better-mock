@@ -17,7 +17,7 @@ const handler = {
   //     currentContext, templateCurrentContext,
   //     path, templatePath
   //     root, templateRoot
-  gen: function (template, name?, context?: Partial<GenerateContext>) {
+  gen: function (template, name?: string | number, context?: Partial<GenerateContext>) {
     name = name === undefined ? '' : name.toString()
     context = context || {}
     context = {

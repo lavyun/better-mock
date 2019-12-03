@@ -51,25 +51,6 @@
       return r;
   }
 
-  var objectAssign = function (target, args) {
-      // TypeError if undefined or null
-      if (target == null) {
-          throw new TypeError('Cannot convert undefined or null to object');
-      }
-      var to = Object(target);
-      for (var i = 1; i < arguments.length; i++) {
-          var nextSource = arguments[i];
-          if (nextSource != null) { // Skip over if undefined or null
-              for (var nextKey in nextSource) {
-                  // Avoid bugs when hasOwnProperty is shadowed
-                  if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
-                      to[nextKey] = nextSource[nextKey];
-                  }
-              }
-          }
-      }
-      return to;
-  };
   var each = function (obj, iterator, context) {
       var i, key;
       if (type(obj) === 'number') {
@@ -190,7 +171,6 @@
   };
 
   var Util = /*#__PURE__*/Object.freeze({
-    objectAssign: objectAssign,
     each: each,
     type: type,
     isDef: isDef,
@@ -6535,40 +6515,42 @@
 
   // 解析数据模板（属性名部分）。
   var parse = function (name) {
-      name = name == undefined ? '' : (name + '');
-      var parameters = (name || '').match(constant.RE_KEY);
-      // name|min-max, name|count
-      var range = parameters && parameters[3] && parameters[3].match(constant.RE_RANGE);
-      var min = range && range[1] && parseInt(range[1], 10); // || 1
-      var max = range && range[2] && parseInt(range[2], 10); // || 1
-      // 如果是 min-max, 返回 min-max 之间的一个数
-      // 如果是 count, 返回 count
-      var count = range ?
-          range[2] ? Random.integer(min, max) : parseInt(range[1], 10)
-          : undefined;
-      var decimal = parameters && parameters[4] && parameters[4].match(constant.RE_RANGE);
-      var dmin = decimal && decimal[1] && parseInt(decimal[1], 10); // || 0,
-      var dmax = decimal && decimal[2] && parseInt(decimal[2], 10); // || 0,
-      // int || dmin-dmax
-      var dcount = decimal
-          ? decimal[2] ? Random.integer(dmin, dmax) : parseInt(decimal[1], 10)
-          : undefined;
-      var result = {
-          // 1 name, 2 inc, 3 range, 4 decimal
-          parameters: parameters,
-          // 1 min, 2 max
-          range: range,
-          min: min,
-          max: max,
-          count: count,
-          decimal: decimal,
-          dmin: dmin,
-          dmax: dmax,
-          dcount: dcount
-      };
-      for (var r in result) {
-          if (result[r] != undefined) {
-              return result;
+      name = name === undefined ? '' : (name + '');
+      var parameters = name.match(constant.RE_KEY);
+      if (parameters) {
+          // name|min-max, name|count
+          var range = parameters && parameters[3] && parameters[3].match(constant.RE_RANGE);
+          var min = range && range[1] && parseInt(range[1], 10); // || 1
+          var max = range && range[2] && parseInt(range[2], 10); // || 1
+          // 如果是 min-max, 返回 min-max 之间的一个数
+          // 如果是 count, 返回 count
+          var count = range ?
+              range[2] ? Random.integer(Number(min), Number(max)) : parseInt(range[1], 10)
+              : undefined;
+          var decimal = parameters && parameters[4] && parameters[4].match(constant.RE_RANGE);
+          var dmin = decimal && decimal[1] && parseInt(decimal[1], 10); // || 0,
+          var dmax = decimal && decimal[2] && parseInt(decimal[2], 10); // || 0,
+          // int || dmin-dmax
+          var dcount = decimal
+              ? decimal[2] ? Random.integer(Number(dmin), Number(dmax)) : parseInt(decimal[1], 10)
+              : undefined;
+          var result = {
+              // 1 name, 2 inc, 3 range, 4 decimal
+              parameters: parameters,
+              // 1 min, 2 max
+              range: range,
+              min: min,
+              max: max,
+              count: count,
+              decimal: decimal,
+              dmin: dmin,
+              dmax: dmax,
+              dcount: dcount
+          };
+          for (var r in result) {
+              if (result[r] != undefined) {
+                  return result;
+              }
           }
       }
       return {};
@@ -7862,30 +7844,27 @@
   };
 
   // 把 Mock.js 风格的数据模板转换成 JSON Schema。
-  function toJSONSchema(template, name, path /* Internal Use Only */) {
-      // type rule properties items
+  function toJSONSchema(template, name, path) {
       path = path || [];
       var result = {
           name: typeof name === 'string' ? name.replace(constant.RE_KEY, '$1') : name,
           template: template,
           type: type(template),
-          rule: parse(name)
+          rule: parse(name),
+          path: path.slice(0)
       };
-      result.path = path.slice(0);
       result.path.push(name === undefined ? 'ROOT' : result.name);
-      switch (result.type) {
-          case 'array':
-              result.items = [];
-              each(template, function (value, index) {
-                  result.items.push(toJSONSchema(value, index, result.path));
-              });
-              break;
-          case 'object':
-              result.properties = [];
-              each(template, function (value, key) {
-                  result.properties.push(toJSONSchema(value, key, result.path));
-              });
-              break;
+      if (isArray(template)) {
+          result.items = [];
+          template.forEach(function (item, index) {
+              result.items.push(toJSONSchema(item, index, result.path));
+          });
+      }
+      else if (isObject(template)) {
+          result.properties = [];
+          for (var key in template) {
+              result.properties.push(toJSONSchema(template[key], key, result.path));
+          }
       }
       return result;
   }
@@ -8388,7 +8367,7 @@
       MockXMLHttpRequest.prototype.open = function (method, url, async, username, password) {
           var _this = this;
           if (async === void 0) { async = true; }
-          objectAssign(this.custom, {
+          Object.assign(this.custom, {
               method: method,
               url: url,
               async: typeof async === 'boolean' ? async : true,
@@ -8581,7 +8560,7 @@
           timeout: '10-100'
       };
       MockXMLHttpRequest.setup = function (settings) {
-          objectAssign(MockXMLHttpRequest.settings, settings);
+          Object.assign(MockXMLHttpRequest.settings, settings);
           return MockXMLHttpRequest.settings;
       };
       MockXMLHttpRequest.Mock = {};
@@ -8603,16 +8582,10 @@
       })();
       return window.ActiveXObject ? (!isLocal && createStandardXHR()) || createActiveXHR() : createStandardXHR();
       function createStandardXHR() {
-          try {
-              return new _XMLHttpRequest();
-          }
-          catch (e) { }
+          return new _XMLHttpRequest();
       }
       function createActiveXHR() {
-          try {
-              return new _ActiveXObject('Microsoft.XMLHTTP');
-          }
-          catch (e) { }
+          return new _ActiveXObject('Microsoft.XMLHTTP');
       }
   }
   // 查找与请求参数匹配的数据模板：URL，Type

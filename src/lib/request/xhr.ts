@@ -1,4 +1,4 @@
-import { objectAssign, isString, values, isRegExp, isFunction, createCustomEvent } from '../util'
+import { isString, values, isRegExp, isFunction, createCustomEvent } from '../util'
 import { XHRCustom, MockedItem, Settings, XHRCustomOptions, XHRBody } from '../types'
 import rgx from 'regexparam'
 
@@ -86,7 +86,7 @@ class MockXMLHttpRequest {
   }
 
   open (method: string, url: string, async: boolean = true, username?: string, password?: string) {
-    objectAssign(this.custom, {
+    Object.assign(this.custom, {
       method: method,
       url: url,
       async: typeof async === 'boolean' ? async : true,
@@ -304,7 +304,7 @@ class MockXMLHttpRequest {
   }
 
   static setup = function(settings: Settings) {
-    objectAssign(MockXMLHttpRequest.settings, settings)
+    Object.assign(MockXMLHttpRequest.settings, settings)
     return MockXMLHttpRequest.settings
   }
 

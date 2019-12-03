@@ -21,6 +21,7 @@
 import constant from '../constant'
 import * as util from '../util'
 import toJSONSchema from '../schema'
+import { SchemaResult } from '../types'
 
 // ## name
 //     有生成规则：比较解析后的 name
@@ -57,7 +58,7 @@ import toJSONSchema from '../schema'
 //             `'name|count': [{}, {} ...]`        检测个数，继续递归
 //         无生成规则：检测全部的元素个数，继续递归
 const Diff = {
-  diff: function diff(schema, data, name?) {
+  diff: function diff(schema: Partial<SchemaResult>, data: string | object, name?) {
     const result = []
     
     // 先检测名称 name 和类型 type，如果匹配，才有必要继续检测
@@ -83,7 +84,9 @@ const Diff = {
     switch (schema.type) {
       case 'string':
         // 跳过含有『占位符』的属性值，因为『占位符』返回值的类型可能和模板不一致，例如 '@int' 会返回一个整形值
-        if (schema.template.match(constant.RE_PLACEHOLDER)) return true
+        if (schema.template.match(constant.RE_PLACEHOLDER)) {
+          return true
+        }
         break
       case 'array':
         if (schema.rule.parameters) {
@@ -241,7 +244,7 @@ const Diff = {
     
     for (let i = 0; i < keys.length; i++) {
       let property
-      util.each(schema.properties, function(item /*, index*/ ) {
+      schema.properties.forEach((item) => {
         if (item.name === keys[i]) {
           property = item
         }
@@ -457,7 +460,7 @@ const Assert = {
   }
 }
 
-const valid = function valid(template, data) {
+const valid = function valid(template: string | object, data: string | object) {
   const schema = toJSONSchema(template)
   return Diff.diff(schema, data)
 }

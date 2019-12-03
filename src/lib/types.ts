@@ -37,3 +37,13 @@ export interface XHRCustom {
 export interface Settings {
   timeout: string
 }
+
+export interface SchemaResult {
+  name: string | number | undefined,
+  template: object | string | (string | object)[],
+  type: string,
+  rule: object,
+  path: string[],
+  items: Partial<SchemaResult>[],
+  properties: Partial<SchemaResult>[]
+}
