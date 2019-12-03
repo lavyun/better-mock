@@ -6533,40 +6533,38 @@ var Random = __assign(__assign(__assign(__assign(__assign(__assign(__assign(__as
 var parse = function (name) {
     name = name === undefined ? '' : (name + '');
     var parameters = name.match(constant.RE_KEY);
-    if (parameters) {
-        // name|min-max, name|count
-        var range = parameters && parameters[3] && parameters[3].match(constant.RE_RANGE);
-        var min = range && range[1] && parseInt(range[1], 10); // || 1
-        var max = range && range[2] && parseInt(range[2], 10); // || 1
-        // 如果是 min-max, 返回 min-max 之间的一个数
-        // 如果是 count, 返回 count
-        var count = range ?
-            range[2] ? Random.integer(Number(min), Number(max)) : parseInt(range[1], 10)
-            : undefined;
-        var decimal = parameters && parameters[4] && parameters[4].match(constant.RE_RANGE);
-        var dmin = decimal && decimal[1] && parseInt(decimal[1], 10); // || 0,
-        var dmax = decimal && decimal[2] && parseInt(decimal[2], 10); // || 0,
-        // int || dmin-dmax
-        var dcount = decimal
-            ? decimal[2] ? Random.integer(Number(dmin), Number(dmax)) : parseInt(decimal[1], 10)
-            : undefined;
-        var result = {
-            // 1 name, 2 inc, 3 range, 4 decimal
-            parameters: parameters,
-            // 1 min, 2 max
-            range: range,
-            min: min,
-            max: max,
-            count: count,
-            decimal: decimal,
-            dmin: dmin,
-            dmax: dmax,
-            dcount: dcount
-        };
-        for (var r in result) {
-            if (result[r] != undefined) {
-                return result;
-            }
+    // name|min-max, name|count
+    var range = parameters && parameters[3] && parameters[3].match(constant.RE_RANGE);
+    var min = range && range[1] && parseInt(range[1], 10);
+    var max = range && range[2] && parseInt(range[2], 10);
+    // 如果是 min-max, 返回 min-max 之间的一个数
+    // 如果是 count, 返回 count
+    var count = range ?
+        range[2] ? Random.integer(Number(min), Number(max)) : parseInt(range[1], 10)
+        : undefined;
+    var decimal = parameters && parameters[4] && parameters[4].match(constant.RE_RANGE);
+    var dmin = decimal && decimal[1] && parseInt(decimal[1], 10);
+    var dmax = decimal && decimal[2] && parseInt(decimal[2], 10);
+    // int || dmin-dmax
+    var dcount = decimal
+        ? decimal[2] ? Random.integer(Number(dmin), Number(dmax)) : parseInt(decimal[1], 10)
+        : undefined;
+    var result = {
+        // 1 name, 2 inc, 3 range, 4 decimal
+        parameters: parameters,
+        // 1 min, 2 max
+        range: range,
+        min: min,
+        max: max,
+        count: count,
+        decimal: decimal,
+        dmin: dmin,
+        dmax: dmax,
+        dcount: dcount
+    };
+    for (var r in result) {
+        if (result[r] != undefined) {
+            return result;
         }
     }
     return {};
@@ -7886,83 +7884,49 @@ function toJSONSchema(template, name, path) {
 }
 
 // ## valid(template, data)
-// ## name
-//     有生成规则：比较解析后的 name
-//     无生成规则：直接比较
-// ## type
-//     无类型转换：直接比较
-//     有类型转换：先试着解析 template，然后再检查？
-// ## value vs. template
-//     基本类型
-//         无生成规则：直接比较
-//         有生成规则：
-//             number
-//                 min-max.dmin-dmax
-//                 min-max.dcount
-//                 count.dmin-dmax
-//                 count.dcount
-//                 +step
-//                 整数部分
-//                 小数部分
-//             boolean
-//             string
-//                 min-max
-//                 count
-// ## properties
-//     对象
-//         有生成规则：检测期望的属性个数，继续递归
-//         无生成规则：检测全部的属性个数，继续递归
-// ## items
-//     数组
-//         有生成规则：
-//             `'name|1': [{}, {} ...]`            其中之一，继续递归
-//             `'name|+1': [{}, {} ...]`           顺序检测，继续递归
-//             `'name|min-max': [{}, {} ...]`      检测个数，继续递归
-//             `'name|count': [{}, {} ...]`        检测个数，继续递归
-//         无生成规则：检测全部的元素个数，继续递归
 var Diff = {
     diff: function diff(schema, data, name) {
         var result = [];
         // 先检测名称 name 和类型 type，如果匹配，才有必要继续检测
-        if (this.name(schema, data, name, result) && this.type(schema, data, name, result)) {
-            this.value(schema, data, name, result);
-            this.properties(schema, data, name, result);
-            this.items(schema, data, name, result);
+        if (Diff.name(schema, data, name, result) && Diff.type(schema, data, name, result)) {
+            Diff.value(schema, data, name, result);
+            Diff.properties(schema, data, name, result);
+            Diff.items(schema, data, name, result);
         }
         return result;
     },
     /* jshint unused:false */
-    name: function (schema, data, name, result) {
+    name: function (schema, _data, name, result) {
         var length = result.length;
         Assert.equal('name', schema.path, name + '', schema.name + '', result);
         return result.length === length;
     },
-    type: function (schema, data, name, result) {
+    type: function (schema, data, _name, result) {
         var length = result.length;
-        switch (schema.type) {
-            case 'string':
-                // 跳过含有『占位符』的属性值，因为『占位符』返回值的类型可能和模板不一致，例如 '@int' 会返回一个整形值
-                if (schema.template.match(constant.RE_PLACEHOLDER))
-                    return true;
-                break;
-            case 'array':
-                if (schema.rule.parameters) {
-                    // name|count: array
-                    if (schema.rule.min !== undefined && schema.rule.max === undefined) {
-                        // 跳过 name|1: array，因为最终值的类型（很可能）不是数组，也不一定与 `array` 中的类型一致
-                        if (schema.rule.count === 1) {
-                            return true;
-                        }
-                    }
-                    // 跳过 name|+inc: array
-                    if (schema.rule.parameters[2]) {
+        if (isString(schema.template)) {
+            // 跳过含有『占位符』的属性值，因为『占位符』返回值的类型可能和模板不一致，例如 '@int' 会返回一个整形值
+            if (schema.template.match(constant.RE_PLACEHOLDER)) {
+                return true;
+            }
+        }
+        else if (isArray(schema.template)) {
+            if (schema.rule.parameters) {
+                // name|count: array
+                if (schema.rule.min !== undefined && schema.rule.max === undefined) {
+                    // 跳过 name|1: array，因为最终值的类型（很可能）不是数组，也不一定与 `array` 中的类型一致
+                    if (schema.rule.count === 1) {
                         return true;
                     }
                 }
-                break;
-            case 'function':
-                // 跳过 `'name': function`，因为函数可以返回任何类型的值。
-                return true;
+                // 跳过 name|+inc: array
+                if (schema.rule.parameters[2]) {
+                    return true;
+                }
+            }
+        }
+        else if (isFunction(schema.template)) {
+            // 跳过 `'name': function`，因为函数可以返回任何类型的值。
+            return true;
         }
         Assert.equal('type', schema.path, type(data), schema.type, result);
         return result.length === length;
@@ -7976,83 +7940,78 @@ var Diff = {
         }
         // 无生成规则
         if (!rule.parameters) {
-            switch (templateType) {
-                case 'regexp':
-                    Assert.match('value', schema.path, data, schema.template, result);
+            if (isRegExp(schema.template)) {
+                Assert.match('value', schema.path, data, schema.template, result);
+                return result.length === length;
+            }
+            if (isString(schema.template)) {
+                // 同样跳过含有『占位符』的属性值，因为『占位符』的返回值会通常会与模板不一致
+                if (schema.template.match(constant.RE_PLACEHOLDER)) {
                     return result.length === length;
-                case 'string':
-                    // 同样跳过含有『占位符』的属性值，因为『占位符』的返回值会通常会与模板不一致
-                    if (schema.template.match(constant.RE_PLACEHOLDER)) {
-                        return result.length === length;
-                    }
-                    break;
+                }
             }
             Assert.equal('value', schema.path, data, schema.template, result);
             return result.length === length;
         }
         // 有生成规则
         var actualRepeatCount;
-        switch (templateType) {
-            case 'number':
-                var parts = (data + '').split('.');
-                parts[0] = +parts[0];
-                // 整数部分
-                // |min-max
-                if (rule.min !== undefined && rule.max !== undefined) {
-                    Assert.greaterThanOrEqualTo('value', schema.path, parts[0], Math.min(rule.min, rule.max), result);
-                    // , 'numeric instance is lower than the required minimum (minimum: {expected}, found: {actual})')
-                    Assert.lessThanOrEqualTo('value', schema.path, parts[0], Math.max(rule.min, rule.max), result);
+        if (isNumber(schema.template)) {
+            var parts = (data + '').split('.');
+            parts[0] = +parts[0];
+            // 整数部分
+            // |min-max
+            if (rule.min !== undefined && rule.max !== undefined) {
+                Assert.greaterThanOrEqualTo('value', schema.path, parts[0], Math.min(Number(rule.min), Number(rule.max)), result);
+                // , 'numeric instance is lower than the required minimum (minimum: {expected}, found: {actual})')
+                Assert.lessThanOrEqualTo('value', schema.path, parts[0], Math.max(Number(rule.min), Number(rule.max)), result);
+            }
+            // |count
+            if (rule.min !== undefined && rule.max === undefined) {
+                Assert.equal('value', schema.path, parts[0], rule.min, result, '[value] ' + name);
+            }
+            // 小数部分
+            if (rule.decimal) {
+                // |dmin-dmax
+                if (rule.dmin !== undefined && rule.dmax !== undefined) {
+                    Assert.greaterThanOrEqualTo('value', schema.path, parts[1].length, rule.dmin, result);
+                    Assert.lessThanOrEqualTo('value', schema.path, parts[1].length, rule.dmax, result);
                 }
-                // |count
-                if (rule.min !== undefined && rule.max === undefined) {
-                    Assert.equal('value', schema.path, parts[0], rule.min, result, '[value] ' + name);
+                // |dcount
+                if (rule.dmin !== undefined && rule.dmax === undefined) {
+                    Assert.equal('value', schema.path, parts[1].length, rule.dmin, result);
                 }
-                // 小数部分
-                if (rule.decimal) {
-                    // |dmin-dmax
-                    if (rule.dmin !== undefined && rule.dmax !== undefined) {
-                        Assert.greaterThanOrEqualTo('value', schema.path, parts[1].length, rule.dmin, result);
-                        Assert.lessThanOrEqualTo('value', schema.path, parts[1].length, rule.dmax, result);
-                    }
-                    // |dcount
-                    if (rule.dmin !== undefined && rule.dmax === undefined) {
-                        Assert.equal('value', schema.path, parts[1].length, rule.dmin, result);
-                    }
-                }
-                break;
-            case 'boolean':
-                break;
-            case 'string':
-                // 'aaa'.match(/a/g)
-                actualRepeatCount = data.match(new RegExp(schema.template, 'g'));
-                actualRepeatCount = actualRepeatCount ? actualRepeatCount.length : 0;
-                // |min-max
-                if (rule.min !== undefined && rule.max !== undefined) {
-                    Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.min, result);
-                    Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.max, result);
-                }
-                // |count
-                if (rule.min !== undefined && rule.max === undefined) {
-                    Assert.equal('repeat count', schema.path, actualRepeatCount, rule.min, result);
-                }
-                break;
-            case 'regexp':
-                actualRepeatCount = data.match(new RegExp(schema.template.source.replace(/^\^|\$$/g, ''), 'g'));
-                actualRepeatCount = actualRepeatCount ? actualRepeatCount.length : 0;
-                // |min-max
-                if (rule.min !== undefined && rule.max !== undefined) {
-                    Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.min, result);
-                    Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.max, result);
-                }
-                // |count
-                if (rule.min !== undefined && rule.max === undefined) {
-                    Assert.equal('repeat count', schema.path, actualRepeatCount, rule.min, result);
-                }
-                break;
+            }
+        }
+        else if (isString(schema.template)) {
+            // 'aaa'.match(/a/g)
+            actualRepeatCount = data.match(new RegExp(schema.template, 'g'));
+            actualRepeatCount = actualRepeatCount ? actualRepeatCount.length : 0;
+            // |min-max
+            if (rule.min !== undefined && rule.max !== undefined) {
+                Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.min, result);
+                Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.max, result);
+            }
+            // |count
+            if (rule.min !== undefined && rule.max === undefined) {
+                Assert.equal('repeat count', schema.path, actualRepeatCount, rule.min, result);
+            }
+        }
+        else if (isRegExp(schema.template)) {
+            actualRepeatCount = data.match(new RegExp(schema.template.source.replace(/^\^|\$$/g, ''), 'g'));
+            actualRepeatCount = actualRepeatCount ? actualRepeatCount.length : 0;
+            // |min-max
+            if (rule.min !== undefined && rule.max !== undefined) {
+                Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.min, result);
+                Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.max, result);
+            }
+            // |count
+            if (rule.min !== undefined && rule.max === undefined) {
+                Assert.equal('repeat count', schema.path, actualRepeatCount, rule.min, result);
+            }
         }
         return result.length === length;
     },
-    properties: function (schema, data, name, result) {
+    properties: function (schema, data, _name, result) {
         var length = result.length;
         var rule = schema.rule;
         var keys$1 = keys(data);
@@ -8067,8 +8026,8 @@ var Diff = {
             // 有生成规则
             // |min-max
             if (rule.min !== undefined && rule.max !== undefined) {
-                Assert.greaterThanOrEqualTo('properties length', schema.path, keys$1.length, Math.min(rule.min, rule.max), result);
-                Assert.lessThanOrEqualTo('properties length', schema.path, keys$1.length, Math.max(rule.min, rule.max), result);
+                Assert.greaterThanOrEqualTo('properties length', schema.path, keys$1.length, Math.min(Number(rule.min), Number(rule.max)), result);
+                Assert.lessThanOrEqualTo('properties length', schema.path, keys$1.length, Math.max(Number(rule.min), Number(rule.max)), result);
             }
             // |count
             if (rule.min !== undefined && rule.max === undefined) {
@@ -8083,21 +8042,20 @@ var Diff = {
         }
         var _loop_1 = function (i) {
             var property;
-            each(schema.properties, function (item /*, index*/) {
+            schema.properties.forEach(function (item) {
                 if (item.name === keys$1[i]) {
                     property = item;
                 }
             });
             property = property || schema.properties[i];
-            result.push.apply(result, this_1.diff(property, data[keys$1[i]], keys$1[i]));
+            result.push.apply(result, Diff.diff(property, data[keys$1[i]], keys$1[i]));
         };
-        var this_1 = this;
         for (var i = 0; i < keys$1.length; i++) {
             _loop_1(i);
         }
         return result.length === length;
     },
-    items: function (schema, data, name, result) {
+    items: function (schema, data, _name, result) {
         var length = result.length;
         if (!schema.items) {
             return;
@@ -8111,8 +8069,8 @@ var Diff = {
             // 有生成规则
             // |min-max
             if (rule.min !== undefined && rule.max !== undefined) {
-                Assert.greaterThanOrEqualTo('items', schema.path, data.length, (Math.min(rule.min, rule.max) * schema.items.length), result, '[{utype}] array is too short: {path} must have at least {expected} elements but instance has {actual} elements');
-                Assert.lessThanOrEqualTo('items', schema.path, data.length, (Math.max(rule.min, rule.max) * schema.items.length), result, '[{utype}] array is too long: {path} must have at most {expected} elements but instance has {actual} elements');
+                Assert.greaterThanOrEqualTo('items', schema.path, data.length, Math.min(Number(rule.min), Number(rule.max)) * schema.items.length, result, '[{utype}] array is too short: {path} must have at least {expected} elements but instance has {actual} elements');
+                Assert.lessThanOrEqualTo('items', schema.path, data.length, Math.max(Number(rule.min), Number(rule.max)) * schema.items.length, result, '[{utype}] array is too long: {path} must have at most {expected} elements but instance has {actual} elements');
             }
             // |count
             if (rule.min !== undefined && rule.max === undefined) {
@@ -8121,11 +8079,11 @@ var Diff = {
                     return result.length === length;
                 }
                 else {
-                    Assert.equal('items length', schema.path, data.length, (rule.min * schema.items.length), result);
+                    Assert.equal('items length', schema.path, data.length, (Number(rule.min) * schema.items.length), result);
                 }
             }
             // |+inc
-            if (rule.parameters[2]) {
+            if (rule.parameters && rule.parameters[2]) {
                 return result.length === length;
             }
         }
@@ -8133,7 +8091,7 @@ var Diff = {
             return false;
         }
         for (var i = 0; i < data.length; i++) {
-            result.push.apply(result, this.diff(schema.items[i % schema.items.length], data[i], i % schema.items.length));
+            result.push.apply(result, Diff.diff(schema.items[i % schema.items.length], data[i], i % schema.items.length));
         }
         return result.length === length;
     }

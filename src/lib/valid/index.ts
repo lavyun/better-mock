@@ -18,10 +18,6 @@
 // https://github.com/fge/json-schema-validator/blob/master/src/main/resources/com/github/fge/jsonschema/validator/validation.properties
 // [JSON-Schema validator](http://json-schema-validator.herokuapp.com/)
 // [Regexp Demo](http://demos.forbeslindesay.co.uk/regexp/)
-import constant from '../constant'
-import * as util from '../util'
-import toJSONSchema from '../schema'
-import { SchemaResult } from '../types'
 
 // ## name
 //     有生成规则：比较解析后的 name
@@ -57,62 +53,64 @@ import { SchemaResult } from '../types'
 //             `'name|min-max': [{}, {} ...]`      检测个数，继续递归
 //             `'name|count': [{}, {} ...]`        检测个数，继续递归
 //         无生成规则：检测全部的元素个数，继续递归
+import constant from '../constant'
+import { type, keys as objectKeys, isArray, isString, isFunction, isRegExp, isNumber } from '../util'
+import toJSONSchema from '../schema'
+import { SchemaResult, DiffResult } from '../types'
+
 const Diff = {
-  diff: function diff(schema: Partial<SchemaResult>, data: string | object, name?) {
-    const result = []
+  diff: function diff(schema: SchemaResult, data: string | object, name?) {
+    const result: DiffResult[] = []
     
     // 先检测名称 name 和类型 type，如果匹配，才有必要继续检测
-    if (this.name(schema, data, name, result) && this.type(schema, data, name, result)) {
-      this.value(schema, data, name, result)
-      this.properties(schema, data, name, result)
-      this.items(schema, data, name, result)
+    if (Diff.name(schema, data, name, result) && Diff.type(schema, data, name, result)) {
+      Diff.value(schema, data, name, result)
+      Diff.properties(schema, data, name, result)
+      Diff.items(schema, data, name, result)
     }
     
     return result
   },
   /* jshint unused:false */
-  name: function(schema, data, name, result) {
+  name: function(schema: SchemaResult, _data, name, result: DiffResult[]) {
     const length = result.length
     
     Assert.equal('name', schema.path, name + '', schema.name + '', result)
     
     return result.length === length
   },
-  type: function(schema, data, name, result) {
+  type: function(schema: SchemaResult, data, _name, result: DiffResult[]) {
     const length = result.length
     
-    switch (schema.type) {
-      case 'string':
-        // 跳过含有『占位符』的属性值，因为『占位符』返回值的类型可能和模板不一致，例如 '@int' 会返回一个整形值
-        if (schema.template.match(constant.RE_PLACEHOLDER)) {
-          return true
-        }
-        break
-      case 'array':
-        if (schema.rule.parameters) {
-          // name|count: array
-          if (schema.rule.min !== undefined && schema.rule.max === undefined) {
-            // 跳过 name|1: array，因为最终值的类型（很可能）不是数组，也不一定与 `array` 中的类型一致
-            if (schema.rule.count === 1) {
-              return true
-            }
-          }
-          // 跳过 name|+inc: array
-          if (schema.rule.parameters[2]) {
+    if (isString(schema.template)) {
+      // 跳过含有『占位符』的属性值，因为『占位符』返回值的类型可能和模板不一致，例如 '@int' 会返回一个整形值
+      if (schema.template.match(constant.RE_PLACEHOLDER)) {
+        return true
+      }
+    } else if (isArray(schema.template)) {
+      if (schema.rule.parameters) {
+        // name|count: array
+        if (schema.rule.min !== undefined && schema.rule.max === undefined) {
+          // 跳过 name|1: array，因为最终值的类型（很可能）不是数组，也不一定与 `array` 中的类型一致
+          if (schema.rule.count === 1) {
             return true
           }
         }
-        break
-      case 'function':
-        // 跳过 `'name': function`，因为函数可以返回任何类型的值。
-        return true
+        // 跳过 name|+inc: array
+        if (schema.rule.parameters[2]) {
+          return true
+        }
+      }
+    } else if (isFunction(schema.template)) {
+      // 跳过 `'name': function`，因为函数可以返回任何类型的值。
+      return true
     }
     
-    Assert.equal('type', schema.path, util.type(data), schema.type, result)
+    Assert.equal('type', schema.path, type(data), schema.type, result)
     
     return result.length === length
   },
-  value: function(schema, data, name, result) {
+  value: function(schema: SchemaResult, data, name, result: DiffResult[]) {
     const length = result.length
     
     const rule = schema.rule
@@ -123,16 +121,16 @@ const Diff = {
     
     // 无生成规则
     if (!rule.parameters) {
-      switch (templateType) {
-        case 'regexp':
-          Assert.match('value', schema.path, data, schema.template, result)
+      if (isRegExp(schema.template)) {
+        Assert.match('value', schema.path, data, schema.template, result)
+        return result.length === length
+      }
+
+      if (isString(schema.template)) {
+        // 同样跳过含有『占位符』的属性值，因为『占位符』的返回值会通常会与模板不一致
+        if (schema.template.match(constant.RE_PLACEHOLDER)) {
           return result.length === length
-        case 'string':
-          // 同样跳过含有『占位符』的属性值，因为『占位符』的返回值会通常会与模板不一致
-          if (schema.template.match(constant.RE_PLACEHOLDER)) {
-            return result.length === length
-          }
-          break
+        }
       }
       Assert.equal('value', schema.path, data, schema.template, result)
       return result.length === length
@@ -140,81 +138,71 @@ const Diff = {
     
     // 有生成规则
     let actualRepeatCount
-    switch (templateType) {
-      case 'number':
-        let parts: any[] = (data + '').split('.')
-        parts[0] = +parts[0]
-        
-        // 整数部分
-        // |min-max
-        if (rule.min !== undefined && rule.max !== undefined) {
-          Assert.greaterThanOrEqualTo('value', schema.path, parts[0], Math.min(rule.min, rule.max), result)
-          // , 'numeric instance is lower than the required minimum (minimum: {expected}, found: {actual})')
-          Assert.lessThanOrEqualTo('value', schema.path, parts[0], Math.max(rule.min, rule.max), result)
-        }
-        // |count
-        if (rule.min !== undefined && rule.max === undefined) {
-          Assert.equal('value', schema.path, parts[0], rule.min, result, '[value] ' + name)
-        }
-        
-        // 小数部分
-        if (rule.decimal) {
-          // |dmin-dmax
-          if (rule.dmin !== undefined && rule.dmax !== undefined) {
-            Assert.greaterThanOrEqualTo('value', schema.path, parts[1].length, rule.dmin, result)
-            Assert.lessThanOrEqualTo('value', schema.path, parts[1].length, rule.dmax, result)
-          }
-          // |dcount
-          if (rule.dmin !== undefined && rule.dmax === undefined) {
-            Assert.equal('value', schema.path, parts[1].length, rule.dmin, result)
-          }
-        }
-        
-        break
+
+    if (isNumber(schema.template)) {
+      let parts: any[] = (data + '').split('.')
+      parts[0] = +parts[0]
       
-      case 'boolean':
-        break
+      // 整数部分
+      // |min-max
+      if (rule.min !== undefined && rule.max !== undefined) {
+        Assert.greaterThanOrEqualTo('value', schema.path, parts[0], Math.min(Number(rule.min), Number(rule.max)), result)
+        // , 'numeric instance is lower than the required minimum (minimum: {expected}, found: {actual})')
+        Assert.lessThanOrEqualTo('value', schema.path, parts[0], Math.max(Number(rule.min), Number(rule.max)), result)
+      }
+      // |count
+      if (rule.min !== undefined && rule.max === undefined) {
+        Assert.equal('value', schema.path, parts[0], rule.min, result, '[value] ' + name)
+      }
       
-      case 'string':
-        // 'aaa'.match(/a/g)
-        actualRepeatCount = data.match(new RegExp(schema.template, 'g'))
-        actualRepeatCount = actualRepeatCount ? actualRepeatCount.length : 0
-        
-        // |min-max
-        if (rule.min !== undefined && rule.max !== undefined) {
-          Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.min, result)
-          Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.max, result)
+      // 小数部分
+      if (rule.decimal) {
+        // |dmin-dmax
+        if (rule.dmin !== undefined && rule.dmax !== undefined) {
+          Assert.greaterThanOrEqualTo('value', schema.path, parts[1].length, rule.dmin, result)
+          Assert.lessThanOrEqualTo('value', schema.path, parts[1].length, rule.dmax, result)
         }
-        // |count
-        if (rule.min !== undefined && rule.max === undefined) {
-          Assert.equal('repeat count', schema.path, actualRepeatCount, rule.min, result)
+        // |dcount
+        if (rule.dmin !== undefined && rule.dmax === undefined) {
+          Assert.equal('value', schema.path, parts[1].length, rule.dmin, result)
         }
-        
-        break
+      }
+    } else if (isString(schema.template)) {
+      // 'aaa'.match(/a/g)
+      actualRepeatCount = data.match(new RegExp(schema.template, 'g'))
+      actualRepeatCount = actualRepeatCount ? actualRepeatCount.length : 0
+
+      // |min-max
+      if (rule.min !== undefined && rule.max !== undefined) {
+        Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.min, result)
+        Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.max, result)
+      }
+      // |count
+      if (rule.min !== undefined && rule.max === undefined) {
+        Assert.equal('repeat count', schema.path, actualRepeatCount, rule.min, result)
+      }
+    } else if (isRegExp(schema.template)) {
+      actualRepeatCount = data.match(new RegExp(schema.template.source.replace(/^\^|\$$/g, ''), 'g'))
+      actualRepeatCount = actualRepeatCount ? actualRepeatCount.length : 0
       
-      case 'regexp':
-        actualRepeatCount = data.match(new RegExp(schema.template.source.replace(/^\^|\$$/g, ''), 'g'))
-        actualRepeatCount = actualRepeatCount ? actualRepeatCount.length : 0
-        
-        // |min-max
-        if (rule.min !== undefined && rule.max !== undefined) {
-          Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.min, result)
-          Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.max, result)
-        }
-        // |count
-        if (rule.min !== undefined && rule.max === undefined) {
-          Assert.equal('repeat count', schema.path, actualRepeatCount, rule.min, result)
-        }
-        break
+      // |min-max
+      if (rule.min !== undefined && rule.max !== undefined) {
+        Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.min, result)
+        Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.max, result)
+      }
+      // |count
+      if (rule.min !== undefined && rule.max === undefined) {
+        Assert.equal('repeat count', schema.path, actualRepeatCount, rule.min, result)
+      }
     }
     
     return result.length === length
   },
-  properties: function(schema, data, name, result) {
+  properties: function(schema: SchemaResult, data, _name, result: DiffResult[]) {
     const length = result.length
     
     const rule = schema.rule
-    const keys = util.keys(data)
+    const keys = objectKeys(data)
     if (!schema.properties) {
       return
     }
@@ -226,8 +214,20 @@ const Diff = {
       // 有生成规则
       // |min-max
       if (rule.min !== undefined && rule.max !== undefined) {
-        Assert.greaterThanOrEqualTo('properties length', schema.path, keys.length, Math.min(rule.min, rule.max), result)
-        Assert.lessThanOrEqualTo('properties length', schema.path, keys.length, Math.max(rule.min, rule.max), result)
+        Assert.greaterThanOrEqualTo(
+          'properties length', 
+          schema.path, 
+          keys.length, 
+          Math.min(Number(rule.min), Number(rule.max)), 
+          result
+        )
+        Assert.lessThanOrEqualTo(
+          'properties length', 
+          schema.path,
+          keys.length, 
+          Math.max(Number(rule.min), Number(rule.max)), 
+          result
+        )
       }
       // |count
       if (rule.min !== undefined && rule.max === undefined) {
@@ -250,15 +250,12 @@ const Diff = {
         }
       })
       property = property || schema.properties[i]
-      result.push.apply(
-        result,
-        this.diff(property, data[keys[i]],  keys[i])
-      )
+      result.push(...Diff.diff(property, data[keys[i]], keys[i]))
     }
     
     return result.length === length
   },
-  items: function(schema, data, name, result) {
+  items: function(schema: SchemaResult, data, _name, result: DiffResult[]) {
     const length = result.length
     
     if (!schema.items) {
@@ -274,10 +271,22 @@ const Diff = {
       // 有生成规则
       // |min-max
       if (rule.min !== undefined && rule.max !== undefined) {
-        Assert.greaterThanOrEqualTo('items', schema.path, data.length, (Math.min(rule.min, rule.max) * schema.items.length), result,
-          '[{utype}] array is too short: {path} must have at least {expected} elements but instance has {actual} elements')
-        Assert.lessThanOrEqualTo('items', schema.path, data.length, (Math.max(rule.min, rule.max) * schema.items.length), result,
-          '[{utype}] array is too long: {path} must have at most {expected} elements but instance has {actual} elements')
+        Assert.greaterThanOrEqualTo(
+          'items',
+          schema.path,
+          data.length,
+          Math.min(Number(rule.min), Number(rule.max)) * schema.items.length,
+          result,
+          '[{utype}] array is too short: {path} must have at least {expected} elements but instance has {actual} elements'
+        )
+        Assert.lessThanOrEqualTo(
+          'items',
+          schema.path,
+          data.length,
+          Math.max(Number(rule.min), Number(rule.max)) * schema.items.length,
+          result,
+          '[{utype}] array is too long: {path} must have at most {expected} elements but instance has {actual} elements'
+        )
       }
       // |count
       if (rule.min !== undefined && rule.max === undefined) {
@@ -285,11 +294,11 @@ const Diff = {
         if (rule.count === 1) {
           return result.length === length
         } else {
-          Assert.equal('items length', schema.path, data.length, (rule.min * schema.items.length), result)
+          Assert.equal('items length', schema.path, data.length, (Number(rule.min) * schema.items.length), result)
         }
       }
       // |+inc
-      if (rule.parameters[2]) {
+      if (rule.parameters && rule.parameters[2]) {
         return result.length === length
       }
     }
@@ -299,9 +308,8 @@ const Diff = {
     }
     
     for (let i = 0; i < data.length; i++) {
-      result.push.apply(
-        result,
-        this.diff(
+      result.push(
+        ...Diff.diff(
           schema.items[i % schema.items.length],
           data[i],
           i % schema.items.length
@@ -329,7 +337,7 @@ const Assert = {
     }
     const upperType = item.type.toUpperCase()
     const lowerType = item.type.toLowerCase()
-    const path = util.isArray(item.path) && item.path.join('.') || item.path
+    const path = isArray(item.path) && item.path.join('.') || item.path
     const action = item.action
     const expected = item.expected
     const actual = item.actual

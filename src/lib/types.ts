@@ -1,3 +1,5 @@
+import { parse } from './parser'
+
 export interface StringObject {
   [key: string]: string
 } 
@@ -42,8 +44,17 @@ export interface SchemaResult {
   name: string | number | undefined,
   template: object | string | (string | object)[],
   type: string,
-  rule: object,
+  rule: ReturnType<typeof parse>,
   path: string[],
-  items: Partial<SchemaResult>[],
-  properties: Partial<SchemaResult>[]
+  items?: SchemaResult[],
+  properties?: SchemaResult[]
+}
+
+export interface DiffResult {
+  path: string[],
+  type: string,
+  actual: any,
+  expected: any,
+  action: string,
+  message: string
 }

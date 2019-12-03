@@ -6,7 +6,7 @@ import { SchemaResult } from '../types'
 
 function toJSONSchema(template: object | string | (string | object)[], name?: string | number, path?: string[]) {
   path = path || []
-  const result: Partial<SchemaResult> = {
+  const result: SchemaResult = {
     name: typeof name === 'string' ? name.replace(constant.RE_KEY, '$1') : name,
     template: template,
     type: type(template), // 可能不准确，例如 { 'name|1': [{}, {} ...] }
