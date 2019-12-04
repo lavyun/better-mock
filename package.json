@@ -2,7 +2,7 @@
   "name": "better-mock",
   "description": "Forked from Mockjs. Generate random data & Intercept ajax request",
   "author": "lavyun@163.com",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "main": "./dist/mock.node.js",
   "module": "./dist/mock.browser.esm.js",
   "browser": "./dist/mock.browser.js",
