@@ -56,5 +56,5 @@ export interface DiffResult {
   actual: any,
   expected: any,
   action: string,
-  message: string
+  message: string | undefined
 }

@@ -59,7 +59,7 @@ import toJSONSchema from '../schema'
 import { SchemaResult, DiffResult } from '../types'
 
 const Diff = {
-  diff: function diff(schema: SchemaResult, data: string | object, name?) {
+  diff: function diff(schema: SchemaResult, data: string | object, name?: string | number) {
     const result: DiffResult[] = []
     
     // 先检测名称 name 和类型 type，如果匹配，才有必要继续检测
@@ -72,7 +72,7 @@ const Diff = {
     return result
   },
   /* jshint unused:false */
-  name: function(schema: SchemaResult, _data, name, result: DiffResult[]) {
+  name: function(schema: SchemaResult, _data, name: string | number | undefined, result: DiffResult[]) {
     const length = result.length
     
     Assert.equal('name', schema.path, name + '', schema.name + '', result)
@@ -140,31 +140,32 @@ const Diff = {
     let actualRepeatCount
 
     if (isNumber(schema.template)) {
-      let parts: any[] = (data + '').split('.')
-      parts[0] = +parts[0]
+      const parts: string[] = (data + '').split('.')
+      const intPart = Number(parts[0])
+      const floatPart = parts[1]
       
       // 整数部分
       // |min-max
       if (rule.min !== undefined && rule.max !== undefined) {
-        Assert.greaterThanOrEqualTo('value', schema.path, parts[0], Math.min(Number(rule.min), Number(rule.max)), result)
+        Assert.greaterThanOrEqualTo('value', schema.path, intPart, Math.min(Number(rule.min), Number(rule.max)), result)
         // , 'numeric instance is lower than the required minimum (minimum: {expected}, found: {actual})')
-        Assert.lessThanOrEqualTo('value', schema.path, parts[0], Math.max(Number(rule.min), Number(rule.max)), result)
+        Assert.lessThanOrEqualTo('value', schema.path, intPart, Math.max(Number(rule.min), Number(rule.max)), result)
       }
       // |count
       if (rule.min !== undefined && rule.max === undefined) {
-        Assert.equal('value', schema.path, parts[0], rule.min, result, '[value] ' + name)
+        Assert.equal('value', schema.path, intPart, Number(rule.min), result, '[value] ' + name)
       }
       
       // 小数部分
       if (rule.decimal) {
         // |dmin-dmax
         if (rule.dmin !== undefined && rule.dmax !== undefined) {
-          Assert.greaterThanOrEqualTo('value', schema.path, parts[1].length, rule.dmin, result)
-          Assert.lessThanOrEqualTo('value', schema.path, parts[1].length, rule.dmax, result)
+          Assert.greaterThanOrEqualTo('value', schema.path, floatPart.length, Number(rule.dmin), result)
+          Assert.lessThanOrEqualTo('value', schema.path, floatPart.length, Number(rule.dmax), result)
         }
         // |dcount
         if (rule.dmin !== undefined && rule.dmax === undefined) {
-          Assert.equal('value', schema.path, parts[1].length, rule.dmin, result)
+          Assert.equal('value', schema.path, floatPart.length, Number(rule.dmin), result)
         }
       }
     } else if (isString(schema.template)) {
@@ -174,8 +175,8 @@ const Diff = {
 
       // |min-max
       if (rule.min !== undefined && rule.max !== undefined) {
-        Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.min, result)
-        Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.max, result)
+        Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, Number(rule.min), result)
+        Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, Number(rule.max), result)
       }
       // |count
       if (rule.min !== undefined && rule.max === undefined) {
@@ -187,8 +188,8 @@ const Diff = {
       
       // |min-max
       if (rule.min !== undefined && rule.max !== undefined) {
-        Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.min, result)
-        Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.max, result)
+        Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, Number(rule.min), result)
+        Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, Number(rule.max), result)
       }
       // |count
       if (rule.min !== undefined && rule.max === undefined) {
@@ -215,17 +216,17 @@ const Diff = {
       // |min-max
       if (rule.min !== undefined && rule.max !== undefined) {
         Assert.greaterThanOrEqualTo(
-          'properties length', 
-          schema.path, 
-          keys.length, 
-          Math.min(Number(rule.min), Number(rule.max)), 
+          'properties length',
+          schema.path,
+          keys.length,
+          Math.min(Number(rule.min), Number(rule.max)),
           result
         )
         Assert.lessThanOrEqualTo(
-          'properties length', 
+          'properties length',
           schema.path,
-          keys.length, 
-          Math.max(Number(rule.min), Number(rule.max)), 
+          keys.length,
+          Math.max(Number(rule.min), Number(rule.max)),
           result
         )
       }
@@ -233,7 +234,7 @@ const Diff = {
       if (rule.min !== undefined && rule.max === undefined) {
         // |1, |>1
         if (rule.count !== 1) {
-          Assert.equal('properties length', schema.path, keys.length, rule.min, result)
+          Assert.equal('properties length', schema.path, keys.length, Number(rule.min), result)
         }
       }
     }
@@ -243,7 +244,7 @@ const Diff = {
     }
     
     for (let i = 0; i < keys.length; i++) {
-      let property
+      let property: SchemaResult | undefined
       schema.properties.forEach((item) => {
         if (item.name === keys[i]) {
           property = item
@@ -331,7 +332,7 @@ const Diff = {
 //   Expect path.name is less than or equal to expected, but path.name is actual.
 //   Expect path.name is greater than or equal to expected, but path.name is actual.
 const Assert = {
-  message: function(item) {
+  message: function(item: DiffResult) {
     if (item.message) {
       return item.message
     }
@@ -343,128 +344,86 @@ const Assert = {
     const actual = item.actual
     return `[${upperType}] Expect ${path}\'${lowerType} ${action} ${expected}, but is ${actual}`
   },
-  equal: function(type, path, actual, expected, result, message?) {
+  equal: function<T extends string | number>(type: string, path: string[], actual: T, expected: T, result: DiffResult[], message?: string) {
     if (actual === expected) {
       return true
     }
-    switch (type) {
-      case 'type':
-        // 正则模板 === 字符串最终值
-        if (expected === 'regexp' && actual === 'string') {
-          return true
-        }
-        break
+    // 正则模板 === 字符串最终值
+    if (type === 'type' && expected === 'regexp' && actual === 'string') {
+      return true
     }
-    
-    const item = {
-      path: path,
-      type: type,
-      actual: actual,
-      expected: expected,
-      action: 'is equal to',
-      message: message
-    }
-    item.message = Assert.message(item)
-    result.push(item)
+    result.push(Assert.createDiffResult(
+      type, path, actual, expected, message, 'is equal to'
+    ))
     return false
   },
   // actual matches expected
-  match: function(type, path, actual, expected, result, message?) {
+  match: function(type: string, path: string[], actual: any, expected: RegExp, result: DiffResult[], message?: string) {
     if (expected.test(actual)) {
       return true
     }
-    
-    const item = {
-      path: path,
-      type: type,
-      actual: actual,
-      expected: expected,
-      action: 'matches',
-      message: message
-    }
-    item.message = Assert.message(item)
-    result.push(item)
+    result.push(Assert.createDiffResult(
+      type, path, actual, expected, message, 'matches'
+    ))
     return false
   },
-  notEqual: function(type, path, actual, expected, result, message) {
+  notEqual: function(type: string, path: string[], actual: any, expected: any, result: DiffResult[], message: string) {
     if (actual !== expected) {
       return true
     }
-    const item = {
-      path: path,
-      type: type,
-      actual: actual,
-      expected: expected,
-      action: 'is not equal to',
-      message: message
-    }
-    item.message = Assert.message(item)
-    result.push(item)
+    result.push(Assert.createDiffResult(
+      type, path, actual, expected, message, 'is not equal to'
+    ))
     return false
   },
-  greaterThan: function(type, path, actual, expected, result, message) {
+  greaterThan: function(type: string, path: string[], actual: number, expected: number, result: DiffResult[], message: string) {
     if (actual > expected) {
       return true
     }
-    const item = {
-      path: path,
-      type: type,
-      actual: actual,
-      expected: expected,
-      action: 'is greater than',
-      message: message
-    }
-    item.message = Assert.message(item)
-    result.push(item)
+    result.push(Assert.createDiffResult(
+      type, path, actual, expected, message, 'is greater than'
+    ))
     return false
   },
-  lessThan: function(type, path, actual, expected, result, message) {
+  lessThan: function(type: string, path: string[], actual: number, expected: number, result: DiffResult[], message: string) {
     if (actual < expected) {
       return true
     }
-    const item = {
-      path: path,
-      type: type,
-      actual: actual,
-      expected: expected,
-      action: 'is less to',
-      message: message
-    }
-    item.message = Assert.message(item)
-    result.push(item)
+    result.push(Assert.createDiffResult(
+      type, path, actual, expected, message, 'is less to'
+    ))
     return false
   },
-  greaterThanOrEqualTo: function(type, path, actual, expected, result, message?) {
+  greaterThanOrEqualTo: function(type: string, path: string[], actual: number, expected: number, result: DiffResult[], message?: string) {
     if (actual >= expected) {
       return true
     }
-    const item = {
-      path: path,
-      type: type,
-      actual: actual,
-      expected: expected,
-      action: 'is greater than or equal to',
-      message: message
-    }
-    item.message = Assert.message(item)
-    result.push(item)
+    result.push(Assert.createDiffResult(
+      type, path, actual, expected, message, 'is greater than or equal to'
+    ))
     return false
   },
-  lessThanOrEqualTo: function(type, path, actual, expected, result, message?) {
+  lessThanOrEqualTo: function(type: string, path: string[], actual: number, expected: number, result: DiffResult[], message?: string) {
     if (actual <= expected) {
       return true
     }
+    
+    result.push(Assert.createDiffResult(
+      type, path, actual, expected, message, 'is less than or equal to'
+    ))
+    return false
+  },
+  createDiffResult (type: string, path: string[], actual: any, expected: any, message: string | undefined, action: string) {
     const item = {
       path: path,
       type: type,
       actual: actual,
       expected: expected,
-      action: 'is less than or equal to',
+      action: action,
       message: message
     }
     item.message = Assert.message(item)
-    result.push(item)
-    return false
+    return item
   }
 }
 

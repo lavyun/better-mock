@@ -45,52 +45,41 @@ function __spreadArrays() {
     return r;
 }
 
-var each = function (obj, iterator, context) {
-    var i, key;
-    if (type(obj) === 'number') {
-        for (i = 0; i < obj; i++) {
-            iterator(i, i);
-        }
-    }
-    else if (obj.length === +obj.length) {
-        for (i = 0; i < obj.length; i++) {
-            if (iterator.call(context, obj[i], i, obj) === false)
-                break;
-        }
-    }
-    else {
-        for (key in obj) {
-            if (iterator.call(context, obj[key], key, obj) === false)
-                break;
-        }
-    }
-};
+/* type-coverage:ignore-next-line */
 var type = function (value) {
     return isDef(value)
         ? Object.prototype.toString.call(value).match(/\[object (\w+)\]/)[1].toLowerCase()
         : String(value);
 };
+/* type-coverage:ignore-next-line */
 var isDef = function (value) {
     return value !== undefined && value !== null;
 };
+/* type-coverage:ignore-next-line */
 var isString = function (value) {
     return type(value) === 'string';
 };
+/* type-coverage:ignore-next-line */
 var isNumber = function (value) {
     return type(value) === 'number';
 };
+/* type-coverage:ignore-next-line */
 var isObject = function (value) {
     return type(value) === 'object';
 };
+/* type-coverage:ignore-next-line */
 var isArray = function (value) {
     return type(value) === 'array';
 };
+/* type-coverage:ignore-next-line */
 var isRegExp = function (value) {
     return type(value) === 'regexp';
 };
+/* type-coverage:ignore-next-line */
 var isFunction = function (value) {
     return type(value) === 'function';
 };
+/* type-coverage:ignore-next-line */
 var isObjectOrArray = function (value) {
     return isObject(value) || isArray(value);
 };
@@ -165,7 +154,6 @@ var createCustomEvent = function (type, bubbles, cancelable, detail) {
 };
 
 var Util = /*#__PURE__*/Object.freeze({
-  each: each,
   type: type,
   isDef: isDef,
   isString: isString,
@@ -6579,7 +6567,7 @@ var handler = {
         cache = cache || {
             guid: 1
         };
-        return handler[node.type] ? handler[node.type](node, result, cache) : handler.token(node, result, cache);
+        return handler[node.type] ? handler[node.type](node, result, cache) : handler.token(node);
     },
     token: function (node) {
         switch (node.type) {
@@ -7935,28 +7923,29 @@ var Diff = {
         var actualRepeatCount;
         if (isNumber(schema.template)) {
             var parts = (data + '').split('.');
-            parts[0] = +parts[0];
+            var intPart = Number(parts[0]);
+            var floatPart = parts[1];
             // 整数部分
             // |min-max
             if (rule.min !== undefined && rule.max !== undefined) {
-                Assert.greaterThanOrEqualTo('value', schema.path, parts[0], Math.min(Number(rule.min), Number(rule.max)), result);
+                Assert.greaterThanOrEqualTo('value', schema.path, intPart, Math.min(Number(rule.min), Number(rule.max)), result);
                 // , 'numeric instance is lower than the required minimum (minimum: {expected}, found: {actual})')
-                Assert.lessThanOrEqualTo('value', schema.path, parts[0], Math.max(Number(rule.min), Number(rule.max)), result);
+                Assert.lessThanOrEqualTo('value', schema.path, intPart, Math.max(Number(rule.min), Number(rule.max)), result);
             }
             // |count
             if (rule.min !== undefined && rule.max === undefined) {
-                Assert.equal('value', schema.path, parts[0], rule.min, result, '[value] ' + name);
+                Assert.equal('value', schema.path, intPart, Number(rule.min), result, '[value] ' + name);
             }
             // 小数部分
             if (rule.decimal) {
                 // |dmin-dmax
                 if (rule.dmin !== undefined && rule.dmax !== undefined) {
-                    Assert.greaterThanOrEqualTo('value', schema.path, parts[1].length, rule.dmin, result);
-                    Assert.lessThanOrEqualTo('value', schema.path, parts[1].length, rule.dmax, result);
+                    Assert.greaterThanOrEqualTo('value', schema.path, floatPart.length, Number(rule.dmin), result);
+                    Assert.lessThanOrEqualTo('value', schema.path, floatPart.length, Number(rule.dmax), result);
                 }
                 // |dcount
                 if (rule.dmin !== undefined && rule.dmax === undefined) {
-                    Assert.equal('value', schema.path, parts[1].length, rule.dmin, result);
+                    Assert.equal('value', schema.path, floatPart.length, Number(rule.dmin), result);
                 }
             }
         }
@@ -7966,8 +7955,8 @@ var Diff = {
             actualRepeatCount = actualRepeatCount ? actualRepeatCount.length : 0;
             // |min-max
             if (rule.min !== undefined && rule.max !== undefined) {
-                Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.min, result);
-                Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.max, result);
+                Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, Number(rule.min), result);
+                Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, Number(rule.max), result);
             }
             // |count
             if (rule.min !== undefined && rule.max === undefined) {
@@ -7979,8 +7968,8 @@ var Diff = {
             actualRepeatCount = actualRepeatCount ? actualRepeatCount.length : 0;
             // |min-max
             if (rule.min !== undefined && rule.max !== undefined) {
-                Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.min, result);
-                Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.max, result);
+                Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, Number(rule.min), result);
+                Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, Number(rule.max), result);
             }
             // |count
             if (rule.min !== undefined && rule.max === undefined) {
@@ -8011,7 +8000,7 @@ var Diff = {
             if (rule.min !== undefined && rule.max === undefined) {
                 // |1, |>1
                 if (rule.count !== 1) {
-                    Assert.equal('properties length', schema.path, keys$1.length, rule.min, result);
+                    Assert.equal('properties length', schema.path, keys$1.length, Number(rule.min), result);
                 }
             }
         }
@@ -8100,24 +8089,11 @@ var Assert = {
         if (actual === expected) {
             return true;
         }
-        switch (type) {
-            case 'type':
-                // 正则模板 === 字符串最终值
-                if (expected === 'regexp' && actual === 'string') {
-                    return true;
-                }
-                break;
+        // 正则模板 === 字符串最终值
+        if (type === 'type' && expected === 'regexp' && actual === 'string') {
+            return true;
         }
-        var item = {
-            path: path,
-            type: type,
-            actual: actual,
-            expected: expected,
-            action: 'is equal to',
-            message: message
-        };
-        item.message = Assert.message(item);
-        result.push(item);
+        result.push(Assert.createDiffResult(type, path, actual, expected, message, 'is equal to'));
         return false;
     },
     // actual matches expected
@@ -8125,97 +8101,55 @@ var Assert = {
         if (expected.test(actual)) {
             return true;
         }
-        var item = {
-            path: path,
-            type: type,
-            actual: actual,
-            expected: expected,
-            action: 'matches',
-            message: message
-        };
-        item.message = Assert.message(item);
-        result.push(item);
+        result.push(Assert.createDiffResult(type, path, actual, expected, message, 'matches'));
         return false;
     },
     notEqual: function (type, path, actual, expected, result, message) {
         if (actual !== expected) {
             return true;
         }
-        var item = {
-            path: path,
-            type: type,
-            actual: actual,
-            expected: expected,
-            action: 'is not equal to',
-            message: message
-        };
-        item.message = Assert.message(item);
-        result.push(item);
+        result.push(Assert.createDiffResult(type, path, actual, expected, message, 'is not equal to'));
         return false;
     },
     greaterThan: function (type, path, actual, expected, result, message) {
         if (actual > expected) {
             return true;
         }
-        var item = {
-            path: path,
-            type: type,
-            actual: actual,
-            expected: expected,
-            action: 'is greater than',
-            message: message
-        };
-        item.message = Assert.message(item);
-        result.push(item);
+        result.push(Assert.createDiffResult(type, path, actual, expected, message, 'is greater than'));
         return false;
     },
     lessThan: function (type, path, actual, expected, result, message) {
         if (actual < expected) {
             return true;
         }
-        var item = {
-            path: path,
-            type: type,
-            actual: actual,
-            expected: expected,
-            action: 'is less to',
-            message: message
-        };
-        item.message = Assert.message(item);
-        result.push(item);
+        result.push(Assert.createDiffResult(type, path, actual, expected, message, 'is less to'));
         return false;
     },
     greaterThanOrEqualTo: function (type, path, actual, expected, result, message) {
         if (actual >= expected) {
             return true;
         }
-        var item = {
-            path: path,
-            type: type,
-            actual: actual,
-            expected: expected,
-            action: 'is greater than or equal to',
-            message: message
-        };
-        item.message = Assert.message(item);
-        result.push(item);
+        result.push(Assert.createDiffResult(type, path, actual, expected, message, 'is greater than or equal to'));
         return false;
     },
     lessThanOrEqualTo: function (type, path, actual, expected, result, message) {
         if (actual <= expected) {
             return true;
         }
+        result.push(Assert.createDiffResult(type, path, actual, expected, message, 'is less than or equal to'));
+        return false;
+    },
+    createDiffResult: function (type, path, actual, expected, message, action) {
         var item = {
             path: path,
             type: type,
             actual: actual,
             expected: expected,
-            action: 'is less than or equal to',
+            action: action,
             message: message
         };
         item.message = Assert.message(item);
-        result.push(item);
-        return false;
+        return item;
     }
 };
 var valid = function valid(template, data) {
