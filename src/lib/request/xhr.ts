@@ -1,24 +1,10 @@
-import * as util from '../util'
-import { XHRCustom, MockedItem, Settings, XHRCustomOptions } from '../types'
+import { isString, values, isRegExp, isFunction, createCustomEvent } from '../util'
+import { XHRCustom, MockedItem, Settings, XHRCustomOptions, XHRBody } from '../types'
 import rgx from 'regexparam'
 
 // 备份原生 XMLHttpRequest
 const _XMLHttpRequest = XMLHttpRequest
 const _ActiveXObject = window.ActiveXObject
-
-// PhantomJS
-// TypeError: '[object EventConstructor]' is not a constructor (evaluating 'new Event("readystatechange")')
-// https://github.com/bluerail/twitter-bootstrap-rails-confirm/issues/18
-// https://github.com/ariya/phantomjs/issues/11289
-try {
-  new Event('custom')
-} catch (exception) {
-  window.Event = function(type, bubbles, cancelable, detail) {
-    const event = document.createEvent('CustomEvent') // MUST be 'CustomEvent'
-    event.initCustomEvent(type, bubbles, cancelable, detail)
-    return event
-  }
-}
 
 enum XHR_STATES {
   // The object has been constructed.
@@ -100,7 +86,7 @@ class MockXMLHttpRequest {
   }
 
   open (method: string, url: string, async: boolean = true, username?: string, password?: string) {
-    util.objectAssign(this.custom, {
+    Object.assign(this.custom, {
       method: method,
       url: url,
       async: typeof async === 'boolean' ? async : true,
@@ -147,7 +133,7 @@ class MockXMLHttpRequest {
             } catch (e) {}
           }
           // 触发 MockXMLHttpRequest 上的同名事件
-          this.dispatchEvent(new Event(event.type))
+          this.dispatchEvent(createCustomEvent(event.type))
         })
       }
 
@@ -172,7 +158,7 @@ class MockXMLHttpRequest {
     this.match = true
     this.custom.template = item
     this.readyState = XHR_STATES.OPENED
-    this.dispatchEvent(new Event('readystatechange'))
+    this.dispatchEvent(createCustomEvent('readystatechange'))
   }
 
   // Combines a header in author request headers.
@@ -193,7 +179,7 @@ class MockXMLHttpRequest {
   }
 
   // Initiates the request.
-  send (data: any): void {
+  send (data: XHRBody): void {
     this.custom.options.body = data
     this.custom.options.headers = this.custom.requestHeaders
 
@@ -208,13 +194,13 @@ class MockXMLHttpRequest {
     this.setRequestHeader('X-Requested-With', 'MockXMLHttpRequest')
 
     // loadstart The fetch initiates.
-    this.dispatchEvent(new Event('loadstart'))
+    this.dispatchEvent(createCustomEvent('loadstart'))
   
     const done = () => {
       this.readyState = XHR_STATES.HEADERS_RECEIVED
-      this.dispatchEvent(new Event('readystatechange'))
+      this.dispatchEvent(createCustomEvent('readystatechange'))
       this.readyState = XHR_STATES.LOADING
-      this.dispatchEvent(new Event('readystatechange'))
+      this.dispatchEvent(createCustomEvent('readystatechange'))
 
       this.status = 200
       this.statusText = 'OK'
@@ -223,9 +209,9 @@ class MockXMLHttpRequest {
       this.response = this.responseText = JSON.stringify(convert(this.custom.template!, this.custom.options), null, 4)
 
       this.readyState = XHR_STATES.DONE
-      this.dispatchEvent(new Event('readystatechange'))
-      this.dispatchEvent(new Event('load'))
-      this.dispatchEvent(new Event('loadend'))
+      this.dispatchEvent(createCustomEvent('readystatechange'))
+      this.dispatchEvent(createCustomEvent('load'))
+      this.dispatchEvent(createCustomEvent('loadend'))
     }
 
     if (this.custom.async) {
@@ -247,8 +233,8 @@ class MockXMLHttpRequest {
 
     // 拦截 XHR
     this.readyState = XHR_STATES.UNSENT
-    this.dispatchEvent(new window.Event('abort', false, false, this))
-    this.dispatchEvent(new window.Event('error', false, false, this))
+    this.dispatchEvent(createCustomEvent('abort', false, false, this))
+    this.dispatchEvent(createCustomEvent('error', false, false, this))
   }
 
   // https://xhr.spec.whatwg.org/#the-getresponseheader()-method
@@ -317,8 +303,8 @@ class MockXMLHttpRequest {
     timeout: '10-100'
   }
 
-  static setup = function(settings: object) {
-    util.objectAssign(MockXMLHttpRequest.settings, settings)
+  static setup = function(settings: Settings) {
+    Object.assign(MockXMLHttpRequest.settings, settings)
     return MockXMLHttpRequest.settings
   }
 
@@ -344,25 +330,21 @@ function createNativeXMLHttpRequest() {
   return window.ActiveXObject ? (!isLocal && createStandardXHR()) || createActiveXHR() : createStandardXHR()
 
   function createStandardXHR() {
-    try {
-      return new _XMLHttpRequest()
-    } catch (e) {}
+    return new _XMLHttpRequest()
   }
 
   function createActiveXHR() {
-    try {
-      return new _ActiveXObject('Microsoft.XMLHTTP')
-    } catch (e) {}
+    return new _ActiveXObject('Microsoft.XMLHTTP')
   }
 }
 
 // 查找与请求参数匹配的数据模板：URL，Type
-export function find(options): MockedItem | undefined {
-  const mockedItems: MockedItem[] = util.values(MockXMLHttpRequest.Mock.mocked)
+export function find(options: Partial<XHRCustomOptions>): MockedItem | undefined {
+  const mockedItems: MockedItem[] = values(MockXMLHttpRequest.Mock.mocked)
   for (let i = 0; i < mockedItems.length; i++) {
     const item = mockedItems[i]
-    const urlMatched = matchUrl(item.rurl, options.url)
-    const typeMatched = matchType(item.rtype, options.type)
+    const urlMatched = matchUrl(item.rurl, options.url!)
+    const typeMatched = matchType(item.rtype, options.type!)
     if (!item.rtype && urlMatched) {
       return item
     }
@@ -372,7 +354,7 @@ export function find(options): MockedItem | undefined {
   }
 
   function matchUrl(expected: string | RegExp | undefined, actual: string): boolean {
-    if (util.isString(expected)) {
+    if (isString(expected)) {
       if (expected === actual) {
         return true
       }
@@ -387,14 +369,14 @@ export function find(options): MockedItem | undefined {
         return rgx(expected).pattern.test(actual)
       }
     }
-    if (util.isRegExp(expected)) {
+    if (isRegExp(expected)) {
       return expected.test(actual)
     }
     return false
   }
 
   function matchType(expected: string | RegExp | undefined, actual: string): boolean {
-    if (util.isString(expected) || util.isRegExp(expected)) {
+    if (isString(expected) || isRegExp(expected)) {
       return new RegExp(expected, 'i').test(actual)
     }
     return false
@@ -403,15 +385,14 @@ export function find(options): MockedItem | undefined {
 
 // 数据模板 ＝> 响应数据
 export function convert(item: MockedItem, options: Partial<XHRCustomOptions>) {
-  return util.isFunction(item.template) ? item.template(options) : MockXMLHttpRequest.Mock.mock(item.template)
+  return isFunction(item.template) ? item.template(options) : MockXMLHttpRequest.Mock.mock(item.template)
 }
 
 export default MockXMLHttpRequest
 
 declare global {
   interface Window {
-    ActiveXObject: any
-    Event: any
+    ActiveXObject: { new(type: string): XMLHttpRequest }
     XMLHttpRequest: XMLHttpRequest
   }
 }

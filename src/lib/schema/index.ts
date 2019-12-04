@@ -1,37 +1,34 @@
 // 把 Mock.js 风格的数据模板转换成 JSON Schema。
 import constant from '../constant'
-import * as util from '../util'
-import * as parser from '../parser'
+import { type, isArray, isObject } from '../util'
+import { parse } from '../parser'
+import { SchemaResult } from '../types'
 
-function toJSONSchema(template: object, name?, path? /* Internal Use Only */ ) {
-  // type rule properties items
+function toJSONSchema(template: object | string | (string | object)[], name?: string | number, path?: string[]) {
   path = path || []
-  const result: any = {
+  const result: SchemaResult = {
     name: typeof name === 'string' ? name.replace(constant.RE_KEY, '$1') : name,
     template: template,
-    type: util.type(template), // 可能不准确，例如 { 'name|1': [{}, {} ...] }
-    rule: parser.parse(name)
+    type: type(template), // 可能不准确，例如 { 'name|1': [{}, {} ...] }
+    rule: parse(name),
+    path: path.slice(0)
   }
-  result.path = path.slice(0)
-  result.path.push(name === undefined ? 'ROOT' : result.name)
+  result.path!.push(name === undefined ? 'ROOT' : result.name as string)
   
-  switch (result.type) {
-    case 'array':
-      result.items = []
-      util.each(template, function(value, index) {
-        result.items.push(
-          toJSONSchema(value, index, result.path)
-        )
-      })
-      break
-    case 'object':
-      result.properties = []
-      util.each(template, function(value, key) {
-        result.properties.push(
-          toJSONSchema(value, key, result.path)
-        )
-      })
-      break
+  if (isArray(template)) {
+    result.items = [];
+    template.forEach((item, index) => {
+      result.items!.push(
+        toJSONSchema(item, index, result.path)
+      )
+    })
+  } else if (isObject(template)) {
+    result.properties = [];
+    for (let key in template) {
+      result.properties.push(
+        toJSONSchema(template[key], key, result.path)
+      )
+    }
   }
   
   return result

@@ -78,13 +78,13 @@ function ascii (from, to) {
   return result
 }
 
-const handler: any = {
+const handler = {
   // var ast = RegExpParser.parse(regexp.source)
-  gen: function (node, result, cache) {
+  gen: function (node, result?, cache?) {
     cache = cache || {
       guid: 1
     }
-    return handler[node.type] ? handler[node.type](node, result, cache) : handler.token(node, result, cache)
+    return handler[node.type] ? handler[node.type](node, result, cache) : handler.token(node)
   },
   
   token: function (node) {

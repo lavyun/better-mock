@@ -1,6 +1,7 @@
 // image
 import { pick } from './helper'
 import { isNumber, assert } from '../util'
+import Jimp from 'jimp'
 
 // 常见图片尺寸
 const imageSize: string[] = [
@@ -104,7 +105,7 @@ function createBrowserDataImage (width: number, height: number, background: stri
 
 // node 端生成 base64 图片
 function createNodeDataImage (width: number, height: number, background: string, text: string) {
-  const Jimp = require('jimp')
+  const Jimp: Jimp = require('jimp')
   const sync = require('promise-synchronizer')
 
   // 计算字体的合适大小
@@ -122,7 +123,7 @@ function createNodeDataImage (width: number, height: number, background: string,
         Jimp.loadFont(fontPath).then(font => {
           // 文字的真实宽高
           const measureWidth = Jimp.measureText(font, text)
-          const measureHeight = Jimp.measureTextHeight(font, text)
+          const measureHeight = Jimp.measureTextHeight(font, text, width)
           // 文字在画布上的目标 x, y
           const targetX = width <= measureWidth ? 0 : (width - measureWidth) / 2
           const targetY = height <= measureHeight ? 0 : (height - measureHeight) / 2

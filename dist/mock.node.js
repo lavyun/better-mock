@@ -1,5 +1,5 @@
 /*!
-  * better-mock v0.1.3 (mock.node.js)
+  * better-mock v0.1.4 (mock.node.js)
   * (c) 2019-2019 lavyun@163.com
   * Released under the MIT License.
   */
@@ -47,71 +47,41 @@ function __spreadArrays() {
     return r;
 }
 
-var objectAssign = function (target, args) {
-    // TypeError if undefined or null
-    if (target == null) {
-        throw new TypeError('Cannot convert undefined or null to object');
-    }
-    var to = Object(target);
-    for (var i = 1; i < arguments.length; i++) {
-        var nextSource = arguments[i];
-        if (nextSource != null) { // Skip over if undefined or null
-            for (var nextKey in nextSource) {
-                // Avoid bugs when hasOwnProperty is shadowed
-                if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
-                    to[nextKey] = nextSource[nextKey];
-                }
-            }
-        }
-    }
-    return to;
-};
-var each = function (obj, iterator, context) {
-    var i, key;
-    if (type(obj) === 'number') {
-        for (i = 0; i < obj; i++) {
-            iterator(i, i);
-        }
-    }
-    else if (obj.length === +obj.length) {
-        for (i = 0; i < obj.length; i++) {
-            if (iterator.call(context, obj[i], i, obj) === false)
-                break;
-        }
-    }
-    else {
-        for (key in obj) {
-            if (iterator.call(context, obj[key], key, obj) === false)
-                break;
-        }
-    }
-};
+/* type-coverage:ignore-next-line */
 var type = function (value) {
     return isDef(value)
         ? Object.prototype.toString.call(value).match(/\[object (\w+)\]/)[1].toLowerCase()
         : String(value);
 };
+/* type-coverage:ignore-next-line */
 var isDef = function (value) {
     return value !== undefined && value !== null;
 };
+/* type-coverage:ignore-next-line */
 var isString = function (value) {
     return type(value) === 'string';
 };
+/* type-coverage:ignore-next-line */
 var isNumber = function (value) {
     return type(value) === 'number';
 };
+/* type-coverage:ignore-next-line */
 var isObject = function (value) {
     return type(value) === 'object';
 };
+/* type-coverage:ignore-next-line */
 var isArray = function (value) {
     return type(value) === 'array';
 };
+/* type-coverage:ignore-next-line */
 var isRegExp = function (value) {
     return type(value) === 'regexp';
 };
+/* type-coverage:ignore-next-line */
 var isFunction = function (value) {
     return type(value) === 'function';
 };
+/* type-coverage:ignore-next-line */
 var isObjectOrArray = function (value) {
     return isObject(value) || isArray(value);
 };
@@ -165,10 +135,27 @@ var assert = function (condition, error) {
         throw new Error('[better-mock] ' + error);
     }
 };
+/**
+ * 创建一个自定义事件，兼容 IE
+ * @param type 一个字符串，表示事件名称。
+ * @param bubbles 一个布尔值，表示该事件能否冒泡。
+ * @param cancelable 一个布尔值，表示该事件是否可以取消。
+ * @param detail 一个任意类型，传递给事件的自定义数据。
+ */
+var createCustomEvent = function (type, bubbles, cancelable, detail) {
+    if (bubbles === void 0) { bubbles = false; }
+    if (cancelable === void 0) { cancelable = false; }
+    try {
+        return new CustomEvent(type, { bubbles: bubbles, cancelable: cancelable, detail: detail });
+    }
+    catch (e) {
+        var event_1 = document.createEvent('CustomEvent');
+        event_1.initCustomEvent(type, bubbles, cancelable, detail);
+        return event_1;
+    }
+};
 
 var Util = /*#__PURE__*/Object.freeze({
-  objectAssign: objectAssign,
-  each: each,
   type: type,
   isDef: isDef,
   isString: isString,
@@ -184,7 +171,8 @@ var Util = /*#__PURE__*/Object.freeze({
   heredoc: heredoc,
   noop: noop,
   logInfo: logInfo,
-  assert: assert
+  assert: assert,
+  createCustomEvent: createCustomEvent
 });
 
 var MAX_NATURE_NUMBER = 9007199254740992;
@@ -628,7 +616,7 @@ function createNodeDataImage(width, height, background, text) {
                 Jimp.loadFont(fontPath).then(function (font) {
                     // 文字的真实宽高
                     var measureWidth = Jimp.measureText(font, text);
-                    var measureHeight = Jimp.measureTextHeight(font, text);
+                    var measureHeight = Jimp.measureTextHeight(font, text, width);
                     // 文字在画布上的目标 x, y
                     var targetX = width <= measureWidth ? 0 : (width - measureWidth) / 2;
                     var targetY = height <= measureHeight ? 0 : (height - measureHeight) / 2;
@@ -6531,23 +6519,23 @@ var Random = __assign(__assign(__assign(__assign(__assign(__assign(__assign(__as
 
 // 解析数据模板（属性名部分）。
 var parse = function (name) {
-    name = name == undefined ? '' : (name + '');
-    var parameters = (name || '').match(constant.RE_KEY);
+    name = name === undefined ? '' : (name + '');
+    var parameters = name.match(constant.RE_KEY);
     // name|min-max, name|count
     var range = parameters && parameters[3] && parameters[3].match(constant.RE_RANGE);
-    var min = range && range[1] && parseInt(range[1], 10); // || 1
-    var max = range && range[2] && parseInt(range[2], 10); // || 1
+    var min = range && range[1] && parseInt(range[1], 10);
+    var max = range && range[2] && parseInt(range[2], 10);
     // 如果是 min-max, 返回 min-max 之间的一个数
     // 如果是 count, 返回 count
     var count = range ?
-        range[2] ? Random.integer(min, max) : parseInt(range[1], 10)
+        range[2] ? Random.integer(Number(min), Number(max)) : parseInt(range[1], 10)
         : undefined;
     var decimal = parameters && parameters[4] && parameters[4].match(constant.RE_RANGE);
-    var dmin = decimal && decimal[1] && parseInt(decimal[1], 10); // || 0,
-    var dmax = decimal && decimal[2] && parseInt(decimal[2], 10); // || 0,
+    var dmin = decimal && decimal[1] && parseInt(decimal[1], 10);
+    var dmax = decimal && decimal[2] && parseInt(decimal[2], 10);
     // int || dmin-dmax
     var dcount = decimal
-        ? decimal[2] ? Random.integer(dmin, dmax) : parseInt(decimal[1], 10)
+        ? decimal[2] ? Random.integer(Number(dmin), Number(dmax)) : parseInt(decimal[1], 10)
         : undefined;
     var result = {
         // 1 name, 2 inc, 3 range, 4 decimal
@@ -6601,7 +6589,7 @@ var handler = {
         cache = cache || {
             guid: 1
         };
-        return handler[node.type] ? handler[node.type](node, result, cache) : handler.token(node, result, cache);
+        return handler[node.type] ? handler[node.type](node, result, cache) : handler.token(node);
     },
     token: function (node) {
         switch (node.type) {
@@ -7858,112 +7846,75 @@ var handler$1 = {
 };
 
 // 把 Mock.js 风格的数据模板转换成 JSON Schema。
-function toJSONSchema(template, name, path /* Internal Use Only */) {
-    // type rule properties items
+function toJSONSchema(template, name, path) {
     path = path || [];
     var result = {
         name: typeof name === 'string' ? name.replace(constant.RE_KEY, '$1') : name,
         template: template,
         type: type(template),
-        rule: parse(name)
+        rule: parse(name),
+        path: path.slice(0)
     };
-    result.path = path.slice(0);
     result.path.push(name === undefined ? 'ROOT' : result.name);
-    switch (result.type) {
-        case 'array':
-            result.items = [];
-            each(template, function (value, index) {
-                result.items.push(toJSONSchema(value, index, result.path));
-            });
-            break;
-        case 'object':
-            result.properties = [];
-            each(template, function (value, key) {
-                result.properties.push(toJSONSchema(value, key, result.path));
-            });
-            break;
+    if (isArray(template)) {
+        result.items = [];
+        template.forEach(function (item, index) {
+            result.items.push(toJSONSchema(item, index, result.path));
+        });
+    }
+    else if (isObject(template)) {
+        result.properties = [];
+        for (var key in template) {
+            result.properties.push(toJSONSchema(template[key], key, result.path));
+        }
     }
     return result;
 }
 
 // ## valid(template, data)
-// ## name
-//     有生成规则：比较解析后的 name
-//     无生成规则：直接比较
-// ## type
-//     无类型转换：直接比较
-//     有类型转换：先试着解析 template，然后再检查？
-// ## value vs. template
-//     基本类型
-//         无生成规则：直接比较
-//         有生成规则：
-//             number
-//                 min-max.dmin-dmax
-//                 min-max.dcount
-//                 count.dmin-dmax
-//                 count.dcount
-//                 +step
-//                 整数部分
-//                 小数部分
-//             boolean
-//             string
-//                 min-max
-//                 count
-// ## properties
-//     对象
-//         有生成规则：检测期望的属性个数，继续递归
-//         无生成规则：检测全部的属性个数，继续递归
-// ## items
-//     数组
-//         有生成规则：
-//             `'name|1': [{}, {} ...]`            其中之一，继续递归
-//             `'name|+1': [{}, {} ...]`           顺序检测，继续递归
-//             `'name|min-max': [{}, {} ...]`      检测个数，继续递归
-//             `'name|count': [{}, {} ...]`        检测个数，继续递归
-//         无生成规则：检测全部的元素个数，继续递归
 var Diff = {
-    diff: function diff(schema, data, name /* Internal Use Only */) {
+    diff: function diff(schema, data, name) {
         var result = [];
         // 先检测名称 name 和类型 type，如果匹配，才有必要继续检测
-        if (this.name(schema, data, name, result) && this.type(schema, data, name, result)) {
-            this.value(schema, data, name, result);
-            this.properties(schema, data, name, result);
-            this.items(schema, data, name, result);
+        if (Diff.name(schema, data, name, result) && Diff.type(schema, data, name, result)) {
+            Diff.value(schema, data, name, result);
+            Diff.properties(schema, data, name, result);
+            Diff.items(schema, data, name, result);
         }
         return result;
     },
     /* jshint unused:false */
-    name: function (schema, data, name, result) {
+    name: function (schema, _data, name, result) {
         var length = result.length;
         Assert.equal('name', schema.path, name + '', schema.name + '', result);
         return result.length === length;
     },
-    type: function (schema, data, name, result) {
+    type: function (schema, data, _name, result) {
         var length = result.length;
-        switch (schema.type) {
-            case 'string':
-                // 跳过含有『占位符』的属性值，因为『占位符』返回值的类型可能和模板不一致，例如 '@int' 会返回一个整形值
-                if (schema.template.match(constant.RE_PLACEHOLDER))
-                    return true;
-                break;
-            case 'array':
-                if (schema.rule.parameters) {
-                    // name|count: array
-                    if (schema.rule.min !== undefined && schema.rule.max === undefined) {
-                        // 跳过 name|1: array，因为最终值的类型（很可能）不是数组，也不一定与 `array` 中的类型一致
-                        if (schema.rule.count === 1) {
-                            return true;
-                        }
-                    }
-                    // 跳过 name|+inc: array
-                    if (schema.rule.parameters[2]) {
+        if (isString(schema.template)) {
+            // 跳过含有『占位符』的属性值，因为『占位符』返回值的类型可能和模板不一致，例如 '@int' 会返回一个整形值
+            if (schema.template.match(constant.RE_PLACEHOLDER)) {
+                return true;
+            }
+        }
+        else if (isArray(schema.template)) {
+            if (schema.rule.parameters) {
+                // name|count: array
+                if (schema.rule.min !== undefined && schema.rule.max === undefined) {
+                    // 跳过 name|1: array，因为最终值的类型（很可能）不是数组，也不一定与 `array` 中的类型一致
+                    if (schema.rule.count === 1) {
                         return true;
                     }
                 }
-                break;
-            case 'function':
-                // 跳过 `'name': function`，因为函数可以返回任何类型的值。
-                return true;
+                // 跳过 name|+inc: array
+                if (schema.rule.parameters[2]) {
+                    return true;
+                }
+            }
+        }
+        else if (isFunction(schema.template)) {
+            // 跳过 `'name': function`，因为函数可以返回任何类型的值。
+            return true;
         }
         Assert.equal('type', schema.path, type(data), schema.type, result);
         return result.length === length;
@@ -7977,83 +7928,79 @@ var Diff = {
         }
         // 无生成规则
         if (!rule.parameters) {
-            switch (templateType) {
-                case 'regexp':
-                    Assert.match('value', schema.path, data, schema.template, result);
+            if (isRegExp(schema.template)) {
+                Assert.match('value', schema.path, data, schema.template, result);
+                return result.length === length;
+            }
+            if (isString(schema.template)) {
+                // 同样跳过含有『占位符』的属性值，因为『占位符』的返回值会通常会与模板不一致
+                if (schema.template.match(constant.RE_PLACEHOLDER)) {
                     return result.length === length;
-                case 'string':
-                    // 同样跳过含有『占位符』的属性值，因为『占位符』的返回值会通常会与模板不一致
-                    if (schema.template.match(constant.RE_PLACEHOLDER)) {
-                        return result.length === length;
-                    }
-                    break;
+                }
             }
             Assert.equal('value', schema.path, data, schema.template, result);
             return result.length === length;
         }
         // 有生成规则
         var actualRepeatCount;
-        switch (templateType) {
-            case 'number':
-                var parts = (data + '').split('.');
-                parts[0] = +parts[0];
-                // 整数部分
-                // |min-max
-                if (rule.min !== undefined && rule.max !== undefined) {
-                    Assert.greaterThanOrEqualTo('value', schema.path, parts[0], Math.min(rule.min, rule.max), result);
-                    // , 'numeric instance is lower than the required minimum (minimum: {expected}, found: {actual})')
-                    Assert.lessThanOrEqualTo('value', schema.path, parts[0], Math.max(rule.min, rule.max), result);
+        if (isNumber(schema.template)) {
+            var parts = (data + '').split('.');
+            var intPart = Number(parts[0]);
+            var floatPart = parts[1];
+            // 整数部分
+            // |min-max
+            if (rule.min !== undefined && rule.max !== undefined) {
+                Assert.greaterThanOrEqualTo('value', schema.path, intPart, Math.min(Number(rule.min), Number(rule.max)), result);
+                // , 'numeric instance is lower than the required minimum (minimum: {expected}, found: {actual})')
+                Assert.lessThanOrEqualTo('value', schema.path, intPart, Math.max(Number(rule.min), Number(rule.max)), result);
+            }
+            // |count
+            if (rule.min !== undefined && rule.max === undefined) {
+                Assert.equal('value', schema.path, intPart, Number(rule.min), result, '[value] ' + name);
+            }
+            // 小数部分
+            if (rule.decimal) {
+                // |dmin-dmax
+                if (rule.dmin !== undefined && rule.dmax !== undefined) {
+                    Assert.greaterThanOrEqualTo('value', schema.path, floatPart.length, Number(rule.dmin), result);
+                    Assert.lessThanOrEqualTo('value', schema.path, floatPart.length, Number(rule.dmax), result);
                 }
-                // |count
-                if (rule.min !== undefined && rule.max === undefined) {
-                    Assert.equal('value', schema.path, parts[0], rule.min, result, '[value] ' + name);
+                // |dcount
+                if (rule.dmin !== undefined && rule.dmax === undefined) {
+                    Assert.equal('value', schema.path, floatPart.length, Number(rule.dmin), result);
                 }
-                // 小数部分
-                if (rule.decimal) {
-                    // |dmin-dmax
-                    if (rule.dmin !== undefined && rule.dmax !== undefined) {
-                        Assert.greaterThanOrEqualTo('value', schema.path, parts[1].length, rule.dmin, result);
-                        Assert.lessThanOrEqualTo('value', schema.path, parts[1].length, rule.dmax, result);
-                    }
-                    // |dcount
-                    if (rule.dmin !== undefined && rule.dmax === undefined) {
-                        Assert.equal('value', schema.path, parts[1].length, rule.dmin, result);
-                    }
-                }
-                break;
-            case 'boolean':
-                break;
-            case 'string':
-                // 'aaa'.match(/a/g)
-                actualRepeatCount = data.match(new RegExp(schema.template, 'g'));
-                actualRepeatCount = actualRepeatCount ? actualRepeatCount.length : 0;
-                // |min-max
-                if (rule.min !== undefined && rule.max !== undefined) {
-                    Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.min, result);
-                    Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.max, result);
-                }
-                // |count
-                if (rule.min !== undefined && rule.max === undefined) {
-                    Assert.equal('repeat count', schema.path, actualRepeatCount, rule.min, result);
-                }
-                break;
-            case 'regexp':
-                actualRepeatCount = data.match(new RegExp(schema.template.source.replace(/^\^|\$$/g, ''), 'g'));
-                actualRepeatCount = actualRepeatCount ? actualRepeatCount.length : 0;
-                // |min-max
-                if (rule.min !== undefined && rule.max !== undefined) {
-                    Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.min, result);
-                    Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, rule.max, result);
-                }
-                // |count
-                if (rule.min !== undefined && rule.max === undefined) {
-                    Assert.equal('repeat count', schema.path, actualRepeatCount, rule.min, result);
-                }
-                break;
+            }
+        }
+        else if (isString(schema.template)) {
+            // 'aaa'.match(/a/g)
+            actualRepeatCount = data.match(new RegExp(schema.template, 'g'));
+            actualRepeatCount = actualRepeatCount ? actualRepeatCount.length : 0;
+            // |min-max
+            if (rule.min !== undefined && rule.max !== undefined) {
+                Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, Number(rule.min), result);
+                Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, Number(rule.max), result);
+            }
+            // |count
+            if (rule.min !== undefined && rule.max === undefined) {
+                Assert.equal('repeat count', schema.path, actualRepeatCount, rule.min, result);
+            }
+        }
+        else if (isRegExp(schema.template)) {
+            actualRepeatCount = data.match(new RegExp(schema.template.source.replace(/^\^|\$$/g, ''), 'g'));
+            actualRepeatCount = actualRepeatCount ? actualRepeatCount.length : 0;
+            // |min-max
+            if (rule.min !== undefined && rule.max !== undefined) {
+                Assert.greaterThanOrEqualTo('repeat count', schema.path, actualRepeatCount, Number(rule.min), result);
+                Assert.lessThanOrEqualTo('repeat count', schema.path, actualRepeatCount, Number(rule.max), result);
+            }
+            // |count
+            if (rule.min !== undefined && rule.max === undefined) {
+                Assert.equal('repeat count', schema.path, actualRepeatCount, rule.min, result);
+            }
         }
         return result.length === length;
     },
-    properties: function (schema, data, name, result) {
+    properties: function (schema, data, _name, result) {
         var length = result.length;
         var rule = schema.rule;
         var keys$1 = keys(data);
@@ -8068,14 +8015,14 @@ var Diff = {
             // 有生成规则
             // |min-max
             if (rule.min !== undefined && rule.max !== undefined) {
-                Assert.greaterThanOrEqualTo('properties length', schema.path, keys$1.length, Math.min(rule.min, rule.max), result);
-                Assert.lessThanOrEqualTo('properties length', schema.path, keys$1.length, Math.max(rule.min, rule.max), result);
+                Assert.greaterThanOrEqualTo('properties length', schema.path, keys$1.length, Math.min(Number(rule.min), Number(rule.max)), result);
+                Assert.lessThanOrEqualTo('properties length', schema.path, keys$1.length, Math.max(Number(rule.min), Number(rule.max)), result);
             }
             // |count
             if (rule.min !== undefined && rule.max === undefined) {
                 // |1, |>1
                 if (rule.count !== 1) {
-                    Assert.equal('properties length', schema.path, keys$1.length, rule.min, result);
+                    Assert.equal('properties length', schema.path, keys$1.length, Number(rule.min), result);
                 }
             }
         }
@@ -8084,21 +8031,20 @@ var Diff = {
         }
         var _loop_1 = function (i) {
             var property;
-            each(schema.properties, function (item /*, index*/) {
+            schema.properties.forEach(function (item) {
                 if (item.name === keys$1[i]) {
                     property = item;
                 }
             });
             property = property || schema.properties[i];
-            result.push.apply(result, this_1.diff(property, data[keys$1[i]], keys$1[i]));
+            result.push.apply(result, Diff.diff(property, data[keys$1[i]], keys$1[i]));
         };
-        var this_1 = this;
         for (var i = 0; i < keys$1.length; i++) {
             _loop_1(i);
         }
         return result.length === length;
     },
-    items: function (schema, data, name, result) {
+    items: function (schema, data, _name, result) {
         var length = result.length;
         if (!schema.items) {
             return;
@@ -8112,8 +8058,8 @@ var Diff = {
             // 有生成规则
             // |min-max
             if (rule.min !== undefined && rule.max !== undefined) {
-                Assert.greaterThanOrEqualTo('items', schema.path, data.length, (Math.min(rule.min, rule.max) * schema.items.length), result, '[{utype}] array is too short: {path} must have at least {expected} elements but instance has {actual} elements');
-                Assert.lessThanOrEqualTo('items', schema.path, data.length, (Math.max(rule.min, rule.max) * schema.items.length), result, '[{utype}] array is too long: {path} must have at most {expected} elements but instance has {actual} elements');
+                Assert.greaterThanOrEqualTo('items', schema.path, data.length, Math.min(Number(rule.min), Number(rule.max)) * schema.items.length, result, '[{utype}] array is too short: {path} must have at least {expected} elements but instance has {actual} elements');
+                Assert.lessThanOrEqualTo('items', schema.path, data.length, Math.max(Number(rule.min), Number(rule.max)) * schema.items.length, result, '[{utype}] array is too long: {path} must have at most {expected} elements but instance has {actual} elements');
             }
             // |count
             if (rule.min !== undefined && rule.max === undefined) {
@@ -8122,11 +8068,11 @@ var Diff = {
                     return result.length === length;
                 }
                 else {
-                    Assert.equal('items length', schema.path, data.length, (rule.min * schema.items.length), result);
+                    Assert.equal('items length', schema.path, data.length, (Number(rule.min) * schema.items.length), result);
                 }
             }
             // |+inc
-            if (rule.parameters[2]) {
+            if (rule.parameters && rule.parameters[2]) {
                 return result.length === length;
             }
         }
@@ -8134,7 +8080,7 @@ var Diff = {
             return false;
         }
         for (var i = 0; i < data.length; i++) {
-            result.push.apply(result, this.diff(schema.items[i % schema.items.length], data[i], i % schema.items.length));
+            result.push.apply(result, Diff.diff(schema.items[i % schema.items.length], data[i], i % schema.items.length));
         }
         return result.length === length;
     }
@@ -8165,24 +8111,11 @@ var Assert = {
         if (actual === expected) {
             return true;
         }
-        switch (type) {
-            case 'type':
-                // 正则模板 === 字符串最终值
-                if (expected === 'regexp' && actual === 'string') {
-                    return true;
-                }
-                break;
+        // 正则模板 === 字符串最终值
+        if (type === 'type' && expected === 'regexp' && actual === 'string') {
+            return true;
         }
-        var item = {
-            path: path,
-            type: type,
-            actual: actual,
-            expected: expected,
-            action: 'is equal to',
-            message: message
-        };
-        item.message = Assert.message(item);
-        result.push(item);
+        result.push(Assert.createDiffResult(type, path, actual, expected, message, 'is equal to'));
         return false;
     },
     // actual matches expected
@@ -8190,97 +8123,55 @@ var Assert = {
         if (expected.test(actual)) {
             return true;
         }
-        var item = {
-            path: path,
-            type: type,
-            actual: actual,
-            expected: expected,
-            action: 'matches',
-            message: message
-        };
-        item.message = Assert.message(item);
-        result.push(item);
+        result.push(Assert.createDiffResult(type, path, actual, expected, message, 'matches'));
         return false;
     },
     notEqual: function (type, path, actual, expected, result, message) {
         if (actual !== expected) {
             return true;
         }
-        var item = {
-            path: path,
-            type: type,
-            actual: actual,
-            expected: expected,
-            action: 'is not equal to',
-            message: message
-        };
-        item.message = Assert.message(item);
-        result.push(item);
+        result.push(Assert.createDiffResult(type, path, actual, expected, message, 'is not equal to'));
         return false;
     },
     greaterThan: function (type, path, actual, expected, result, message) {
         if (actual > expected) {
             return true;
         }
-        var item = {
-            path: path,
-            type: type,
-            actual: actual,
-            expected: expected,
-            action: 'is greater than',
-            message: message
-        };
-        item.message = Assert.message(item);
-        result.push(item);
+        result.push(Assert.createDiffResult(type, path, actual, expected, message, 'is greater than'));
         return false;
     },
     lessThan: function (type, path, actual, expected, result, message) {
         if (actual < expected) {
             return true;
         }
-        var item = {
-            path: path,
-            type: type,
-            actual: actual,
-            expected: expected,
-            action: 'is less to',
-            message: message
-        };
-        item.message = Assert.message(item);
-        result.push(item);
+        result.push(Assert.createDiffResult(type, path, actual, expected, message, 'is less to'));
         return false;
     },
     greaterThanOrEqualTo: function (type, path, actual, expected, result, message) {
         if (actual >= expected) {
             return true;
         }
-        var item = {
-            path: path,
-            type: type,
-            actual: actual,
-            expected: expected,
-            action: 'is greater than or equal to',
-            message: message
-        };
-        item.message = Assert.message(item);
-        result.push(item);
+        result.push(Assert.createDiffResult(type, path, actual, expected, message, 'is greater than or equal to'));
         return false;
     },
     lessThanOrEqualTo: function (type, path, actual, expected, result, message) {
         if (actual <= expected) {
             return true;
         }
+        result.push(Assert.createDiffResult(type, path, actual, expected, message, 'is less than or equal to'));
+        return false;
+    },
+    createDiffResult: function (type, path, actual, expected, message, action) {
         var item = {
             path: path,
             type: type,
             actual: actual,
             expected: expected,
-            action: 'is less than or equal to',
+            action: action,
             message: message
         };
         item.message = Assert.message(item);
-        result.push(item);
-        return false;
+        return item;
     }
 };
 var valid = function valid(template, data) {
@@ -8300,7 +8191,7 @@ var Mock = {
     valid: valid,
     mock: mock,
     heredoc: heredoc,
-    version: '0.1.3'
+    version: '0.1.4'
 };
 // Mock.mock( template )
 // 根据数据模板生成模拟数据。

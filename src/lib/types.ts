@@ -1,3 +1,5 @@
+import { parse } from './parser'
+
 export interface StringObject {
   [key: string]: string
 } 
@@ -15,9 +17,11 @@ export interface Mocked {
 export interface XHRCustomOptions {
   url: string,
   type: string,
-  body: string,
+  body: XHRBody,
   headers: StringObject
 }
+
+export type XHRBody = Document | BodyInit | null
 
 export interface XHRCustom {
   events: {
@@ -34,4 +38,23 @@ export interface XHRCustom {
 
 export interface Settings {
   timeout: string
+}
+
+export interface SchemaResult {
+  name: string | number | undefined,
+  template: object | string | (string | object)[],
+  type: string,
+  rule: ReturnType<typeof parse>,
+  path: string[],
+  items?: SchemaResult[],
+  properties?: SchemaResult[]
+}
+
+export interface DiffResult {
+  path: string[],
+  type: string,
+  actual: any,
+  expected: any,
+  action: string,
+  message: string | undefined
 }

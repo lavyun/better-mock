@@ -7,6 +7,7 @@
 ![npm](https://img.shields.io/npm/v/better-mock)
 ![NPM](https://img.shields.io/npm/l/better-mock)
 ![npm](https://img.shields.io/npm/dw/better-mock)
+![type-coverage](https://img.shields.io/badge/dynamic/json?color=brightgreen&label=type-coverage&suffix=%&query=%24.typeCoverage.atLeast&url=https%3A%2F%2Fraw.githubusercontent.com%2Flavyun%2Fbetter-mock%2Fmaster%2Fpackage.json)
 
 ## 介绍
 
