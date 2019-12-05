@@ -467,7 +467,7 @@ var lower = function (str) {
     return (str + '').toLowerCase();
 };
 // 从数组中随机选取一个元素，并返回。
-var pick = function pick(arr, min, max) {
+var pick = function (arr, min, max) {
     // pick( item1, item2 ... )
     if (!isArray(arr)) {
         arr = [].slice.call(arguments);
@@ -6527,15 +6527,19 @@ var parse = function (name) {
     var max = range && range[2] && parseInt(range[2], 10);
     // 如果是 min-max, 返回 min-max 之间的一个数
     // 如果是 count, 返回 count
-    var count = range ?
-        range[2] ? Random.integer(Number(min), Number(max)) : parseInt(range[1], 10)
+    var count = range
+        ? range[2]
+            ? Random.integer(Number(min), Number(max))
+            : parseInt(range[1], 10)
         : undefined;
     var decimal = parameters && parameters[4] && parameters[4].match(constant.RE_RANGE);
     var dmin = decimal && decimal[1] && parseInt(decimal[1], 10);
     var dmax = decimal && decimal[2] && parseInt(decimal[2], 10);
     // int || dmin-dmax
     var dcount = decimal
-        ? decimal[2] ? Random.integer(Number(dmin), Number(dmax)) : parseInt(decimal[1], 10)
+        ? decimal[2]
+            ? Random.integer(Number(dmin), Number(dmax))
+            : parseInt(decimal[1], 10)
         : undefined;
     var result = {
         // 1 name, 2 inc, 3 range, 4 decimal
@@ -7531,7 +7535,7 @@ var handler$1 = {
                     options.context.path.pop();
                     options.context.templatePath.pop();
                 }
-                else {
+                else if (options.rule.count) {
                     // 'data|1-10': [{}]
                     for (var i = 0; i < options.rule.count; i++) {
                         // 'data|1-10': [{}, {}]
@@ -7631,9 +7635,13 @@ var handler$1 = {
             // 'float4|.3-10': 123.123,
             parts[0] = options.rule.range ? options.rule.count : parts[0];
             parts[1] = (parts[1] || '').slice(0, options.rule.dcount);
-            while (parts[1].length < options.rule.dcount) {
-                parts[1] += // 最后一位不能为 0：如果最后一位为 0，会被 JS 引擎忽略掉。
-                    parts[1].length < options.rule.dcount - 1 ? Random.character('number') : Random.character('123456789');
+            if (options.rule.dcount) {
+                while (parts[1].length < options.rule.dcount) {
+                    // 最后一位不能为 0：如果最后一位为 0，会被 JS 引擎忽略掉。
+                    parts[1] += parts[1].length < options.rule.dcount - 1
+                        ? Random.character('number')
+                        : Random.character('123456789');
+                }
             }
             result = parseFloat(parts.join('.'));
         }
@@ -7648,7 +7656,7 @@ var handler$1 = {
         // 'prop|multiple': false, 当前值是相反值的概率倍数
         // 'prop|probability-probability': false, 当前值与相反值的概率
         var result = options.rule.parameters
-            ? Random.bool(options.rule.min, options.rule.max, options.template)
+            ? Random.bool(Number(options.rule.min), Number(options.rule.max), options.template)
             : options.template;
         return result;
     },
@@ -7698,12 +7706,14 @@ var handler$1 = {
     regexp: function (options) {
         var source = '';
         // 'name': /regexp/,
-        if (options.rule.count == undefined) {
+        if (options.rule.count === undefined) {
             source += options.template.source; // regexp.source
         }
-        // 'name|1-5': /regexp/,
-        for (var i = 0; i < options.rule.count; i++) {
-            source += options.template.source;
+        else {
+            // 'name|1-5': /regexp/,
+            for (var i = 0; i < options.rule.count; i++) {
+                source += options.template.source;
+            }
         }
         return RE.Handler.gen(RE.Parser.parse(source));
     },

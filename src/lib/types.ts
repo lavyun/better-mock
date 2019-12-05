@@ -31,7 +31,7 @@ export interface XHRCustom {
   responseHeaders: StringObject,
   timeout: number,
   options: Partial<XHRCustomOptions>,
-  xhr: XMLHttpRequest | null,
+  xhr: XMLHttpRequest,
   template: MockedItem | null,
   async: boolean
 }

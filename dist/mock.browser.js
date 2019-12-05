@@ -471,7 +471,7 @@
       return (str + '').toLowerCase();
   };
   // 从数组中随机选取一个元素，并返回。
-  var pick = function pick(arr, min, max) {
+  var pick = function (arr, min, max) {
       // pick( item1, item2 ... )
       if (!isArray(arr)) {
           arr = [].slice.call(arguments);
@@ -6511,15 +6511,19 @@
       var max = range && range[2] && parseInt(range[2], 10);
       // 如果是 min-max, 返回 min-max 之间的一个数
       // 如果是 count, 返回 count
-      var count = range ?
-          range[2] ? Random.integer(Number(min), Number(max)) : parseInt(range[1], 10)
+      var count = range
+          ? range[2]
+              ? Random.integer(Number(min), Number(max))
+              : parseInt(range[1], 10)
           : undefined;
       var decimal = parameters && parameters[4] && parameters[4].match(constant.RE_RANGE);
       var dmin = decimal && decimal[1] && parseInt(decimal[1], 10);
       var dmax = decimal && decimal[2] && parseInt(decimal[2], 10);
       // int || dmin-dmax
       var dcount = decimal
-          ? decimal[2] ? Random.integer(Number(dmin), Number(dmax)) : parseInt(decimal[1], 10)
+          ? decimal[2]
+              ? Random.integer(Number(dmin), Number(dmax))
+              : parseInt(decimal[1], 10)
           : undefined;
       var result = {
           // 1 name, 2 inc, 3 range, 4 decimal
@@ -7515,7 +7519,7 @@
                       options.context.path.pop();
                       options.context.templatePath.pop();
                   }
-                  else {
+                  else if (options.rule.count) {
                       // 'data|1-10': [{}]
                       for (var i = 0; i < options.rule.count; i++) {
                           // 'data|1-10': [{}, {}]
@@ -7615,9 +7619,13 @@
               // 'float4|.3-10': 123.123,
               parts[0] = options.rule.range ? options.rule.count : parts[0];
               parts[1] = (parts[1] || '').slice(0, options.rule.dcount);
-              while (parts[1].length < options.rule.dcount) {
-                  parts[1] += // 最后一位不能为 0：如果最后一位为 0，会被 JS 引擎忽略掉。
-                      parts[1].length < options.rule.dcount - 1 ? Random.character('number') : Random.character('123456789');
+              if (options.rule.dcount) {
+                  while (parts[1].length < options.rule.dcount) {
+                      // 最后一位不能为 0：如果最后一位为 0，会被 JS 引擎忽略掉。
+                      parts[1] += parts[1].length < options.rule.dcount - 1
+                          ? Random.character('number')
+                          : Random.character('123456789');
+                  }
               }
               result = parseFloat(parts.join('.'));
           }
@@ -7632,7 +7640,7 @@
           // 'prop|multiple': false, 当前值是相反值的概率倍数
           // 'prop|probability-probability': false, 当前值与相反值的概率
           var result = options.rule.parameters
-              ? Random.bool(options.rule.min, options.rule.max, options.template)
+              ? Random.bool(Number(options.rule.min), Number(options.rule.max), options.template)
               : options.template;
           return result;
       },
@@ -7682,12 +7690,14 @@
       regexp: function (options) {
           var source = '';
           // 'name': /regexp/,
-          if (options.rule.count == undefined) {
+          if (options.rule.count === undefined) {
               source += options.template.source; // regexp.source
           }
-          // 'name|1-5': /regexp/,
-          for (var i = 0; i < options.rule.count; i++) {
-              source += options.template.source;
+          else {
+              // 'name|1-5': /regexp/,
+              for (var i = 0; i < options.rule.count; i++) {
+                  source += options.template.source;
+              }
           }
           return RE.Handler.gen(RE.Parser.parse(source));
       },
@@ -8229,8 +8239,6 @@
           this.timeout = 0;
           this.readyState = XHR_STATES.UNSENT;
           this.withCredentials = false;
-          // https://xhr.spec.whatwg.org/#the-send()-method
-          this.upload = {};
           this.responseURL = '';
           this.status = XHR_STATES.UNSENT;
           this.statusText = '';
@@ -8251,10 +8259,11 @@
               responseHeaders: {},
               timeout: 0,
               options: {},
-              xhr: null,
+              xhr: createNativeXMLHttpRequest(),
               template: null,
               async: true
           };
+          this.upload = this.custom.xhr.upload;
       }
       MockXMLHttpRequest.prototype.open = function (method, url, async, username, password) {
           var _this = this;
@@ -8289,9 +8298,7 @@
           var item = find(this.custom.options);
           // 如果未找到匹配的数据模板，则采用原生 XHR 发送请求。
           if (!item) {
-              // 创建原生 XHR 对象，调用原生 open()，监听所有原生事件
-              var xhr_1 = createNativeXMLHttpRequest();
-              this.custom.xhr = xhr_1;
+              var xhr_1 = this.custom.xhr;
               // 初始化所有事件，用于监听原生 XHR 对象的事件
               for (var i = 0; i < XHR_EVENTS.length; i++) {
                   xhr_1.addEventListener(XHR_EVENTS[i], function (event) {
