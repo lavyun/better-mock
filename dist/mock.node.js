@@ -53,35 +53,27 @@ var type = function (value) {
         ? Object.prototype.toString.call(value).match(/\[object (\w+)\]/)[1].toLowerCase()
         : String(value);
 };
-/* type-coverage:ignore-next-line */
 var isDef = function (value) {
     return value !== undefined && value !== null;
 };
-/* type-coverage:ignore-next-line */
 var isString = function (value) {
     return type(value) === 'string';
 };
-/* type-coverage:ignore-next-line */
 var isNumber = function (value) {
     return type(value) === 'number';
 };
-/* type-coverage:ignore-next-line */
 var isObject = function (value) {
     return type(value) === 'object';
 };
-/* type-coverage:ignore-next-line */
 var isArray = function (value) {
     return type(value) === 'array';
 };
-/* type-coverage:ignore-next-line */
 var isRegExp = function (value) {
     return type(value) === 'regexp';
 };
-/* type-coverage:ignore-next-line */
 var isFunction = function (value) {
     return type(value) === 'function';
 };
-/* type-coverage:ignore-next-line */
 var isObjectOrArray = function (value) {
     return isObject(value) || isArray(value);
 };
