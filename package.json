@@ -46,7 +46,7 @@
   },
   "types": "./typings/index.d.ts",
   "typeCoverage": {
-    "atLeast": 83
+    "atLeast": 84
   },
   "dependencies": {
     "china-location": "^2.0.0",

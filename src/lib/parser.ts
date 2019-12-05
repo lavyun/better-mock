@@ -25,8 +25,10 @@ export const parse = function(name: string | undefined | number) {
   const max = range && range[2] && parseInt(range[2], 10)
   // 如果是 min-max, 返回 min-max 之间的一个数
   // 如果是 count, 返回 count
-  const count = range ? 
-    range[2] ? random.integer(Number(min), Number(max)) : parseInt(range[1], 10)
+  const count = range 
+    ? range[2]
+      ? random.integer(Number(min), Number(max))
+      : parseInt(range[1], 10)
     : undefined
 
   const decimal = parameters && parameters[4] && parameters[4].match(constant.RE_RANGE)
@@ -34,7 +36,9 @@ export const parse = function(name: string | undefined | number) {
   const dmax = decimal && decimal[2] && parseInt(decimal[2], 10)
   // int || dmin-dmax
   const dcount = decimal 
-    ? decimal[2] ? random.integer(Number(dmin), Number(dmax)) : parseInt(decimal[1], 10)
+    ? decimal[2] 
+      ? random.integer(Number(dmin), Number(dmax))
+      : parseInt(decimal[1], 10)
     : undefined
 
   const result = {
