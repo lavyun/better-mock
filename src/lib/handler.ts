@@ -2,7 +2,7 @@
 // handler.gen( template, name?, context? )
 import constant from './constant'
 import * as utils from './util'
-import * as parser from './parser'
+import { parse } from './parser'
 import random from './random'
 import RE from './regexp/index'
 
@@ -30,7 +30,7 @@ const handler = {
       templateRoot: context.templateRoot || context.templateCurrentContext || template
     }
     
-    const rule = parser.parse(name)
+    const rule = parse(name)
     const type = utils.type(template)
     let data
     
@@ -113,7 +113,7 @@ const handler = {
           
           options.context.path.pop()
           options.context.templatePath.pop()
-        } else {
+        } else if (options.rule.count) {
           // 'data|1-10': [{}]
           for (let i = 0; i < options.rule.count; i++) {
             // 'data|1-10': [{}, {}]
@@ -216,15 +216,19 @@ const handler = {
       // 'float4|.3-10': 123.123,
       parts[0] = options.rule.range ? options.rule.count : parts[0]
       parts[1] = (parts[1] || '').slice(0, options.rule.dcount)
-      while (parts[1].length < options.rule.dcount) {
-        parts[1] += // 最后一位不能为 0：如果最后一位为 0，会被 JS 引擎忽略掉。
-          parts[1].length < options.rule.dcount - 1 ? random.character('number') : random.character('123456789')
+      if (options.rule.dcount) {
+        while (parts[1].length < options.rule.dcount) {
+          // 最后一位不能为 0：如果最后一位为 0，会被 JS 引擎忽略掉。
+          parts[1] += parts[1].length < options.rule.dcount - 1 
+            ? random.character('number')
+            : random.character('123456789')
+        }
       }
       result = parseFloat(parts.join('.'))
     } else {
       // integer
       // 'grade1|1-100': 1,
-      result = options.rule.range && !options.rule.parameters[2] ? options.rule.count : options.template
+      result = options.rule.range && !options.rule.parameters![2] ? options.rule.count : options.template
     }
     return result
   },
@@ -233,7 +237,7 @@ const handler = {
     // 'prop|multiple': false, 当前值是相反值的概率倍数
     // 'prop|probability-probability': false, 当前值与相反值的概率
     const result = options.rule.parameters 
-      ? random.bool(options.rule.min, options.rule.max, options.template) 
+      ? random.bool(Number(options.rule.min), Number(options.rule.max), options.template) 
       : options.template
     return result
   },
@@ -291,13 +295,13 @@ const handler = {
     let source = ''
     
     // 'name': /regexp/,
-    if (options.rule.count == undefined) {
+    if (options.rule.count === undefined) {
       source += options.template.source // regexp.source
-    }
-    
-    // 'name|1-5': /regexp/,
-    for (let i = 0; i < options.rule.count; i++) {
-      source += options.template.source
+    } else {
+      // 'name|1-5': /regexp/,
+      for (let i = 0; i < options.rule.count; i++) {
+        source += options.template.source
+      }
     }
     
     return RE.Handler.gen(RE.Parser.parse(source))
@@ -468,7 +472,7 @@ interface GenerateOptions {
   type: string
   template: any
   name: string
-  rule: any
+  rule: ReturnType<typeof parse>
   context: GenerateContext
   parsedName: string
 }

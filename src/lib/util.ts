@@ -5,48 +5,32 @@ export const type = function(value: any): string {
     : String(value)
 }
 
-/* type-coverage:ignore-next-line */
-export const isDef = function (value: any): boolean {
+export const isDef = function (value: unknown): boolean {
   return value !== undefined && value !== null
 }
 
-/* type-coverage:ignore-next-line */
-export const isString = function (value: any): value is string {
+export const isString = function (value: unknown): value is string {
   return type(value) === 'string'
 }
 
-/* type-coverage:ignore-next-line */
-export const isNumber = function (value: any): value is number {
+export const isNumber = function (value: unknown): value is number {
   return type(value) === 'number'
 }
 
-/* type-coverage:ignore-next-line */
-export const isObject = function (value: any): value is object {
+export const isObject = function (value: unknown): value is object {
   return type(value) === 'object'
 }
 
-/* type-coverage:ignore-next-line */
-export const isArray = function (value: any): value is Array<any> {
+export const isArray = function<T = any> (value: unknown): value is Array<T> {
   return type(value) === 'array'
 }
 
-/* type-coverage:ignore-next-line */
-export const isRegExp = function (value: any): value is RegExp {
+export const isRegExp = function (value: unknown): value is RegExp {
   return type(value) === 'regexp'
 }
 
-/* type-coverage:ignore-next-line */
-export const isFunction = function (value: any): value is Function {
+export const isFunction = function (value: unknown): value is Function {
   return type(value) === 'function'
-}
-
-/* type-coverage:ignore-next-line */
-export const isObjectOrArray = function (value: any): value is object | Array<any> {
-  return isObject(value) || isArray(value)
-}
-
-export const isNumeric = function (value) {
-  return !isNaN(parseFloat(value)) && isFinite(value)
 }
 
 export const keys = function (obj: object): string[] {
@@ -87,10 +71,6 @@ export const heredoc = function (fn: Function) {
 }
 
 export const noop = function () {}
-
-export const logInfo = function (...args) {
-  console.log('[better-mock]', ...args)
-}
 
 export const assert = function (condition: any, error: string) {
   if (!condition) {

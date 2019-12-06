@@ -1,5 +1,5 @@
 /*!
-  * better-mock v0.1.4 (mock.browser.esm.js)
+  * better-mock v0.1.5 (mock.browser.esm.js)
   * (c) 2019-2019 lavyun@163.com
   * Released under the MIT License.
   */
@@ -11,80 +11,32 @@ var constant = {
     RE_PLACEHOLDER: /\\*@([^@#%&()\?\s]+)(?:\((.*?)\))?/g
 };
 
-/*! *****************************************************************************
-Copyright (c) Microsoft Corporation. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-this file except in compliance with the License. You may obtain a copy of the
-License at http://www.apache.org/licenses/LICENSE-2.0
-
-THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
-WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-MERCHANTABLITY OR NON-INFRINGEMENT.
-
-See the Apache Version 2.0 License for specific language governing permissions
-and limitations under the License.
-***************************************************************************** */
-
-var __assign = function() {
-    __assign = Object.assign || function __assign(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-
-function __spreadArrays() {
-    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-    for (var r = Array(s), k = 0, i = 0; i < il; i++)
-        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-            r[k] = a[j];
-    return r;
-}
-
 /* type-coverage:ignore-next-line */
 var type = function (value) {
     return isDef(value)
         ? Object.prototype.toString.call(value).match(/\[object (\w+)\]/)[1].toLowerCase()
         : String(value);
 };
-/* type-coverage:ignore-next-line */
 var isDef = function (value) {
     return value !== undefined && value !== null;
 };
-/* type-coverage:ignore-next-line */
 var isString = function (value) {
     return type(value) === 'string';
 };
-/* type-coverage:ignore-next-line */
 var isNumber = function (value) {
     return type(value) === 'number';
 };
-/* type-coverage:ignore-next-line */
 var isObject = function (value) {
     return type(value) === 'object';
 };
-/* type-coverage:ignore-next-line */
 var isArray = function (value) {
     return type(value) === 'array';
 };
-/* type-coverage:ignore-next-line */
 var isRegExp = function (value) {
     return type(value) === 'regexp';
 };
-/* type-coverage:ignore-next-line */
 var isFunction = function (value) {
     return type(value) === 'function';
-};
-/* type-coverage:ignore-next-line */
-var isObjectOrArray = function (value) {
-    return isObject(value) || isArray(value);
-};
-var isNumeric = function (value) {
-    return !isNaN(parseFloat(value)) && isFinite(value);
 };
 var keys = function (obj) {
     var keys = [];
@@ -121,13 +73,6 @@ var heredoc = function (fn) {
         .replace(/[\s\xA0]+$/, ''); // .trim()
 };
 var noop = function () { };
-var logInfo = function () {
-    var args = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        args[_i] = arguments[_i];
-    }
-    console.log.apply(console, __spreadArrays(['[better-mock]'], args));
-};
 var assert = function (condition, error) {
     if (!condition) {
         throw new Error('[better-mock] ' + error);
@@ -162,16 +107,47 @@ var Util = /*#__PURE__*/Object.freeze({
   isArray: isArray,
   isRegExp: isRegExp,
   isFunction: isFunction,
-  isObjectOrArray: isObjectOrArray,
-  isNumeric: isNumeric,
   keys: keys,
   values: values,
   heredoc: heredoc,
   noop: noop,
-  logInfo: logInfo,
   assert: assert,
   createCustomEvent: createCustomEvent
 });
+
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation. All rights reserved.
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at http://www.apache.org/licenses/LICENSE-2.0
+
+THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+MERCHANTABLITY OR NON-INFRINGEMENT.
+
+See the Apache Version 2.0 License for specific language governing permissions
+and limitations under the License.
+***************************************************************************** */
+
+var __assign = function() {
+    __assign = Object.assign || function __assign(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+
+function __spreadArrays() {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+}
 
 var MAX_NATURE_NUMBER = 9007199254740992;
 var MIN_NATURE_NUMBER = -9007199254740992;
@@ -465,7 +441,7 @@ var lower = function (str) {
     return (str + '').toLowerCase();
 };
 // 从数组中随机选取一个元素，并返回。
-var pick = function pick(arr, min, max) {
+var pick = function (arr, min, max) {
     // pick( item1, item2 ... )
     if (!isArray(arr)) {
         arr = [].slice.call(arguments);
@@ -6505,15 +6481,19 @@ var parse = function (name) {
     var max = range && range[2] && parseInt(range[2], 10);
     // 如果是 min-max, 返回 min-max 之间的一个数
     // 如果是 count, 返回 count
-    var count = range ?
-        range[2] ? Random.integer(Number(min), Number(max)) : parseInt(range[1], 10)
+    var count = range
+        ? range[2]
+            ? Random.integer(Number(min), Number(max))
+            : parseInt(range[1], 10)
         : undefined;
     var decimal = parameters && parameters[4] && parameters[4].match(constant.RE_RANGE);
     var dmin = decimal && decimal[1] && parseInt(decimal[1], 10);
     var dmax = decimal && decimal[2] && parseInt(decimal[2], 10);
     // int || dmin-dmax
     var dcount = decimal
-        ? decimal[2] ? Random.integer(Number(dmin), Number(dmax)) : parseInt(decimal[1], 10)
+        ? decimal[2]
+            ? Random.integer(Number(dmin), Number(dmax))
+            : parseInt(decimal[1], 10)
         : undefined;
     var result = {
         // 1 name, 2 inc, 3 range, 4 decimal
@@ -7509,7 +7489,7 @@ var handler$1 = {
                     options.context.path.pop();
                     options.context.templatePath.pop();
                 }
-                else {
+                else if (options.rule.count) {
                     // 'data|1-10': [{}]
                     for (var i = 0; i < options.rule.count; i++) {
                         // 'data|1-10': [{}, {}]
@@ -7609,9 +7589,13 @@ var handler$1 = {
             // 'float4|.3-10': 123.123,
             parts[0] = options.rule.range ? options.rule.count : parts[0];
             parts[1] = (parts[1] || '').slice(0, options.rule.dcount);
-            while (parts[1].length < options.rule.dcount) {
-                parts[1] += // 最后一位不能为 0：如果最后一位为 0，会被 JS 引擎忽略掉。
-                    parts[1].length < options.rule.dcount - 1 ? Random.character('number') : Random.character('123456789');
+            if (options.rule.dcount) {
+                while (parts[1].length < options.rule.dcount) {
+                    // 最后一位不能为 0：如果最后一位为 0，会被 JS 引擎忽略掉。
+                    parts[1] += parts[1].length < options.rule.dcount - 1
+                        ? Random.character('number')
+                        : Random.character('123456789');
+                }
             }
             result = parseFloat(parts.join('.'));
         }
@@ -7626,7 +7610,7 @@ var handler$1 = {
         // 'prop|multiple': false, 当前值是相反值的概率倍数
         // 'prop|probability-probability': false, 当前值与相反值的概率
         var result = options.rule.parameters
-            ? Random.bool(options.rule.min, options.rule.max, options.template)
+            ? Random.bool(Number(options.rule.min), Number(options.rule.max), options.template)
             : options.template;
         return result;
     },
@@ -7676,12 +7660,14 @@ var handler$1 = {
     regexp: function (options) {
         var source = '';
         // 'name': /regexp/,
-        if (options.rule.count == undefined) {
+        if (options.rule.count === undefined) {
             source += options.template.source; // regexp.source
         }
-        // 'name|1-5': /regexp/,
-        for (var i = 0; i < options.rule.count; i++) {
-            source += options.template.source;
+        else {
+            // 'name|1-5': /regexp/,
+            for (var i = 0; i < options.rule.count; i++) {
+                source += options.template.source;
+            }
         }
         return RE.Handler.gen(RE.Parser.parse(source));
     },
@@ -8104,27 +8090,6 @@ var Assert = {
         result.push(Assert.createDiffResult(type, path, actual, expected, message, 'matches'));
         return false;
     },
-    notEqual: function (type, path, actual, expected, result, message) {
-        if (actual !== expected) {
-            return true;
-        }
-        result.push(Assert.createDiffResult(type, path, actual, expected, message, 'is not equal to'));
-        return false;
-    },
-    greaterThan: function (type, path, actual, expected, result, message) {
-        if (actual > expected) {
-            return true;
-        }
-        result.push(Assert.createDiffResult(type, path, actual, expected, message, 'is greater than'));
-        return false;
-    },
-    lessThan: function (type, path, actual, expected, result, message) {
-        if (actual < expected) {
-            return true;
-        }
-        result.push(Assert.createDiffResult(type, path, actual, expected, message, 'is less to'));
-        return false;
-    },
     greaterThanOrEqualTo: function (type, path, actual, expected, result, message) {
         if (actual >= expected) {
             return true;
@@ -8223,8 +8188,6 @@ var MockXMLHttpRequest = /** @class */ (function () {
         this.timeout = 0;
         this.readyState = XHR_STATES.UNSENT;
         this.withCredentials = false;
-        // https://xhr.spec.whatwg.org/#the-send()-method
-        this.upload = {};
         this.responseURL = '';
         this.status = XHR_STATES.UNSENT;
         this.statusText = '';
@@ -8245,10 +8208,11 @@ var MockXMLHttpRequest = /** @class */ (function () {
             responseHeaders: {},
             timeout: 0,
             options: {},
-            xhr: null,
+            xhr: createNativeXMLHttpRequest(),
             template: null,
             async: true
         };
+        this.upload = this.custom.xhr.upload;
     }
     MockXMLHttpRequest.prototype.open = function (method, url, async, username, password) {
         var _this = this;
@@ -8283,9 +8247,7 @@ var MockXMLHttpRequest = /** @class */ (function () {
         var item = find(this.custom.options);
         // 如果未找到匹配的数据模板，则采用原生 XHR 发送请求。
         if (!item) {
-            // 创建原生 XHR 对象，调用原生 open()，监听所有原生事件
-            var xhr_1 = createNativeXMLHttpRequest();
-            this.custom.xhr = xhr_1;
+            var xhr_1 = this.custom.xhr;
             // 初始化所有事件，用于监听原生 XHR 对象的事件
             for (var i = 0; i < XHR_EVENTS.length; i++) {
                 xhr_1.addEventListener(XHR_EVENTS[i], function (event) {
@@ -8615,7 +8577,7 @@ var Mock = {
     heredoc: heredoc,
     setup: function (settings) { return MockXMLHttpRequest.setup(settings); },
     mocked: {},
-    version: '0.1.4'
+    version: '0.1.5'
 };
 // 避免循环依赖
 if (MockXMLHttpRequest) {

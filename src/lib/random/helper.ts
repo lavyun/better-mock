@@ -18,7 +18,7 @@ export const lower = function(str: string): string {
 }
 
 // 从数组中随机选取一个元素，并返回。
-export const pick = function pick(arr: any[], min?: number, max?: number) {
+export const pick = function(arr: any[], min?: number, max?: number) {
   // pick( item1, item2 ... )
   if (!isArray(arr)) {
     arr = [].slice.call(arguments)
@@ -52,10 +52,10 @@ export const pickMap = function pickMap(map: object) {
 // 打乱数组中元素的顺序，并返回。
 export const shuffle = function shuffle(arr: any[], min?: number, max?: number): any {
   arr = arr || []
-  let old = arr.slice(0)
-  let result: any = []
+  const old = arr.slice(0)
+  const result: any[] = []
   let index = 0
-  let length = old.length;
+  const length = old.length;
   for (let i = 0; i < length; i++) {
     index = basic.natural(0, old.length - 1)
     result.push(old[index])

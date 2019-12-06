@@ -48,7 +48,7 @@ class MockXMLHttpRequest {
   withCredentials: boolean = false
 
   // https://xhr.spec.whatwg.org/#the-send()-method
-  upload: any = {}
+  upload: XMLHttpRequestUpload
 
   responseURL: string = ''
 
@@ -79,10 +79,11 @@ class MockXMLHttpRequest {
       responseHeaders: {},
       timeout: 0,
       options: {},
-      xhr: null,
+      xhr: createNativeXMLHttpRequest(),
       template: null,
       async: true
     }
+    this.upload = this.custom.xhr.upload
   }
 
   open (method: string, url: string, async: boolean = true, username?: string, password?: string) {
@@ -119,9 +120,7 @@ class MockXMLHttpRequest {
 
     // 如果未找到匹配的数据模板，则采用原生 XHR 发送请求。
     if (!item) {
-      // 创建原生 XHR 对象，调用原生 open()，监听所有原生事件
-      const xhr = createNativeXMLHttpRequest()
-      this.custom.xhr = xhr
+      const xhr = this.custom.xhr
 
       // 初始化所有事件，用于监听原生 XHR 对象的事件
       for (let i = 0; i < XHR_EVENTS.length; i++) {

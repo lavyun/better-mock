@@ -67,7 +67,20 @@ describe('Mock.valid', function () {
     }, {
       name: 11
     }, 1)
+
+    doit({ 'name|5': 1 }, { name: 5 }, 0)
+
+    doit({ 'name|5': 1 }, { name: 6 }, 1)
+
+    doit({ 'name|.5': 1 }, { name: 1.34567 }, 0)
+
+    doit({ 'name|.5': 1 }, { name: 1.345678 }, 1)
+
+    doit({ 'name|.5-7': 1 }, { name: 1.345678 }, 0)
+
+    doit({ 'name|.5-7': 1 }, { name: 1.3456 }, 1)
   })
+
   describe('Value - String', function () {
     doit({
       name: 'value'
@@ -111,6 +124,7 @@ describe('Mock.valid', function () {
       name: 'valuevaluevaluevalue'
     }, 1)
   })
+
   describe('Value - RgeExp', function () {
     doit({
       name: /value/
@@ -137,6 +151,9 @@ describe('Mock.valid', function () {
     }, {
       name: 'valuevaluevaluevaluevalue'
     }, 0)
+
+    doit({ 'name|2': /^value$/ }, { name: 'valuevalue' }, 0)
+
     doit({
       name: /[a-z][A-Z][0-9]/
     }, {
@@ -184,6 +201,16 @@ describe('Mock.valid', function () {
         }
       }
     }, 1)
+
+    doit({
+      name: {
+        'age|1-3': 1
+      }
+    }, {
+      name: {
+        age: 2
+      }
+    }, 0)
   })
   describe('Value - Array', function () {
     doit([1, 2, 3], [1, 2, 3], 0)

@@ -367,33 +367,6 @@ const Assert = {
     ))
     return false
   },
-  notEqual: function(type: string, path: string[], actual: any, expected: any, result: DiffResult[], message: string) {
-    if (actual !== expected) {
-      return true
-    }
-    result.push(Assert.createDiffResult(
-      type, path, actual, expected, message, 'is not equal to'
-    ))
-    return false
-  },
-  greaterThan: function(type: string, path: string[], actual: number, expected: number, result: DiffResult[], message: string) {
-    if (actual > expected) {
-      return true
-    }
-    result.push(Assert.createDiffResult(
-      type, path, actual, expected, message, 'is greater than'
-    ))
-    return false
-  },
-  lessThan: function(type: string, path: string[], actual: number, expected: number, result: DiffResult[], message: string) {
-    if (actual < expected) {
-      return true
-    }
-    result.push(Assert.createDiffResult(
-      type, path, actual, expected, message, 'is less to'
-    ))
-    return false
-  },
   greaterThanOrEqualTo: function(type: string, path: string[], actual: number, expected: number, result: DiffResult[], message?: string) {
     if (actual >= expected) {
       return true

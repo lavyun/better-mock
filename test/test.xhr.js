@@ -559,12 +559,84 @@ describe('XHR', function () {
     })
   })
   
-  describe('#105 addEventListener', function () {
-    it('addEventListene => addEventListener', function (done) {
-      var xhr = new Mock.XHR()
-      expect(xhr.addEventListener).to.not.equal(undefined)
-      expect(xhr.addEventListene).to.equal(undefined)
-      done()
+  describe('MockXMLHttpRequest', () => {
+    describe ('getResponseHeader', () => {
+      it ('match', () => {
+        const xhr = new Mock.XHR()
+        xhr.custom.responseHeaders['hello'] = 'better-mock'
+        xhr.match = true
+        const resHeader = xhr.getResponseHeader('hello')
+        expect(resHeader).to.equal('better-mock')
+      })
+
+      it ('no-match', () => {
+        const xhr = new Mock.XHR()
+        xhr.custom.responseHeaders['hello'] = 'better-mock'
+        const resHeader = xhr.getResponseHeader('hello')
+        expect(resHeader).to.equal(null)
+      })
+    })
+
+    describe ('getAllResponseHeaders', () => {
+      it ('match', () => {
+        const xhr = new Mock.XHR()
+        xhr.custom.responseHeaders['hello'] = 'better-mock'
+        xhr.custom.responseHeaders['world'] = 'better-mock'
+        xhr.match = true
+        const resHeaders = xhr.getAllResponseHeaders()
+        expect(resHeaders).to.equal('hello: better-mock\r\nworld: better-mock\r\n')
+      })
+
+      it ('no-match', () => {
+        const xhr = new Mock.XHR()
+        xhr.custom.responseHeaders['hello'] = 'better-mock'
+        const resHeaders = xhr.getAllResponseHeaders('hello')
+        expect(resHeaders).to.equal('')
+      })
+    })
+
+    describe('EventListener', () => {
+      const handler = (ev) => {
+        expect(ev.type).to.equal('ready')
+      }
+      const xhr = new Mock.XHR()
+      it ('addEventListener', () => {
+        expect(Object.keys(xhr.custom.events).length).to.equal(0)
+        xhr.addEventListener('ready', handler)
+        expect(Object.keys(xhr.custom.events).length).to.equal(1)
+        expect(xhr.custom.events.ready.length).to.equal(1)
+      })
+
+      it('dispatchEvent', () => {
+        xhr.dispatchEvent({ type: 'ready' })
+      })
+
+      it ('removeEventListener', () => {
+        xhr.removeEventListener('ready', handler)
+        expect(Object.keys(xhr.custom.events).length).to.equal(1)
+        expect(xhr.custom.events.ready.length).to.equal(0)
+      })
+    })
+
+    describe('abort', () => {
+      it('match', () => {
+        const xhr = new Mock.XHR()
+        xhr.match = true
+        xhr.addEventListener('abort', (ev) => {
+          expect(ev.type).to.equal('abort')
+        })
+        xhr.addEventListener('error', (ev) => {
+          expect(ev.type).to.equal('error')
+        })
+        xhr.abort()
+        expect(xhr.readyState).to.equal(Mock.XHR.UNSENT)
+      })
+
+      it('no-match', () => {
+        const xhr = new Mock.XHR()
+        xhr.abort()
+        expect(xhr.custom.xhr.readyState).to.equal(Mock.XHR.UNSENT)
+      })
     })
   })
 })
