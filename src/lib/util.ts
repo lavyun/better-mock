@@ -33,14 +33,6 @@ export const isFunction = function (value: unknown): value is Function {
   return type(value) === 'function'
 }
 
-export const isObjectOrArray = function (value: unknown): value is object | Array<any> {
-  return isObject(value) || isArray(value)
-}
-
-export const isNumeric = function (value) {
-  return !isNaN(parseFloat(value)) && isFinite(value)
-}
-
 export const keys = function (obj: object): string[] {
   const keys: string[] = []
   for (let key in obj) {
@@ -79,10 +71,6 @@ export const heredoc = function (fn: Function) {
 }
 
 export const noop = function () {}
-
-export const logInfo = function (...args) {
-  console.log('[better-mock]', ...args)
-}
 
 export const assert = function (condition: any, error: string) {
   if (!condition) {
