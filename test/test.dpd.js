@@ -71,10 +71,12 @@ describe('DPD', function () {
         }],
         child: {
           parentId: '@../id'
-        }
+        },
+        myId: '@./id'
       })
       expect(data.children[0]).to.have.property('parentId', data.id)
       expect(data.child).to.have.property('parentId', data.id)
+      expect(data.myId).to.equal(data.id)
     })
 
   })

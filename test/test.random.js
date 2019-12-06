@@ -238,6 +238,10 @@ describe('Random', function () {
     doit('Random.color()', function (data) {
       expect(RE_COLOR.test(data)).to.true
     })
+    doit('Random.color("green")', function (data) {
+      expect(RE_COLOR.test(data)).to.true
+      expect(data).to.equal('#2ECC40')
+    })
     doit('Random.hex()', function (data) {
       expect(RE_COLOR.test(data)).to.true
     })
@@ -252,6 +256,7 @@ describe('Random', function () {
     })
   })
 
+  const HANZI_RE = /^[\u4E00-\u9FA5]+$/
   describe('Text', function () {
     doit('Random.paragraph()', function (data) {
       expect(data.split('.').length - 1).to.within(3, 7)
@@ -261,6 +266,16 @@ describe('Random', function () {
     })
     doit('Random.paragraph(1, 3)', function (data) {
       expect(data.split('.').length - 1).to.within(1, 3)
+    })
+
+    doit('Random.cparagraph()', function (data) {
+      expect(/^([\u4E00-\u9FA5]{12,18}。){3,7}$/.test(data)).to.true
+    })
+    doit('Random.cparagraph(2)', function (data) {
+      expect(/^([\u4E00-\u9FA5]{12,18}。){2,7}$/.test(data)).to.true
+    })
+    doit('Random.cparagraph(1, 3)', function (data) {
+      expect(/^([\u4E00-\u9FA5]{12,18}。){1,3}$/.test(data)).to.true
     })
 
     doit('Random.sentence()', function (data) {
@@ -276,6 +291,16 @@ describe('Random', function () {
       expect(data.split(' ').length).to.within(3, 5)
     })
 
+    doit('Random.csentence()', function (data) {
+      expect(/^[\u4E00-\u9FA5]{12,18}。$/.test(data)).to.true
+    })
+    doit('Random.csentence(4)', function (data) {
+      expect(/^[\u4E00-\u9FA5]{4,18}。$/.test(data)).to.true
+    })
+    doit('Random.csentence(3, 5)', function (data) {
+      expect(/^[\u4E00-\u9FA5]{3,5}。$/.test(data)).to.true
+    })
+
     doit('Random.word()', function (data) {
       expect(data).to.have.length.within(3, 10)
     })
@@ -284,6 +309,39 @@ describe('Random', function () {
     })
     doit('Random.word(3, 5)', function (data) {
       expect(data).to.have.length.within(3, 5)
+    })
+
+    doit('Random.cword()', function (data) {
+      expect(data.length).to.equal(1)
+      expect(HANZI_RE.test(data)).to.true
+    })
+    doit('Random.cword(4)', function (data) {
+      expect(data.length).to.equal(4)
+      expect(HANZI_RE.test(data)).to.true
+    })
+    doit('Random.cword("临兵斗者皆阵列在前")', function (data) {
+      expect(data.length).to.equal(1)
+      expect(HANZI_RE.test(data)).to.true
+      expect('临兵斗者皆阵列在前'.includes(data)).to.true
+    })
+
+    doit('Random.cword("临兵斗者皆阵列在前", 5)', function (data) {
+      expect(data.length).to.equal(5)
+      expect(HANZI_RE.test(data)).to.true
+      for (let i = 0; i < data.length; i++) {
+        expect('临兵斗者皆阵列在前'.includes(data[i])).to.true
+      }
+    })
+    doit('Random.cword(3, 5)', function (data) {
+      expect(data).to.have.length.within(3, 5)
+      expect(HANZI_RE.test(data)).to.true
+    })
+    doit('Random.cword("临兵斗者皆阵列在前", 3, 5)', function (data) {
+      expect(data).to.have.length.within(3, 5)
+      expect(HANZI_RE.test(data)).to.true
+      for (let i = 0; i < data.length; i++) {
+        expect('临兵斗者皆阵列在前'.includes(data[i])).to.true
+      }
     })
 
     doit('Random.title()', function (data) {
@@ -306,6 +364,16 @@ describe('Random', function () {
         expect(word[0]).to.equal(word[0].toUpperCase())
       })
       expect(words).to.have.length.within(3, 5)
+    })
+
+    doit('Random.ctitle()', function (data) {
+      expect(/^[\u4E00-\u9FA5]{3,7}$/.test(data)).to.true
+    })
+    doit('Random.ctitle(2)', function (data) {
+      expect(/^[\u4E00-\u9FA5]{2,7}$/.test(data)).to.true
+    })
+    doit('Random.ctitle(1, 3)', function (data) {
+      expect(/^[\u4E00-\u9FA5]{1,3}$/.test(data)).to.true
     })
   })
 

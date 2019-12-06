@@ -38,7 +38,12 @@ describe('DTD', function () {
       var data = Mock.mock(template)
       expect(data).to.equal(undefined)
     })
+    it('null', function () {
+      var data = Mock.mock(null)
+      expect(data).to.equal(null)
+    })
   })
+
   describe('String', function () {
     // `'name|min-max': 'value'`
     it('name|min-max', function () {
@@ -57,6 +62,7 @@ describe('DTD', function () {
         .that.have.length(20)
     })
   })
+
   describe('Number', function () {
     // `'name|+step': value`
     it('name|+step', function () {
@@ -619,6 +625,7 @@ describe('DTD', function () {
       'regexp1': /[a-z][A-Z][0-9]/,
       'regexp2': /\w\W\s\S\d\D/,
       'regexp3': /\d{5,10}/,
+      'regexp4|1-3': /value/,
 
       'nested': {
         a: {
