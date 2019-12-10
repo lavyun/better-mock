@@ -1,6 +1,6 @@
 // image
 import { pick } from './helper'
-import { isNumber, assert } from '../util'
+import { isNumber, assert } from '../utils'
 import Jimp from 'jimp'
 
 // 常见图片尺寸

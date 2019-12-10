@@ -1,5 +1,5 @@
-import { isString, values, isRegExp, isFunction, createCustomEvent } from '../util'
-import { XHRCustom, MockedItem, Settings, XHRCustomOptions, XHRBody } from '../types'
+import { isString, values, isRegExp, isFunction, createCustomEvent } from '../../utils'
+import { XHRCustom, MockedItem, Settings, XHRCustomOptions, XHRBody } from '../../types'
 import rgx from 'regexparam'
 
 // 备份原生 XMLHttpRequest

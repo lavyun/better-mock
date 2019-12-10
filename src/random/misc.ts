@@ -3,7 +3,7 @@ import * as basic from './basic'
 import * as helper from './helper'
 import * as date from './date'
 import * as location from 'china-location/dist/location.json'
-import * as util from '../util'
+import * as util from '../utils'
 
 const areas = location['default']
 

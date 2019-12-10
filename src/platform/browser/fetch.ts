@@ -1,6 +1,6 @@
 import { find, convert } from './xhr'
-import { isString } from '../util'
-import { XHRCustomOptions, StringObject } from '../types'
+import { isString } from '../../utils'
+import { XHRCustomOptions, StringObject } from '../../types'
 
 const _nativeFetch = fetch
 const _nativeRequest = Request

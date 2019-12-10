@@ -1,4 +1,4 @@
-import { isDef } from '../util'
+import { isDef } from '../utils'
 
 const MAX_NATURE_NUMBER = 9007199254740992
 const MIN_NATURE_NUMBER = -9007199254740992

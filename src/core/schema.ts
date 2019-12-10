@@ -1,7 +1,7 @@
 // 把 Mock.js 风格的数据模板转换成 JSON Schema。
-import constant from '../constant'
-import { type, isArray, isObject } from '../util'
-import { parse } from '../parser'
+import constant from '../utils/constant'
+import { type, isArray, isObject } from '../utils'
+import { parse } from './parser'
 import { SchemaResult } from '../types'
 
 function toJSONSchema(template: object | string | (string | object)[], name?: string | number, path?: string[]) {

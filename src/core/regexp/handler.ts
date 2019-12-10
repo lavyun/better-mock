@@ -50,7 +50,7 @@
 //     word                \w      ASCII 字符，[a-zA-Z0-9]
 //     non-word            \W      非 ASCII 字符，[^a-zA-Z0-9]
 //     null-character      \o      NUL 字符
-import random from '../random'
+import random from '../../random'
 
 // ASCII printable code chart
 const LOWER = ascii(97, 122)

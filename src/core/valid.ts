@@ -53,9 +53,9 @@
 //             `'name|min-max': [{}, {} ...]`      检测个数，继续递归
 //             `'name|count': [{}, {} ...]`        检测个数，继续递归
 //         无生成规则：检测全部的元素个数，继续递归
-import constant from '../constant'
-import { type, keys as objectKeys, isArray, isString, isFunction, isRegExp, isNumber } from '../util'
-import toJSONSchema from '../schema'
+import constant from '../utils/constant'
+import { type, keys as objectKeys, isArray, isString, isFunction, isRegExp, isNumber } from '../utils'
+import toJSONSchema from './schema'
 import { SchemaResult, DiffResult } from '../types'
 
 const Diff = {

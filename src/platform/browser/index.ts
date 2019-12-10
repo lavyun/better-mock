@@ -1,13 +1,13 @@
 // For browser
-import Handler from './lib/handler'
-import * as Util from './lib/util'
-import Random from './lib/random/index'
-import RE from './lib/regexp/index'
-import toJSONSchema from './lib/schema/index'
-import valid from './lib/valid/index'
-import XHR from './lib/request/xhr'
-import rewriteFetchAndRequest from './lib/request/fetch'
-import { Mocked, Settings } from './lib/types'
+import Handler from '../../core/handler'
+import RE from '../../core/regexp'
+import toJSONSchema from '../../core/schema'
+import valid from '../../core/valid'
+import * as Util from '../../utils'
+import Random from '../../random'
+import { Mocked, Settings } from '../../types'
+import XHR from './xhr'
+import rewriteFetchAndRequest from './fetch'
 
 const Mock = {
   Handler,

@@ -20,25 +20,25 @@ const createBanner = (fileName) => {
 
 const builds = [
   {
-    entry: resolve('../src/mock.browser.ts'),
+    entry: resolve('../src/platform/browser/index.ts'),
     dest: resolve('../dist/mock.browser.js'),
     format: 'umd',
     banner: createBanner('mock.browser.js')
   },
   {
-    entry: resolve('../src/mock.browser.ts'),
+    entry: resolve('../src/platform/browser/index.ts'),
     dest: resolve('../dist/mock.browser.min.js'),
     format: 'umd',
     banner: createBanner('mock.browser.min.js')
   },
   {
-    entry: resolve('../src/mock.browser.ts'),
+    entry: resolve('../src/platform/browser/index.ts'),
     dest: resolve('../dist/mock.browser.esm.js'),
     format: 'es',
     banner: createBanner('mock.browser.esm.js')
   },
   {
-    entry: resolve('../src/mock.node.ts'),
+    entry: resolve('../src/platform/node/index.ts'),
     dest: resolve('../dist/mock.node.js'),
     format: 'cjs',
     banner: createBanner('mock.node.js')

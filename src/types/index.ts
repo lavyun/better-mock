@@ -1,4 +1,4 @@
-import { parse } from './parser'
+import { parse } from '../core/parser'
 
 export interface StringObject {
   [key: string]: string
