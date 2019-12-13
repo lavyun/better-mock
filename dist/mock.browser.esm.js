@@ -8151,6 +8151,63 @@ function rgx (str, loose) {
 	};
 }
 
+var IMocked = /** @class */ (function () {
+    function IMocked() {
+        this._mocked = {};
+    }
+    IMocked.prototype.get = function (key) {
+        return this._mocked[key];
+    };
+    IMocked.prototype.set = function (key, value) {
+        this._mocked[key] = value;
+    };
+    IMocked.prototype.getSource = function () {
+        return this._mocked;
+    };
+    // 查找与请求参数匹配的数据模板：URL，Type
+    IMocked.prototype.find = function (url, type) {
+        var mockedItems = Object.values(this._mocked);
+        for (var i = 0; i < mockedItems.length; i++) {
+            var item = mockedItems[i];
+            var urlMatched = this._matchUrl(item.rurl, url);
+            var typeMatched = this._matchType(item.rtype, type);
+            if (!item.rtype && urlMatched) {
+                return item;
+            }
+            if (urlMatched && typeMatched) {
+                return item;
+            }
+        }
+    };
+    IMocked.prototype._matchUrl = function (expected, actual) {
+        if (isString(expected)) {
+            if (expected === actual) {
+                return true;
+            }
+            // expected: /hello/world
+            // actual: /hello/world?type=1
+            if (actual.indexOf(expected) === 0 && actual[expected.length] === '?') {
+                return true;
+            }
+            if (expected.indexOf('/') === 0) {
+                return rgx(expected).pattern.test(actual);
+            }
+        }
+        if (isRegExp(expected)) {
+            return expected.test(actual);
+        }
+        return false;
+    };
+    IMocked.prototype._matchType = function (expected, actual) {
+        if (isString(expected) || isRegExp(expected)) {
+            return new RegExp(expected, 'i').test(actual);
+        }
+        return false;
+    };
+    return IMocked;
+}());
+var mocked = new IMocked();
+
 // 备份原生 XMLHttpRequest
 var _XMLHttpRequest = XMLHttpRequest;
 var _ActiveXObject = window.ActiveXObject;
@@ -8244,7 +8301,8 @@ var MockXMLHttpRequest = /** @class */ (function () {
             return 0;
         })(MockXMLHttpRequest.settings.timeout);
         // 查找与请求参数匹配的数据模板
-        var item = find(this.custom.options);
+        var options = this.custom.options;
+        var item = mocked.find(options.url, options.type);
         // 如果未找到匹配的数据模板，则采用原生 XHR 发送请求。
         if (!item) {
             var xhr_1 = this.custom.xhr;
@@ -8436,46 +8494,6 @@ function createNativeXMLHttpRequest() {
         return new _ActiveXObject('Microsoft.XMLHTTP');
     }
 }
-// 查找与请求参数匹配的数据模板：URL，Type
-function find(options) {
-    var mockedItems = values(MockXMLHttpRequest.Mock.mocked);
-    for (var i = 0; i < mockedItems.length; i++) {
-        var item = mockedItems[i];
-        var urlMatched = matchUrl(item.rurl, options.url);
-        var typeMatched = matchType(item.rtype, options.type);
-        if (!item.rtype && urlMatched) {
-            return item;
-        }
-        if (urlMatched && typeMatched) {
-            return item;
-        }
-    }
-    function matchUrl(expected, actual) {
-        if (isString(expected)) {
-            if (expected === actual) {
-                return true;
-            }
-            // expected: /hello/world
-            // actual: /hello/world?type=1
-            if (actual.indexOf(expected) === 0 && actual[expected.length] === '?') {
-                return true;
-            }
-            if (expected.indexOf('/') === 0) {
-                return rgx(expected).pattern.test(actual);
-            }
-        }
-        if (isRegExp(expected)) {
-            return expected.test(actual);
-        }
-        return false;
-    }
-    function matchType(expected, actual) {
-        if (isString(expected) || isRegExp(expected)) {
-            return new RegExp(expected, 'i').test(actual);
-        }
-        return false;
-    }
-}
 // 数据模板 ＝> 响应数据
 function convert(item, options) {
     return isFunction(item.template) ? item.template(options) : MockXMLHttpRequest.Mock.mock(item.template);
@@ -8545,7 +8563,7 @@ function MockFetch(input, init) {
         headers: headers
     };
     // 查找与请求参数匹配的数据模板
-    var item = find(options);
+    var item = mocked.find(options.url, options.type);
     // 如果未找到匹配的数据模板，则采用原生 fetch 发送请求。
     if (!item) {
         return _nativeFetch(input, init);
@@ -8576,7 +8594,7 @@ var Mock = {
     mock: mock,
     heredoc: heredoc,
     setup: function (settings) { return MockXMLHttpRequest.setup(settings); },
-    mocked: {},
+    mocked: mocked.getSource(),
     version: '0.1.5'
 };
 // 避免循环依赖
@@ -8602,7 +8620,7 @@ function mock(rurl, rtype, template) {
         rewriteFetchAndRequest();
     }
     var key = String(rurl) + String(rtype);
-    Mock.mocked[key] = { rurl: rurl, rtype: rtype, template: template };
+    mocked.set(key, { rurl: rurl, rtype: rtype, template: template });
     return Mock;
 }
 

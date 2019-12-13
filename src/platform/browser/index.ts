@@ -3,9 +3,10 @@ import Handler from '../../core/handler'
 import RE from '../../core/regexp'
 import toJSONSchema from '../../core/schema'
 import valid from '../../core/valid'
+import mocked from '../../core/mocked'
 import * as Util from '../../utils'
 import Random from '../../random'
-import { Mocked, Settings } from '../../types'
+import { Settings } from '../../types'
 import XHR from './xhr'
 import rewriteFetchAndRequest from './fetch'
 
@@ -20,7 +21,7 @@ const Mock = {
   mock,
   heredoc: Util.heredoc,
   setup: (settings: Settings) => XHR.setup(settings),
-  mocked: {} as Mocked,
+  mocked: mocked.getSource(),
   version: '__VERSION__'
 }
 
@@ -48,7 +49,7 @@ function mock (rurl: string | RegExp, rtype?: string | RegExp, template?: object
     rewriteFetchAndRequest()
   }
   const key = String(rurl) + String(rtype)
-  Mock.mocked[key] = { rurl, rtype, template }
+  mocked.set(key, { rurl, rtype, template })
 
   return Mock
 }

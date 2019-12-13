@@ -1,6 +1,7 @@
-import { find, convert } from './xhr'
+import { convert } from './xhr'
 import { isString } from '../../utils'
 import { XHRCustomOptions, StringObject } from '../../types'
+import mocked from '../../core/mocked'
 
 const _nativeFetch = fetch
 const _nativeRequest = Request
@@ -69,7 +70,7 @@ function MockFetch(input: RequestInfo, init?: RequestInit | undefined): Promise<
   }
 
   // 查找与请求参数匹配的数据模板
-  const item = find(options)
+  const item = mocked.find(options.url, options.type)
 
   // 如果未找到匹配的数据模板，则采用原生 fetch 发送请求。
   if (!item) {
@@ -88,7 +89,7 @@ function MockFetch(input: RequestInfo, init?: RequestInit | undefined): Promise<
 }
 
 function rewriteFetchAndRequest() {
-  (window.Request as any) = MockRequest
+  window.Request = MockRequest
   window.fetch = MockFetch
 }
 

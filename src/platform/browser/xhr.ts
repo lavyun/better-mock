@@ -1,6 +1,6 @@
-import { isString, values, isRegExp, isFunction, createCustomEvent } from '../../utils'
+import { isFunction, createCustomEvent } from '../../utils'
 import { XHRCustom, MockedItem, Settings, XHRCustomOptions, XHRBody } from '../../types'
-import rgx from 'regexparam'
+import mocked from '../../core/mocked'
 
 // 备份原生 XMLHttpRequest
 const _XMLHttpRequest = XMLHttpRequest
@@ -116,7 +116,8 @@ class MockXMLHttpRequest {
     })(MockXMLHttpRequest.settings.timeout)
 
     // 查找与请求参数匹配的数据模板
-    const item = find(this.custom.options)
+    const options = this.custom.options
+    const item = mocked.find(options.url!, options.type!)
 
     // 如果未找到匹配的数据模板，则采用原生 XHR 发送请求。
     if (!item) {
@@ -334,51 +335,6 @@ function createNativeXMLHttpRequest() {
 
   function createActiveXHR() {
     return new _ActiveXObject('Microsoft.XMLHTTP')
-  }
-}
-
-// 查找与请求参数匹配的数据模板：URL，Type
-export function find(options: Partial<XHRCustomOptions>): MockedItem | undefined {
-  const mockedItems: MockedItem[] = values(MockXMLHttpRequest.Mock.mocked)
-  for (let i = 0; i < mockedItems.length; i++) {
-    const item = mockedItems[i]
-    const urlMatched = matchUrl(item.rurl, options.url!)
-    const typeMatched = matchType(item.rtype, options.type!)
-    if (!item.rtype && urlMatched) {
-      return item
-    }
-    if (urlMatched && typeMatched) {
-      return item
-    }
-  }
-
-  function matchUrl(expected: string | RegExp | undefined, actual: string): boolean {
-    if (isString(expected)) {
-      if (expected === actual) {
-        return true
-      }
-
-      // expected: /hello/world
-      // actual: /hello/world?type=1
-      if (actual.indexOf(expected) === 0 && actual[expected.length] === '?') {
-        return true
-      }
-      
-      if (expected.indexOf('/') === 0) {
-        return rgx(expected).pattern.test(actual)
-      }
-    }
-    if (isRegExp(expected)) {
-      return expected.test(actual)
-    }
-    return false
-  }
-
-  function matchType(expected: string | RegExp | undefined, actual: string): boolean {
-    if (isString(expected) || isRegExp(expected)) {
-      return new RegExp(expected, 'i').test(actual)
-    }
-    return false
   }
 }
 
