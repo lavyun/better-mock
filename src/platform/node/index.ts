@@ -1,10 +1,10 @@
 // For Node.js
-import Handler from './lib/handler'
-import * as Util from './lib/util'
-import Random from './lib/random/index'
-import RE from './lib/regexp/index'
-import toJSONSchema from './lib/schema/index'
-import valid from './lib/valid/index'
+import Handler from '../../core/handler'
+import toJSONSchema from '../../core/schema'
+import RE from '../../core/regexp'
+import valid from '../../core/valid'
+import * as Util from '../../utils'
+import Random from '../../random'
 
 const Mock = {
   Handler,

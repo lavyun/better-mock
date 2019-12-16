@@ -1,11 +1,30 @@
 // 颜色相关
 import * as convert from './color-convert'
-import dict from './color-dict'
+
+const colorMap = {
+  navy: '#001F3F',
+  blue: '#0074D9',
+  aqua: '#7FDBFF',
+  teal: '#39CCCC',
+  olive: '#3D9970',
+  green: '#2ECC40',
+  lime: '#01FF70',
+  yellow: '#FFDC00',
+  orange: '#FF851B',
+  red: '#FF4136',
+  maroon: '#85144B',
+  fuchsia: '#F012BE',
+  purple: '#B10DC9',
+  silver: '#DDDDDD',
+  gray: '#AAAAAA',
+  black: '#111111',
+  white: '#FFFFFF'
+}
 
 // 随机生成一个有吸引力的颜色，格式为 '#RRGGBB'。
 export const color = function(name: string = '') {
-  if (name || dict[name]) {
-    return dict[name].nicer
+  if (name && colorMap[name]) {
+    return colorMap[name]
   }
   return hex()
 }

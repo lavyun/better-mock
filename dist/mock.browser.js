@@ -1,5 +1,5 @@
 /*!
-  * better-mock v0.1.5 (mock.browser.js)
+  * better-mock v0.1.6 (mock.browser.js)
   * (c) 2019-2019 lavyun@163.com
   * Released under the MIT License.
   */
@@ -644,53 +644,31 @@
       return "#" + ((256 + a << 8 | b) << 8 | c).toString(16).slice(1);
   };
 
-  // color 字典数据
-  // http://clrs.cc
-  var dict = {
-      // name value nicer
-      navy: {
-          value: '#000080', nicer: '#001F3F'
-      }, blue: {
-          value: '#0000ff', nicer: '#0074D9'
-      }, aqua: {
-          value: '#00ffff', nicer: '#7FDBFF'
-      }, teal: {
-          value: '#008080', nicer: '#39CCCC'
-      }, olive: {
-          value: '#008000', nicer: '#3D9970'
-      }, green: {
-          value: '#008000', nicer: '#2ECC40'
-      }, lime: {
-          value: '#00ff00', nicer: '#01FF70'
-      }, yellow: {
-          value: '#ffff00', nicer: '#FFDC00'
-      }, orange: {
-          value: '#ffa500', nicer: '#FF851B'
-      }, red: {
-          value: '#ff0000', nicer: '#FF4136'
-      }, maroon: {
-          value: '#800000', nicer: '#85144B'
-      }, fuchsia: {
-          value: '#ff00ff', nicer: '#F012BE'
-      }, purple: {
-          value: '#800080', nicer: '#B10DC9'
-      }, silver: {
-          value: '#c0c0c0', nicer: '#DDDDDD'
-      }, gray: {
-          value: '#808080', nicer: '#AAAAAA'
-      }, black: {
-          value: '#000000', nicer: '#111111'
-      }, white: {
-          value: '#FFFFFF', nicer: '#FFFFFF'
-      }
-  };
-
   // 颜色相关
+  var colorMap = {
+      navy: '#001F3F',
+      blue: '#0074D9',
+      aqua: '#7FDBFF',
+      teal: '#39CCCC',
+      olive: '#3D9970',
+      green: '#2ECC40',
+      lime: '#01FF70',
+      yellow: '#FFDC00',
+      orange: '#FF851B',
+      red: '#FF4136',
+      maroon: '#85144B',
+      fuchsia: '#F012BE',
+      purple: '#B10DC9',
+      silver: '#DDDDDD',
+      gray: '#AAAAAA',
+      black: '#111111',
+      white: '#FFFFFF'
+  };
   // 随机生成一个有吸引力的颜色，格式为 '#RRGGBB'。
   var color = function (name) {
       if (name === void 0) { name = ''; }
-      if (name || dict[name]) {
-          return dict[name].nicer;
+      if (name && colorMap[name]) {
+          return colorMap[name];
       }
       return hex();
   };
@@ -8157,6 +8135,63 @@
   	};
   }
 
+  var IMocked = /** @class */ (function () {
+      function IMocked() {
+          this._mocked = {};
+      }
+      IMocked.prototype.get = function (key) {
+          return this._mocked[key];
+      };
+      IMocked.prototype.set = function (key, value) {
+          this._mocked[key] = value;
+      };
+      IMocked.prototype.getSource = function () {
+          return this._mocked;
+      };
+      // 查找与请求参数匹配的数据模板：URL，Type
+      IMocked.prototype.find = function (url, type) {
+          var mockedItems = Object.values(this._mocked);
+          for (var i = 0; i < mockedItems.length; i++) {
+              var item = mockedItems[i];
+              var urlMatched = this._matchUrl(item.rurl, url);
+              var typeMatched = this._matchType(item.rtype, type);
+              if (!item.rtype && urlMatched) {
+                  return item;
+              }
+              if (urlMatched && typeMatched) {
+                  return item;
+              }
+          }
+      };
+      IMocked.prototype._matchUrl = function (expected, actual) {
+          if (isString(expected)) {
+              if (expected === actual) {
+                  return true;
+              }
+              // expected: /hello/world
+              // actual: /hello/world?type=1
+              if (actual.indexOf(expected) === 0 && actual[expected.length] === '?') {
+                  return true;
+              }
+              if (expected.indexOf('/') === 0) {
+                  return rgx(expected).pattern.test(actual);
+              }
+          }
+          if (isRegExp(expected)) {
+              return expected.test(actual);
+          }
+          return false;
+      };
+      IMocked.prototype._matchType = function (expected, actual) {
+          if (isString(expected) || isRegExp(expected)) {
+              return new RegExp(expected, 'i').test(actual);
+          }
+          return false;
+      };
+      return IMocked;
+  }());
+  var mocked = new IMocked();
+
   // 备份原生 XMLHttpRequest
   var _XMLHttpRequest = XMLHttpRequest;
   var _ActiveXObject = window.ActiveXObject;
@@ -8250,7 +8285,8 @@
               return 0;
           })(MockXMLHttpRequest.settings.timeout);
           // 查找与请求参数匹配的数据模板
-          var item = find(this.custom.options);
+          var options = this.custom.options;
+          var item = mocked.find(options.url, options.type);
           // 如果未找到匹配的数据模板，则采用原生 XHR 发送请求。
           if (!item) {
               var xhr_1 = this.custom.xhr;
@@ -8442,46 +8478,6 @@
           return new _ActiveXObject('Microsoft.XMLHTTP');
       }
   }
-  // 查找与请求参数匹配的数据模板：URL，Type
-  function find(options) {
-      var mockedItems = values(MockXMLHttpRequest.Mock.mocked);
-      for (var i = 0; i < mockedItems.length; i++) {
-          var item = mockedItems[i];
-          var urlMatched = matchUrl(item.rurl, options.url);
-          var typeMatched = matchType(item.rtype, options.type);
-          if (!item.rtype && urlMatched) {
-              return item;
-          }
-          if (urlMatched && typeMatched) {
-              return item;
-          }
-      }
-      function matchUrl(expected, actual) {
-          if (isString(expected)) {
-              if (expected === actual) {
-                  return true;
-              }
-              // expected: /hello/world
-              // actual: /hello/world?type=1
-              if (actual.indexOf(expected) === 0 && actual[expected.length] === '?') {
-                  return true;
-              }
-              if (expected.indexOf('/') === 0) {
-                  return rgx(expected).pattern.test(actual);
-              }
-          }
-          if (isRegExp(expected)) {
-              return expected.test(actual);
-          }
-          return false;
-      }
-      function matchType(expected, actual) {
-          if (isString(expected) || isRegExp(expected)) {
-              return new RegExp(expected, 'i').test(actual);
-          }
-          return false;
-      }
-  }
   // 数据模板 ＝> 响应数据
   function convert(item, options) {
       return isFunction(item.template) ? item.template(options) : MockXMLHttpRequest.Mock.mock(item.template);
@@ -8551,7 +8547,7 @@
           headers: headers
       };
       // 查找与请求参数匹配的数据模板
-      var item = find(options);
+      var item = mocked.find(options.url, options.type);
       // 如果未找到匹配的数据模板，则采用原生 fetch 发送请求。
       if (!item) {
           return _nativeFetch(input, init);
@@ -8582,8 +8578,8 @@
       mock: mock,
       heredoc: heredoc,
       setup: function (settings) { return MockXMLHttpRequest.setup(settings); },
-      mocked: {},
-      version: '0.1.5'
+      mocked: mocked.getSource(),
+      version: '0.1.6'
   };
   // 避免循环依赖
   if (MockXMLHttpRequest) {
@@ -8608,7 +8604,7 @@
           rewriteFetchAndRequest();
       }
       var key = String(rurl) + String(rtype);
-      Mock.mocked[key] = { rurl: rurl, rtype: rtype, template: template };
+      mocked.set(key, { rurl: rurl, rtype: rtype, template: template });
       return Mock;
   }
 

@@ -1,10 +1,10 @@
 // 处理数据模板。
 // handler.gen( template, name?, context? )
-import constant from './constant'
-import * as utils from './util'
+import constant from '../utils/constant'
+import * as utils from '../utils'
 import { parse } from './parser'
-import random from './random'
-import RE from './regexp/index'
+import random from '../random'
+import RE from './regexp'
 
 const handler = {
   // template        属性值（即数据模板）

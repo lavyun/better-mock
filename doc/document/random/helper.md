@@ -45,10 +45,30 @@ Random.pick(['a', 'e', 'i', 'o', 'u'])
 ## Random.shuffle
 
 * Random.shuffle( arr )
+* Random.shuffle( arr, length )
+* Random.shuffle( arr, min, max )
 
 打乱数组中元素的顺序，并返回。
+
+### length `可选`
+
+返回后的数组长度。
+
+### min `可选`
+
+返回后的数组最小长度。
+
+### max `可选`
+
+返回后的数组最大长度。
 
 ```js
 Random.shuffle(['a', 'e', 'i', 'o', 'u'])
 // => ["o", "u", "e", "i", "a"]
+
+Random.shuffle(['a', 'e', 'i', 'o', 'u'], 3)
+// => ["o", "u", "i"
+
+Random.shuffle(['a', 'e', 'i', 'o', 'u'], 2, 4)
+// => ["o", "u"]
 ```

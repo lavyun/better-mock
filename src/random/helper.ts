@@ -1,4 +1,4 @@
-import { isArray, isDef, values } from '../util'
+import { isArray, isDef, values } from '../utils'
 import * as basic from './basic'
 
 // 把字符串的第一个字母转换为大写。

@@ -1,5 +1,5 @@
 /*!
-  * better-mock v0.1.5 (mock.node.js)
+  * better-mock v0.1.6 (mock.node.js)
   * (c) 2019-2019 lavyun@163.com
   * Released under the MIT License.
   */
@@ -660,53 +660,31 @@ c // blue, as a number from 0 to 255
     return "#" + ((256 + a << 8 | b) << 8 | c).toString(16).slice(1);
 };
 
-// color 字典数据
-// http://clrs.cc
-var dict = {
-    // name value nicer
-    navy: {
-        value: '#000080', nicer: '#001F3F'
-    }, blue: {
-        value: '#0000ff', nicer: '#0074D9'
-    }, aqua: {
-        value: '#00ffff', nicer: '#7FDBFF'
-    }, teal: {
-        value: '#008080', nicer: '#39CCCC'
-    }, olive: {
-        value: '#008000', nicer: '#3D9970'
-    }, green: {
-        value: '#008000', nicer: '#2ECC40'
-    }, lime: {
-        value: '#00ff00', nicer: '#01FF70'
-    }, yellow: {
-        value: '#ffff00', nicer: '#FFDC00'
-    }, orange: {
-        value: '#ffa500', nicer: '#FF851B'
-    }, red: {
-        value: '#ff0000', nicer: '#FF4136'
-    }, maroon: {
-        value: '#800000', nicer: '#85144B'
-    }, fuchsia: {
-        value: '#ff00ff', nicer: '#F012BE'
-    }, purple: {
-        value: '#800080', nicer: '#B10DC9'
-    }, silver: {
-        value: '#c0c0c0', nicer: '#DDDDDD'
-    }, gray: {
-        value: '#808080', nicer: '#AAAAAA'
-    }, black: {
-        value: '#000000', nicer: '#111111'
-    }, white: {
-        value: '#FFFFFF', nicer: '#FFFFFF'
-    }
-};
-
 // 颜色相关
+var colorMap = {
+    navy: '#001F3F',
+    blue: '#0074D9',
+    aqua: '#7FDBFF',
+    teal: '#39CCCC',
+    olive: '#3D9970',
+    green: '#2ECC40',
+    lime: '#01FF70',
+    yellow: '#FFDC00',
+    orange: '#FF851B',
+    red: '#FF4136',
+    maroon: '#85144B',
+    fuchsia: '#F012BE',
+    purple: '#B10DC9',
+    silver: '#DDDDDD',
+    gray: '#AAAAAA',
+    black: '#111111',
+    white: '#FFFFFF'
+};
 // 随机生成一个有吸引力的颜色，格式为 '#RRGGBB'。
 var color = function (name) {
     if (name === void 0) { name = ''; }
-    if (name || dict[name]) {
-        return dict[name].nicer;
+    if (name && colorMap[name]) {
+        return colorMap[name];
     }
     return hex();
 };
@@ -8156,7 +8134,7 @@ var Mock = {
     valid: valid,
     mock: mock,
     heredoc: heredoc,
-    version: '0.1.5'
+    version: '0.1.6'
 };
 // Mock.mock( template )
 // 根据数据模板生成模拟数据。

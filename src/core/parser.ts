@@ -11,8 +11,8 @@
 // 		dmax: dmax,
 // 		dcount: dcount
 //   }
-import constant from './constant'
-import random from './random/index'
+import constant from '../utils/constant'
+import random from '../random'
 
 export const parse = function(name: string | undefined | number) {
   name = name === undefined ? '' : (name + '')
