@@ -1,5 +1,5 @@
 /*!
-  * better-mock v0.1.5 (mock.browser.js)
+  * better-mock v0.1.6 (mock.browser.js)
   * (c) 2019-2019 lavyun@163.com
   * Released under the MIT License.
   */
@@ -8579,7 +8579,7 @@
       heredoc: heredoc,
       setup: function (settings) { return MockXMLHttpRequest.setup(settings); },
       mocked: mocked.getSource(),
-      version: '0.1.5'
+      version: '0.1.6'
   };
   // 避免循环依赖
   if (MockXMLHttpRequest) {
