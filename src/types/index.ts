@@ -1,8 +1,8 @@
 import { parse } from '../core/parser'
 
-export interface StringObject {
+export type StringObject = {
   [key: string]: string
-} 
+} | {}
 
 export interface MockedItem {
   rurl: string | RegExp | undefined,

@@ -9,6 +9,8 @@ const resolve = p => {
   return path.resolve(__dirname,  p)
 }
 
+const platform = process.argv[2]
+
 const createBanner = (fileName) => {
   return `/*!
   * better-mock v${version} (${fileName})
@@ -18,7 +20,8 @@ const createBanner = (fileName) => {
 `
 }
 
-const builds = [
+// 浏览器 build
+const browserBuilds = [
   {
     entry: resolve('../src/platform/browser/index.ts'),
     dest: resolve('../dist/mock.browser.js'),
@@ -36,7 +39,11 @@ const builds = [
     dest: resolve('../dist/mock.browser.esm.js'),
     format: 'es',
     banner: createBanner('mock.browser.esm.js')
-  },
+  }
+]
+
+// node build
+const nodeBuilds = [
   {
     entry: resolve('../src/platform/node/index.ts'),
     dest: resolve('../dist/mock.node.js'),
@@ -45,10 +52,38 @@ const builds = [
   }
 ]
 
-const genConfig = (name) => {
-  const opts = builds[name]
+// 小程序 build
+const mpBuilds = [
+  {
+    entry: resolve('../src/platform/mp/index.ts'),
+    dest: resolve('../dist/mock.mp.js'),
+    format: 'umd',
+    banner: createBanner('mock.mp.js')
+  },
+  {
+    entry: resolve('../src/platform/mp/index.ts'),
+    dest: resolve('../dist/mock.mp.esm.js'),
+    format: 'es',
+    banner: createBanner('mock.mp.esm.js')
+  }
+]
+
+const platformMap = {
+  browser: browserBuilds,
+  node: nodeBuilds,
+  mp: mpBuilds
+}
+
+const builds = platform 
+  ? platformMap[platform] || browserBuilds
+  : [
+    ...browserBuilds,
+    ...nodeBuilds,
+    ...mpBuilds
+  ]
+
+const genConfig = (opts) => {
   return {
-    name: opts.name,
     input: opts.entry,
     plugins: [
       typescript(),
@@ -73,6 +108,6 @@ const genConfig = (name) => {
   }
 }
 
-const getAllBuilds = () => Object.keys(builds).map(genConfig)
+const getAllBuilds = () => builds.map(genConfig)
 
 exports.getAllBuilds = getAllBuilds

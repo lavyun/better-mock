@@ -1,5 +1,6 @@
-import { Mocked, MockedItem } from '../types'
-import { isString, isRegExp } from '../utils'
+import { Mocked, MockedItem, XHRCustomOptions } from '../types'
+import { isString, isRegExp, isFunction } from '../utils'
+import handler from '../core/handler'
 import rgx from 'regexparam'
 
 class IMocked {
@@ -31,6 +32,15 @@ class IMocked {
         return item
       }
     }
+  }
+
+  /**
+   * 数据模板转换成 mock 数据
+   * @param item 发请求时匹配到的 mock 数据源
+   * @param options 包含请求头，请求体，请求方法等
+   */
+  public convert(item: MockedItem, options: Partial<XHRCustomOptions>) {
+    return isFunction(item.template) ? item.template(options) : handler.gen(item.template)
   }
 
   private _matchUrl(expected: string | RegExp | undefined, actual: string): boolean {

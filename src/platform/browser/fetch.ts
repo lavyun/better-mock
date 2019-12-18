@@ -1,4 +1,3 @@
-import { convert } from './xhr'
 import { isString } from '../../utils'
 import { XHRCustomOptions, StringObject } from '../../types'
 import mocked from '../../core/mocked'
@@ -78,7 +77,7 @@ function MockFetch(input: RequestInfo, init?: RequestInit | undefined): Promise<
   }
 
   // 找到了匹配的数据模板，拦截 fetch 请求
-  const body = JSON.stringify(convert(item, options))
+  const body = JSON.stringify(mocked.convert(item, options))
   const response = new Response(body, {
     status: 200,
     statusText: 'ok',
@@ -88,9 +87,9 @@ function MockFetch(input: RequestInfo, init?: RequestInit | undefined): Promise<
   return Promise.resolve(response)
 }
 
-function rewriteFetchAndRequest() {
+function overrideFetchAndRequest() {
   window.Request = MockRequest
   window.fetch = MockFetch
 }
 
-export default rewriteFetchAndRequest
+export default overrideFetchAndRequest

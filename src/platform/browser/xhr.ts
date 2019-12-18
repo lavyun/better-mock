@@ -1,5 +1,5 @@
-import { isFunction, createCustomEvent } from '../../utils'
-import { XHRCustom, MockedItem, Settings, XHRCustomOptions, XHRBody } from '../../types'
+import { createCustomEvent } from '../../utils'
+import { XHRCustom, Settings, XHRBody } from '../../types'
 import mocked from '../../core/mocked'
 
 // 备份原生 XMLHttpRequest
@@ -206,7 +206,8 @@ class MockXMLHttpRequest {
       this.statusText = 'OK'
 
       // fix #92 #93 by @qddegtya
-      this.response = this.responseText = JSON.stringify(convert(this.custom.template!, this.custom.options), null, 4)
+      const mockResponse = mocked.convert(this.custom.template!, this.custom.options)
+      this.response = this.responseText = JSON.stringify(mockResponse)
 
       this.readyState = XHR_STATES.DONE
       this.dispatchEvent(createCustomEvent('readystatechange'))
@@ -308,8 +309,6 @@ class MockXMLHttpRequest {
     return MockXMLHttpRequest.settings
   }
 
-  static Mock: any = {}
-
   static UNSENT: number = XHR_STATES.UNSENT
   static OPENED: number = XHR_STATES.OPENED
   static HEADERS_RECEIVED: number = XHR_STATES.HEADERS_RECEIVED
@@ -336,11 +335,6 @@ function createNativeXMLHttpRequest() {
   function createActiveXHR() {
     return new _ActiveXObject('Microsoft.XMLHTTP')
   }
-}
-
-// 数据模板 ＝> 响应数据
-export function convert(item: MockedItem, options: Partial<XHRCustomOptions>) {
-  return isFunction(item.template) ? item.template(options) : MockXMLHttpRequest.Mock.mock(item.template)
 }
 
 export default MockXMLHttpRequest
