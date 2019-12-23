@@ -77,7 +77,16 @@ function MockRequest (opts: MpRequestOptions) {
 
 // 覆盖原生的 request 方法
 function overrideRequest () {
-  platform.global.request = MockRequest
+  if (!platform.global.request.__MOCK__) {
+    // 小程序 API 做了 setter 限制，不能直接复制
+    Object.defineProperty(platform.global, 'request', {
+      configurable: true,
+      enumerable: true,
+      writable: true,
+      value: MockRequest
+    })
+    platform.global.request.__MOCK__ = true
+  }
 }
 
 export {

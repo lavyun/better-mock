@@ -314,6 +314,8 @@ class MockXMLHttpRequest {
   static HEADERS_RECEIVED: number = XHR_STATES.HEADERS_RECEIVED
   static LOADING: number = XHR_STATES.LOADING
   static DONE: number = XHR_STATES.DONE
+
+  static __MOCK__: boolean = false
 }
 
 // Inspired by jQuery
@@ -337,7 +339,17 @@ function createNativeXMLHttpRequest() {
   }
 }
 
-export default MockXMLHttpRequest
+function overrideXHR () {
+  if (!MockXMLHttpRequest.__MOCK__) {
+    MockXMLHttpRequest.__MOCK__ = true
+    window.XMLHttpRequest = MockXMLHttpRequest as any
+  }
+}
+
+export {
+  MockXMLHttpRequest,
+  overrideXHR
+}
 
 declare global {
   interface Window {

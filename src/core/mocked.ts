@@ -1,6 +1,6 @@
 import { Mocked, MockedItem, XHRCustomOptions } from '../types'
 import { isString, isRegExp, isFunction } from '../utils'
-import handler from '../core/handler'
+import handler from './handler'
 import rgx from 'regexparam'
 
 class IMocked {

@@ -1,4 +1,4 @@
-// For minapp
+// For mini-program
 import Handler from '../../core/handler'
 import RE from '../../core/regexp'
 import toJSONSchema from '../../core/schema'
@@ -6,6 +6,7 @@ import valid from '../../core/valid'
 import mocked from '../../core/mocked'
 import * as Util from '../../utils'
 import Random from '../../random'
+import { overrideRequest } from './request'
 
 const Mock = {
   Handler,
@@ -32,6 +33,9 @@ function mock (rurl: string | RegExp, rtype?: string | RegExp, template?: object
     template = rtype as object | Function
     rtype = undefined
   }
+
+  overrideRequest()
+
   const key = String(rurl) + String(rtype)
   mocked.set(key, { rurl, rtype, template })
 

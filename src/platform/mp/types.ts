@@ -1,7 +1,7 @@
 
 export type PlatformName = 'wx' | 'my' | 'tt' | 'swan'
 
-export type MpRequest = (options: any) => any
+export type MpRequest = { __MOCK__?: boolean } & ((options: MpRequestOptions) => any)
 
 export interface MpRequestOptions {
   url: string;

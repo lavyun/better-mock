@@ -1,5 +1,5 @@
 /*!
-  * better-mock v0.1.6 (mock.browser.esm.js)
+  * better-mock v0.2.0 (mock.browser.esm.js)
   * (c) 2019-2019 lavyun@163.com
   * Released under the MIT License.
   */
@@ -8157,6 +8157,14 @@ var IMocked = /** @class */ (function () {
             }
         }
     };
+    /**
+     * 数据模板转换成 mock 数据
+     * @param item 发请求时匹配到的 mock 数据源
+     * @param options 包含请求头，请求体，请求方法等
+     */
+    IMocked.prototype.convert = function (item, options) {
+        return isFunction(item.template) ? item.template(options) : handler$1.gen(item.template);
+    };
     IMocked.prototype._matchUrl = function (expected, actual) {
         if (isString(expected)) {
             if (expected === actual) {
@@ -8359,7 +8367,8 @@ var MockXMLHttpRequest = /** @class */ (function () {
             _this.status = 200;
             _this.statusText = 'OK';
             // fix #92 #93 by @qddegtya
-            _this.response = _this.responseText = JSON.stringify(convert(_this.custom.template, _this.custom.options), null, 4);
+            var mockResponse = mocked.convert(_this.custom.template, _this.custom.options);
+            _this.response = _this.responseText = JSON.stringify(mockResponse);
             _this.readyState = XHR_STATES.DONE;
             _this.dispatchEvent(createCustomEvent('readystatechange'));
             _this.dispatchEvent(createCustomEvent('load'));
@@ -8447,12 +8456,12 @@ var MockXMLHttpRequest = /** @class */ (function () {
         Object.assign(MockXMLHttpRequest.settings, settings);
         return MockXMLHttpRequest.settings;
     };
-    MockXMLHttpRequest.Mock = {};
     MockXMLHttpRequest.UNSENT = XHR_STATES.UNSENT;
     MockXMLHttpRequest.OPENED = XHR_STATES.OPENED;
     MockXMLHttpRequest.HEADERS_RECEIVED = XHR_STATES.HEADERS_RECEIVED;
     MockXMLHttpRequest.LOADING = XHR_STATES.LOADING;
     MockXMLHttpRequest.DONE = XHR_STATES.DONE;
+    MockXMLHttpRequest.__MOCK__ = false;
     return MockXMLHttpRequest;
 }());
 // Inspired by jQuery
@@ -8472,9 +8481,11 @@ function createNativeXMLHttpRequest() {
         return new _ActiveXObject('Microsoft.XMLHTTP');
     }
 }
-// 数据模板 ＝> 响应数据
-function convert(item, options) {
-    return isFunction(item.template) ? item.template(options) : MockXMLHttpRequest.Mock.mock(item.template);
+function overrideXHR() {
+    if (!MockXMLHttpRequest.__MOCK__) {
+        MockXMLHttpRequest.__MOCK__ = true;
+        window.XMLHttpRequest = MockXMLHttpRequest;
+    }
 }
 
 var _nativeFetch = fetch;
@@ -8547,7 +8558,7 @@ function MockFetch(input, init) {
         return _nativeFetch(input, init);
     }
     // 找到了匹配的数据模板，拦截 fetch 请求
-    var body = JSON.stringify(convert(item, options));
+    var body = JSON.stringify(mocked.convert(item, options));
     var response = new Response(body, {
         status: 200,
         statusText: 'ok',
@@ -8555,9 +8566,12 @@ function MockFetch(input, init) {
     });
     return Promise.resolve(response);
 }
-function rewriteFetchAndRequest() {
-    window.Request = MockRequest;
-    window.fetch = MockFetch;
+function overrideFetchAndRequest() {
+    if (window.fetch && !MockRequest.__MOCK__) {
+        MockRequest.__MOCK__ = true;
+        window.Request = MockRequest;
+        window.fetch = MockFetch;
+    }
 }
 
 // For browser
@@ -8572,13 +8586,9 @@ var Mock = {
     mock: mock,
     heredoc: heredoc,
     setup: function (settings) { return MockXMLHttpRequest.setup(settings); },
-    mocked: mocked.getSource(),
-    version: '0.1.6'
+    _mocked: mocked.getSource(),
+    version: '0.2.0'
 };
-// 避免循环依赖
-if (MockXMLHttpRequest) {
-    MockXMLHttpRequest.Mock = Mock;
-}
 // 根据数据模板生成模拟数据。
 function mock(rurl, rtype, template) {
     assert(arguments.length, 'The mock function needs to pass at least one parameter!');
@@ -8592,11 +8602,9 @@ function mock(rurl, rtype, template) {
         rtype = undefined;
     }
     // 拦截 XHR
-    window.XMLHttpRequest = MockXMLHttpRequest;
+    overrideXHR();
     // 拦截fetch
-    if (window.fetch && isFunction(window.fetch)) {
-        rewriteFetchAndRequest();
-    }
+    overrideFetchAndRequest();
     var key = String(rurl) + String(rtype);
     mocked.set(key, { rurl: rurl, rtype: rtype, template: template });
     return Mock;

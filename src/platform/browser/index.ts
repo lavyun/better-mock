@@ -7,20 +7,20 @@ import mocked from '../../core/mocked'
 import * as Util from '../../utils'
 import Random from '../../random'
 import { Settings } from '../../types'
-import XHR from './xhr'
-import overrideFetchAndRequest from './fetch'
+import { overrideXHR, MockXMLHttpRequest } from './xhr'
+import { overrideFetchAndRequest } from './fetch'
 
 const Mock = {
   Handler,
   Random,
   Util,
-  XHR,
+  XHR: MockXMLHttpRequest,
   RE,
   toJSONSchema,
   valid,
   mock,
   heredoc: Util.heredoc,
-  setup: (settings: Settings) => XHR.setup(settings),
+  setup: (settings: Settings) => MockXMLHttpRequest.setup(settings),
   _mocked: mocked.getSource(),
   version: '__VERSION__'
 }
@@ -38,11 +38,10 @@ function mock (rurl: string | RegExp, rtype?: string | RegExp, template?: object
     rtype = undefined
   }
   // 拦截 XHR
-  (window.XMLHttpRequest as any) = XHR
+  overrideXHR()
   // 拦截fetch
-  if (window.fetch && Util.isFunction(window.fetch)) {
-    overrideFetchAndRequest()
-  }
+  overrideFetchAndRequest()
+  
   const key = String(rurl) + String(rtype)
   mocked.set(key, { rurl, rtype, template })
 

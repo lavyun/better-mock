@@ -1,10 +1,8 @@
 /*!
-  * better-mock v0.2.0 (mock.node.js)
+  * better-mock v0.2.0 (mock.mp.esm.js)
   * (c) 2019-2019 lavyun@163.com
   * Released under the MIT License.
   */
-
-'use strict';
 
 var constant = {
     GUID: 1,
@@ -570,46 +568,26 @@ var dataImage = function (size, text) {
     var height = parseInt(sizes[1], 10);
     assert(isNumber(width) && isNumber(height), 'Invalid size, expected INTxINT, e.g. 300x400');
     {
-        return createNodeDataImage(width, height, background, text);
+        return createBrowserDataImage(width, height, background, text);
     }
 };
-// node 端生成 base64 图片
-function createNodeDataImage(width, height, background, text) {
-    var Jimp = require('jimp');
-    var sync = require('promise-synchronizer');
-    // 计算字体的合适大小
-    var jimpFontSizePool = [128, 64, 32, 16];
-    var expectFontSize = Math.min(width, height) / 3;
-    var expectFontSizePool = jimpFontSizePool.filter(function (size) { return expectFontSize - size >= 0; });
-    var fontSize = expectFontSizePool[0] || 16;
-    var fontPath = Jimp["FONT_SANS_" + fontSize + "_WHITE"];
-    var generateImage = new Promise(function (resolve, reject) {
-        new Jimp(width, height, background, function (err, image) {
-            if (err) {
-                reject(err);
-            }
-            else {
-                Jimp.loadFont(fontPath).then(function (font) {
-                    // 文字的真实宽高
-                    var measureWidth = Jimp.measureText(font, text);
-                    var measureHeight = Jimp.measureTextHeight(font, text, width);
-                    // 文字在画布上的目标 x, y
-                    var targetX = width <= measureWidth ? 0 : (width - measureWidth) / 2;
-                    var targetY = height <= measureHeight ? 0 : (height - measureHeight) / 2;
-                    image.print(font, targetX, targetY, text);
-                    image.getBufferAsync(Jimp.MIME_PNG).then(function (buffer) {
-                        resolve('data:image/png;base64,' + buffer.toString('base64'));
-                    });
-                });
-            }
-        });
-    });
-    try {
-        return sync(generateImage);
+// browser 端生成 base64 图片
+function createBrowserDataImage(width, height, background, text) {
+    var canvas = document.createElement('canvas');
+    var ctx = canvas && canvas.getContext && canvas.getContext('2d');
+    if (!canvas || !ctx) {
+        return '';
     }
-    catch (err) {
-        throw err;
-    }
+    canvas.width = width;
+    canvas.height = height;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = background;
+    ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText(text, width / 2, height / 2, width);
+    return canvas.toDataURL('image/png');
 }
 
 var image$1 = /*#__PURE__*/Object.freeze({
@@ -8124,7 +8102,174 @@ var valid = function valid(template, data) {
 valid.Diff = Diff;
 valid.Assert = Assert;
 
-// For Node.js
+function rgx (str, loose) {
+	if (str instanceof RegExp) return { keys:false, pattern:str };
+	var c, o, tmp, ext, keys=[], pattern='', arr = str.split('/');
+	arr[0] || arr.shift();
+
+	while (tmp = arr.shift()) {
+		c = tmp[0];
+		if (c === '*') {
+			keys.push('wild');
+			pattern += '/(.*)';
+		} else if (c === ':') {
+			o = tmp.indexOf('?', 1);
+			ext = tmp.indexOf('.', 1);
+			keys.push( tmp.substring(1, !!~o ? o : !!~ext ? ext : tmp.length) );
+			pattern += !!~o && !~ext ? '(?:/([^/]+?))?' : '/([^/]+?)';
+			if (!!~ext) pattern += (!!~o ? '?' : '') + '\\' + tmp.substring(ext);
+		} else {
+			pattern += '/' + tmp;
+		}
+	}
+
+	return {
+		keys: keys,
+		pattern: new RegExp('^' + pattern + (loose ? '(?=$|\/)' : '\/?$'), 'i')
+	};
+}
+
+var IMocked = /** @class */ (function () {
+    function IMocked() {
+        this._mocked = {};
+    }
+    IMocked.prototype.get = function (key) {
+        return this._mocked[key];
+    };
+    IMocked.prototype.set = function (key, value) {
+        this._mocked[key] = value;
+    };
+    IMocked.prototype.getSource = function () {
+        return this._mocked;
+    };
+    // 查找与请求参数匹配的数据模板：URL，Type
+    IMocked.prototype.find = function (url, type) {
+        var mockedItems = Object.values(this._mocked);
+        for (var i = 0; i < mockedItems.length; i++) {
+            var item = mockedItems[i];
+            var urlMatched = this._matchUrl(item.rurl, url);
+            var typeMatched = this._matchType(item.rtype, type);
+            if (!item.rtype && urlMatched) {
+                return item;
+            }
+            if (urlMatched && typeMatched) {
+                return item;
+            }
+        }
+    };
+    /**
+     * 数据模板转换成 mock 数据
+     * @param item 发请求时匹配到的 mock 数据源
+     * @param options 包含请求头，请求体，请求方法等
+     */
+    IMocked.prototype.convert = function (item, options) {
+        return isFunction(item.template) ? item.template(options) : handler$1.gen(item.template);
+    };
+    IMocked.prototype._matchUrl = function (expected, actual) {
+        if (isString(expected)) {
+            if (expected === actual) {
+                return true;
+            }
+            // expected: /hello/world
+            // actual: /hello/world?type=1
+            if (actual.indexOf(expected) === 0 && actual[expected.length] === '?') {
+                return true;
+            }
+            if (expected.indexOf('/') === 0) {
+                return rgx(expected).pattern.test(actual);
+            }
+        }
+        if (isRegExp(expected)) {
+            return expected.test(actual);
+        }
+        return false;
+    };
+    IMocked.prototype._matchType = function (expected, actual) {
+        if (isString(expected) || isRegExp(expected)) {
+            return new RegExp(expected, 'i').test(actual);
+        }
+        return false;
+    };
+    return IMocked;
+}());
+var mocked = new IMocked();
+
+// 获取小程序平台标识
+function getPlatform() {
+    var global;
+    var name;
+    if (typeof wx !== 'undefined') {
+        global = wx;
+        name = 'wx';
+    }
+    else if (typeof my !== 'undefined') {
+        global = my;
+        name = 'my';
+    }
+    else if (typeof tt !== 'undefined') {
+        global = tt;
+        name = 'tt';
+    }
+    else if (typeof swan !== 'undefined') {
+        global = swan;
+        name = 'swan';
+    }
+    return { global: global, name: name };
+}
+var platform = getPlatform();
+var platformName = platform.name;
+var platformRequest = platform.global.request;
+function MockRequest(opts) {
+    var options = {
+        url: opts.url,
+        type: opts.method,
+        body: opts.data || null,
+        headers: opts.header || opts.headers || {}
+    };
+    // 查找与请求参数匹配的数据模板
+    var item = mocked.find(opts.url, opts.method);
+    // 如果未找到匹配的数据模板，则采用原生 request 发送请求。
+    if (!item) {
+        return platformRequest(opts);
+    }
+    // 找到了匹配的数据模板，拦截 fetch 请求
+    var responseData = mocked.convert(item, options);
+    var successOptions;
+    if (platformName === 'my') {
+        successOptions = {
+            status: 200,
+            data: responseData,
+            headers: {}
+        };
+    }
+    else {
+        successOptions = {
+            statusCode: 200,
+            data: responseData,
+            header: {}
+        };
+    }
+    if (isFunction(opts.success)) {
+        opts.success(successOptions);
+    }
+    if (isFunction(opts.complete)) {
+        opts.complete(successOptions);
+    }
+}
+// 覆盖原生的 request 方法
+function overrideRequest() {
+    if (!platform.global.request.__MOCK__) {
+        Object.defineProperty(platform.global, 'request', {
+            configurable: true,
+            enumerable: true,
+            writable: true,
+            value: MockRequest
+        });
+        platform.global.request.__MOCK__ = true;
+    }
+}
+
+// For minapp
 var Mock = {
     Handler: handler$1,
     Random: Random,
@@ -8134,12 +8279,25 @@ var Mock = {
     valid: valid,
     mock: mock,
     heredoc: heredoc,
+    _mocked: mocked.getSource(),
     version: '0.2.0'
 };
-// Mock.mock( template )
 // 根据数据模板生成模拟数据。
-function mock(template) {
-    return handler$1.gen(template);
+function mock(rurl, rtype, template) {
+    assert(arguments.length, 'The mock function needs to pass at least one parameter!');
+    // Mock.mock(template)
+    if (arguments.length === 1) {
+        return handler$1.gen(rurl);
+    }
+    // Mock.mock(url, template)
+    if (arguments.length === 2) {
+        template = rtype;
+        rtype = undefined;
+    }
+    overrideRequest();
+    var key = String(rurl) + String(rtype);
+    mocked.set(key, { rurl: rurl, rtype: rtype, template: template });
+    return Mock;
 }
 
-module.exports = Mock;
+export default Mock;
