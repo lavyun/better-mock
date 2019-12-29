@@ -27,4 +27,4 @@ assignees: ''
 请描述一下你的代码运行环境。
  - Env: 运行环境（浏览器、小程序还是Node.js)
  - OS: 客户端OS（IOS、安卓还是PC）
- - better-mock version: [e.g. 0.2.0]
+ - better-mock version: 库版本
