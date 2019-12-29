@@ -1,7 +1,7 @@
 ---
 name: Bug report
 about: Create a report to help us improve
-title: "[BUG]"
+title: "[BUG] xxxxxx"
 labels: bug
 assignees: ''
 
@@ -11,7 +11,7 @@ assignees: ''
 请简述你遇到的问题。
 
 **复现步骤**
-请详细介绍如何复现该问题，有利于我们定位。
+请详细介绍如何复现该问题，有利于我们定位，例如：
 1. Go to '...'
 2. Click on '....'
 3. Scroll down to '....'
