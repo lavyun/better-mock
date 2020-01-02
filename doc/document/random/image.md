@@ -65,7 +65,8 @@ Random.image('200x100', '#ffcc33', '#FFF', 'png', '!')
 生成一段随机的 Base64 图片编码。
 
 ::: warning
-该方法在 Node 端不支持传入中文 text 。
+- 该方法在 Node 端不支持传入中文 text 。
+- 该方法在小程序端无法使用。
 :::
 
 ### size `可选`

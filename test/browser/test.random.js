@@ -1,5 +1,5 @@
 // 数据占位符定义（Data Placeholder Definition，DPD）
-const Random = require('../dist/mock.browser').Random
+const Random = require('../../dist/mock.browser').Random
 const expect = require('chai').expect
 
 describe('Random', function () {

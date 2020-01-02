@@ -1,10 +1,10 @@
 import mocked from '../../core/mocked'
 import { PlatformName, MpGlobal, WxSuccessCallback, MySuccessCallback, MpRequestOptions } from './types'
 import { XHRCustomOptions } from '../../types'
-import { isFunction } from '../../utils'
+import { isFunction, assert } from '../../utils'
 
 // 获取小程序平台标识
-function getPlatform (): {
+function getMpPlatform (): {
   name: PlatformName,
   global: MpGlobal
 } {
@@ -24,23 +24,25 @@ function getPlatform (): {
     name = 'swan'
   }
 
+  assert(global && name, 'Invalid mini-program platform, just work in "wx", "my", "tt" or "swan"!')
+
   return { global, name }
 }
 
-const platform = getPlatform()
+const platform = getMpPlatform()
 const platformName = platform.name
 const platformRequest = platform.global.request
 
 function MockRequest (opts: MpRequestOptions) {
   const options: XHRCustomOptions = {
     url: opts.url,
-    type: opts.method,
+    type: opts.method || 'GET',
     body: opts.data as any || null,
     headers: opts.header || opts.headers || {}
   }
 
   // 查找与请求参数匹配的数据模板
-  const item = mocked.find(opts.url, opts.method)
+  const item = mocked.find(options.url, options.type)
 
   // 如果未找到匹配的数据模板，则采用原生 request 发送请求。
   if (!item) {
@@ -90,7 +92,8 @@ function overrideRequest () {
 }
 
 export {
-  overrideRequest
+  overrideRequest,
+  getMpPlatform
 }
 
 declare global {

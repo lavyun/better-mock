@@ -11,6 +11,12 @@ const resolve = p => {
 
 const platform = process.argv[2]
 
+const PLATFORM_TYPES = {
+  BROWSER: 'BROWSER',
+  NODE: 'NODE',
+  MP: 'MP'
+}
+
 const createBanner = (fileName) => {
   return `/*!
   * better-mock v${version} (${fileName})
@@ -23,18 +29,21 @@ const createBanner = (fileName) => {
 // 浏览器 build
 const browserBuilds = [
   {
+    platform: PLATFORM_TYPES.BROWSER,
     entry: resolve('../src/platform/browser/index.ts'),
     dest: resolve('../dist/mock.browser.js'),
     format: 'umd',
     banner: createBanner('mock.browser.js')
   },
   {
+    platform: PLATFORM_TYPES.BROWSER,
     entry: resolve('../src/platform/browser/index.ts'),
     dest: resolve('../dist/mock.browser.min.js'),
     format: 'umd',
     banner: createBanner('mock.browser.min.js')
   },
   {
+    platform: PLATFORM_TYPES.BROWSER,
     entry: resolve('../src/platform/browser/index.ts'),
     dest: resolve('../dist/mock.browser.esm.js'),
     format: 'es',
@@ -45,6 +54,7 @@ const browserBuilds = [
 // node build
 const nodeBuilds = [
   {
+    platform: PLATFORM_TYPES.NODE,
     entry: resolve('../src/platform/node/index.ts'),
     dest: resolve('../dist/mock.node.js'),
     format: 'cjs',
@@ -55,12 +65,14 @@ const nodeBuilds = [
 // 小程序 build
 const mpBuilds = [
   {
+    platform: PLATFORM_TYPES.MP,
     entry: resolve('../src/platform/mp/index.ts'),
     dest: resolve('../dist/mock.mp.js'),
     format: 'umd',
     banner: createBanner('mock.mp.js')
   },
   {
+    platform: PLATFORM_TYPES.MP,
     entry: resolve('../src/platform/mp/index.ts'),
     dest: resolve('../dist/mock.mp.esm.js'),
     format: 'es',
@@ -90,7 +102,9 @@ const genConfig = (opts) => {
       nodeResolve(),
       replace({
         '__VERSION__': version,
-        'process.env.BROWSER': opts.format !== 'cjs'
+        'process.env.PLATFORM_BROWSER': opts.platform === PLATFORM_TYPES.BROWSER,
+        'process.env.PLATFORM_NODE': opts.platform === PLATFORM_TYPES.NODE,
+        'process.env.PLATFORM_MP': opts.platform === PLATFORM_TYPES.MP,
       }),
       json()
     ],

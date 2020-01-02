@@ -1,6 +1,6 @@
 /*!
   * better-mock v0.2.0 (mock.browser.esm.js)
-  * (c) 2019-2019 lavyun@163.com
+  * (c) 2019-2020 lavyun@163.com
   * Released under the MIT License.
   */
 
@@ -7677,8 +7677,14 @@ var handler$1 = {
             params = eval('(function(){ return [].splice.call(arguments, 0 ) })(' + paramsInput + ')');
         }
         catch (error) {
-            // 2. 如果失败，只能解析为字符串
-            params = paramsInput.split(/,\s*/);
+            // 2. 如果失败，先使用 `[]` 包裹，用 JSON.parse 尝试解析
+            try {
+                params = JSON.parse("[" + paramsInput + "]");
+            }
+            catch (e) {
+                // 3. 逗号 split 方案兜底
+                params = paramsInput.split(/,\s*/);
+            }
         }
         // 占位符优先引用数据模板中的属性
         // { first: '@EMAIL', full: '@first' } =>  { first: 'dsa@163.com', full: 'dsa@163.com' }

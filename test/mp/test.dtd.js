@@ -1,5 +1,6 @@
-const Mock = require('../dist/mock.browser')
+const Mock = require('../../dist/mock.mp')
 const expect = require('chai').expect
+const { describe, it } = global
 
 describe('DTD', function () {
   describe('Literal', function () {
@@ -556,8 +557,6 @@ describe('DTD', function () {
       validRegExp(/(?:ABC)/)
       validRegExp(/(?=ABC)/)
       validRegExp(/(?!ABC)/)
-      // validRegExp(/(?<=ABC)/)
-      // validRegExp(/(?<!ABC)/)
 
       validRegExp(/(\d{5,10})|([a-zA-Z]{5,10})/)
       validRegExp(/(?:\d{5,10})|(?:[a-zA-Z]{5,10})/)
@@ -572,12 +571,6 @@ describe('DTD', function () {
       validRegExp(/a|bc/)
 
       validRegExp(/\d{5,10}|[a-zA-Z]{5,10}/)
-    })
-
-    describe('Flags', function () {
-      // ignoreCase
-      // multiline
-      // global
     })
   })
 

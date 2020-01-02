@@ -1,6 +1,6 @@
 /*!
   * better-mock v0.2.0 (mock.mp.esm.js)
-  * (c) 2019-2019 lavyun@163.com
+  * (c) 2019-2020 lavyun@163.com
   * Released under the MIT License.
   */
 
@@ -558,7 +558,6 @@ var img = image;
  */
 var dataImage = function (size, text) {
     size = size || pick(imageSize);
-    text = text || size;
     var background = pick([
         '#171515', '#e47911', '#183693', '#720e9e', '#c4302b', '#dd4814',
         '#00acee', '#0071c5', '#3d9ae8', '#ec6231', '#003580', '#e51937'
@@ -568,27 +567,10 @@ var dataImage = function (size, text) {
     var height = parseInt(sizes[1], 10);
     assert(isNumber(width) && isNumber(height), 'Invalid size, expected INTxINT, e.g. 300x400');
     {
-        return createBrowserDataImage(width, height, background, text);
-    }
-};
-// browser 端生成 base64 图片
-function createBrowserDataImage(width, height, background, text) {
-    var canvas = document.createElement('canvas');
-    var ctx = canvas && canvas.getContext && canvas.getContext('2d');
-    if (!canvas || !ctx) {
+        // 小程序无法直接生成 base64 图片，返回空字符串
         return '';
     }
-    canvas.width = width;
-    canvas.height = height;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = background;
-    ctx.fillRect(0, 0, width, height);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 14px sans-serif';
-    ctx.fillText(text, width / 2, height / 2, width);
-    return canvas.toDataURL('image/png');
-}
+};
 
 var image$1 = /*#__PURE__*/Object.freeze({
   image: image,
@@ -7677,8 +7659,14 @@ var handler$1 = {
             params = eval('(function(){ return [].splice.call(arguments, 0 ) })(' + paramsInput + ')');
         }
         catch (error) {
-            // 2. 如果失败，只能解析为字符串
-            params = paramsInput.split(/,\s*/);
+            // 2. 如果失败，先使用 `[]` 包裹，用 JSON.parse 尝试解析
+            try {
+                params = JSON.parse("[" + paramsInput + "]");
+            }
+            catch (e) {
+                // 3. 逗号 split 方案兜底
+                params = paramsInput.split(/,\s*/);
+            }
         }
         // 占位符优先引用数据模板中的属性
         // { first: '@EMAIL', full: '@first' } =>  { first: 'dsa@163.com', full: 'dsa@163.com' }
@@ -8195,7 +8183,7 @@ var IMocked = /** @class */ (function () {
 var mocked = new IMocked();
 
 // 获取小程序平台标识
-function getPlatform() {
+function getMpPlatform() {
     var global;
     var name;
     if (typeof wx !== 'undefined') {
@@ -8214,20 +8202,21 @@ function getPlatform() {
         global = swan;
         name = 'swan';
     }
+    assert(global && name, 'Invalid mini-program platform, just work in "wx", "my", "tt" or "swan"!');
     return { global: global, name: name };
 }
-var platform = getPlatform();
+var platform = getMpPlatform();
 var platformName = platform.name;
 var platformRequest = platform.global.request;
 function MockRequest(opts) {
     var options = {
         url: opts.url,
-        type: opts.method,
+        type: opts.method || 'GET',
         body: opts.data || null,
         headers: opts.header || opts.headers || {}
     };
     // 查找与请求参数匹配的数据模板
-    var item = mocked.find(opts.url, opts.method);
+    var item = mocked.find(options.url, options.type);
     // 如果未找到匹配的数据模板，则采用原生 request 发送请求。
     if (!item) {
         return platformRequest(opts);
@@ -8259,6 +8248,7 @@ function MockRequest(opts) {
 // 覆盖原生的 request 方法
 function overrideRequest() {
     if (!platform.global.request.__MOCK__) {
+        // 小程序 API 做了 setter 限制，不能直接复制
         Object.defineProperty(platform.global, 'request', {
             configurable: true,
             enumerable: true,
@@ -8269,7 +8259,7 @@ function overrideRequest() {
     }
 }
 
-// For minapp
+// For mini-program
 var Mock = {
     Handler: handler$1,
     Random: Random,

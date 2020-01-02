@@ -1,4 +1,4 @@
-const Mock = require('../dist/mock.browser')
+const Mock = require('../../dist/mock.browser')
 const expect = require('chai').expect
 const $ = require('jquery')
 
@@ -57,27 +57,6 @@ describe('Fetch', function() {
   })
 
   describe('Mock.mock( rurl, template )', () => {
-    it('remote url', async function() {
-      const url = 'http://example.com/rurl_template'
-
-      Mock.mock(url, {
-        'list|1-10': [
-          {
-            'id|+1': 1,
-            email: '@EMAIL'
-          }
-        ]
-      })
-
-      try {
-        const data = await fetch(url).then(res => res.json())
-        this.test.title += url + ' => ' + stringify(data)
-        dataAssert(data)
-      } catch (err) {
-        console.error(err)
-      }
-    })
-
     it('remote url', async function() {
       const url = 'http://example.com/rurl_template'
 
