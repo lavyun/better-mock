@@ -56,6 +56,31 @@ describe('Fetch', function() {
     })
   })
 
+  describe('Mock.setup', function () {
+    it('', async function () {
+      Mock.setup({ timeout: 2000 })
+      const url = 'http://example.com/mock_setup'
+
+      Mock.mock(url, {
+        'list|1-10': [{
+          'id|+1': 1,
+          'email': '@EMAIL'
+        }]
+      })
+
+      const timeStart = Date.now()
+
+      const data = await fetch(url).then(res => res.json())
+
+      expect(Date.now() - timeStart >= 2000).to.ok
+      dataAssert(data)
+    })
+
+    after(() => {
+      Mock.setup({ timeout: '10-50' })
+    })
+  })
+
   describe('Mock.mock( rurl, template )', () => {
     it('remote url', async function() {
       const url = 'http://example.com/rurl_template'

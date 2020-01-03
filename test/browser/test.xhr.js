@@ -60,6 +60,33 @@ describe('XHR', function () {
     })
   })
 
+  describe('Mock.setup', function () {
+    it('', async function () {
+      Mock.setup({ timeout: 2000 })
+      const url = '/mock_setup'
+
+      Mock.mock(url, {
+        'list|1-10': [{
+          'id|+1': 1,
+          'email': '@EMAIL'
+        }]
+      })
+
+      const timeStart = Date.now()
+
+      const data = await $.ajax({ 
+        url, 
+        dataType: 'json' 
+      })
+
+      expect(Date.now() - timeStart >= 2000).to.ok
+      expect(data).to.have.property('list').that.be.an('array').with.length.within(1, 10)
+      data.list.forEach(function (item, index) {
+        if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
+      })
+    })
+  })
+
   describe('Mock.mock( rurl, template )', function () {
     it('', function (done) {
       var that = this
