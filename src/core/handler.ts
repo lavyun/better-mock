@@ -338,7 +338,8 @@ const handler = {
     } catch (error) {
       // 2. 如果失败，先使用 `[]` 包裹，用 JSON.parse 尝试解析
       try {
-        params = JSON.parse(`[${paramsInput}]`)
+        const paramsString = paramsInput.replace(/'/g, '"')
+        params = JSON.parse(`[${paramsString}]`)
       } catch (e) {
         // 3. 逗号 split 方案兜底
         params = paramsInput.split(/,\s*/)
