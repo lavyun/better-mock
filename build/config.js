@@ -9,6 +9,14 @@ const resolve = p => {
   return path.resolve(__dirname,  p)
 }
 
+const platform = process.argv[2]
+
+const PLATFORM_TYPES = {
+  BROWSER: 'BROWSER',
+  NODE: 'NODE',
+  MP: 'MP'
+}
+
 const createBanner = (fileName) => {
   return `/*!
   * better-mock v${version} (${fileName})
@@ -18,26 +26,35 @@ const createBanner = (fileName) => {
 `
 }
 
-const builds = [
+// 浏览器 build
+const browserBuilds = [
   {
+    platform: PLATFORM_TYPES.BROWSER,
     entry: resolve('../src/platform/browser/index.ts'),
     dest: resolve('../dist/mock.browser.js'),
     format: 'umd',
     banner: createBanner('mock.browser.js')
   },
   {
+    platform: PLATFORM_TYPES.BROWSER,
     entry: resolve('../src/platform/browser/index.ts'),
     dest: resolve('../dist/mock.browser.min.js'),
     format: 'umd',
     banner: createBanner('mock.browser.min.js')
   },
   {
+    platform: PLATFORM_TYPES.BROWSER,
     entry: resolve('../src/platform/browser/index.ts'),
     dest: resolve('../dist/mock.browser.esm.js'),
     format: 'es',
     banner: createBanner('mock.browser.esm.js')
-  },
+  }
+]
+
+// node build
+const nodeBuilds = [
   {
+    platform: PLATFORM_TYPES.NODE,
     entry: resolve('../src/platform/node/index.ts'),
     dest: resolve('../dist/mock.node.js'),
     format: 'cjs',
@@ -45,17 +62,49 @@ const builds = [
   }
 ]
 
-const genConfig = (name) => {
-  const opts = builds[name]
+// 小程序 build
+const mpBuilds = [
+  {
+    platform: PLATFORM_TYPES.MP,
+    entry: resolve('../src/platform/mp/index.ts'),
+    dest: resolve('../dist/mock.mp.js'),
+    format: 'umd',
+    banner: createBanner('mock.mp.js')
+  },
+  {
+    platform: PLATFORM_TYPES.MP,
+    entry: resolve('../src/platform/mp/index.ts'),
+    dest: resolve('../dist/mock.mp.esm.js'),
+    format: 'es',
+    banner: createBanner('mock.mp.esm.js')
+  }
+]
+
+const platformMap = {
+  browser: browserBuilds,
+  node: nodeBuilds,
+  mp: mpBuilds
+}
+
+const builds = platform 
+  ? platformMap[platform] || browserBuilds
+  : [
+    ...browserBuilds,
+    ...nodeBuilds,
+    ...mpBuilds
+  ]
+
+const genConfig = (opts) => {
   return {
-    name: opts.name,
     input: opts.entry,
     plugins: [
       typescript(),
       nodeResolve(),
       replace({
         '__VERSION__': version,
-        'process.env.BROWSER': opts.format !== 'cjs'
+        'process.env.PLATFORM_BROWSER': opts.platform === PLATFORM_TYPES.BROWSER,
+        'process.env.PLATFORM_NODE': opts.platform === PLATFORM_TYPES.NODE,
+        'process.env.PLATFORM_MP': opts.platform === PLATFORM_TYPES.MP,
       }),
       json()
     ],
@@ -73,6 +122,6 @@ const genConfig = (name) => {
   }
 }
 
-const getAllBuilds = () => Object.keys(builds).map(genConfig)
+const getAllBuilds = () => builds.map(genConfig)
 
 exports.getAllBuilds = getAllBuilds

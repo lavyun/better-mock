@@ -1,7 +1,7 @@
-import { convert } from './xhr'
 import { isString } from '../../utils'
 import { XHRCustomOptions, StringObject } from '../../types'
 import mocked from '../../core/mocked'
+import setting from '../../core/setting'
 
 const _nativeFetch = fetch
 const _nativeRequest = Request
@@ -20,7 +20,9 @@ function extendRequest(request: Request, input: RequestInfo, init?: RequestInit 
   return request
 }
 
-let MockRequest
+type RequestCtor = typeof window.Request
+
+let MockRequest: (RequestCtor | Function) & { __MOCK__?: boolean }
 /**
  * 拦截 window.Request 实例化
  * 原生 Request 对象被实例化后，对 request.url 取值得到的是拼接后的 url:
@@ -78,19 +80,29 @@ function MockFetch(input: RequestInfo, init?: RequestInit | undefined): Promise<
   }
 
   // 找到了匹配的数据模板，拦截 fetch 请求
-  const body = JSON.stringify(convert(item, options))
+  const body = JSON.stringify(mocked.convert(item, options))
   const response = new Response(body, {
     status: 200,
     statusText: 'ok',
     headers: request.headers
   })
 
-  return Promise.resolve(response)
+  // 异步返回数据
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(response)
+    }, setting.parseTimeout())
+  })
 }
 
-function rewriteFetchAndRequest() {
-  window.Request = MockRequest
-  window.fetch = MockFetch
+function overrideFetchAndRequest() {
+  if (window.fetch && !MockRequest.__MOCK__) {
+    MockRequest.__MOCK__ = true
+    window.Request = MockRequest as RequestCtor
+    window.fetch = MockFetch
+  }
 }
 
-export default rewriteFetchAndRequest
+export {
+  overrideFetchAndRequest
+}

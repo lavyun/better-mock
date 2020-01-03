@@ -1,6 +1,7 @@
-const Mock = require('../dist/mock.browser')
+const Mock = require('../../dist/mock.mp')
 const expect = require('chai').expect
-const $ = require('jquery')
+
+const { describe, it } = global
 
 describe('DPD', function () {
   describe('Reference', function () {
@@ -146,17 +147,10 @@ describe('DPD', function () {
         image2: '@IMAGE("100x200", "#000")',
         image3: '@IMAGE("100x200", "#000", "hello")',
         image4: '@IMAGE("100x200", "#000", "#FFF", "hello")',
-        image5: '@IMAGE("100x200", "#000", "#FFF", "png", "hello")',
-
-        dataImage1: '@DATAIMAGE',
-        dataImage2: '@DATAIMAGE("200x100")',
-        dataImage3: '@DATAIMAGE("300x100", "Hello Mock.js!")'
+        image5: '@IMAGE("100x200", "#000", "#FFF", "png", "hello")'
       },
       color: {
-        color: '@COLOR',
-        render: function () {
-          $('.header').css('background', this.color)
-        }
+        color: '@COLOR'
       },
       text: {
         title1: '@TITLE',

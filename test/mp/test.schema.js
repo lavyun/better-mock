@@ -1,5 +1,6 @@
-const Mock = require('../dist/mock.browser')
+const Mock = require('../../dist/mock.mp')
 const expect = require('chai').expect
+const { describe, it } = global
 
 describe('Schema', function () {
   function stringify (json) {

@@ -1,5 +1,5 @@
 /*!
-  * better-mock v0.2.0 (mock.browser.js)
+  * better-mock v0.2.0 (mock.mp.js)
   * (c) 2019-2020 lavyun@163.com
   * Released under the MIT License.
   */
@@ -564,7 +564,6 @@
    */
   var dataImage = function (size, text) {
       size = size || pick(imageSize);
-      text = text || size;
       var background = pick([
           '#171515', '#e47911', '#183693', '#720e9e', '#c4302b', '#dd4814',
           '#00acee', '#0071c5', '#3d9ae8', '#ec6231', '#003580', '#e51937'
@@ -574,27 +573,10 @@
       var height = parseInt(sizes[1], 10);
       assert(isNumber(width) && isNumber(height), 'Invalid size, expected INTxINT, e.g. 300x400');
       {
-          return createBrowserDataImage(width, height, background, text);
-      }
-  };
-  // browser 端生成 base64 图片
-  function createBrowserDataImage(width, height, background, text) {
-      var canvas = document.createElement('canvas');
-      var ctx = canvas && canvas.getContext && canvas.getContext('2d');
-      if (!canvas || !ctx) {
+          // 小程序无法直接生成 base64 图片，返回空字符串
           return '';
       }
-      canvas.width = width;
-      canvas.height = height;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = background;
-      ctx.fillRect(0, 0, width, height);
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 14px sans-serif';
-      ctx.fillText(text, width / 2, height / 2, width);
-      return canvas.toDataURL('image/png');
-  }
+  };
 
   var image$1 = /*#__PURE__*/Object.freeze({
     image: image,
@@ -1000,7 +982,7 @@
     ip: ip
   });
 
-  var location$1 = {
+  var location = {
   	"110000": {
   	code: "110000",
   	name: "北京市",
@@ -6318,7 +6300,7 @@
   };
 
   var REGION = ['东北', '华北', '华东', '华中', '华南', '西南', '西北'];
-  var areas = location$1;
+  var areas = location;
   // 随机生成一个大区。
   var region = function () {
       return pick(REGION);
@@ -6376,7 +6358,7 @@
   });
 
   // Miscellaneous
-  var areas$1 = location$1;
+  var areas$1 = location;
   // 随机生成一个 guid
   // http://www.broofa.com/2008/09/javascript-uuid-function/
   var guid = function () {
@@ -8239,381 +8221,92 @@
   }());
   var setting = new Setting();
 
-  // 备份原生 XMLHttpRequest
-  var _XMLHttpRequest = XMLHttpRequest;
-  var _ActiveXObject = window.ActiveXObject;
-  var XHR_STATES;
-  (function (XHR_STATES) {
-      // The object has been constructed.
-      XHR_STATES[XHR_STATES["UNSENT"] = 0] = "UNSENT";
-      // The open() method has been successfully invoked.
-      XHR_STATES[XHR_STATES["OPENED"] = 1] = "OPENED";
-      // All redirects (if any) have been followed and all HTTP headers of the response have been received.
-      XHR_STATES[XHR_STATES["HEADERS_RECEIVED"] = 2] = "HEADERS_RECEIVED";
-      // The response's body is being received.
-      XHR_STATES[XHR_STATES["LOADING"] = 3] = "LOADING";
-      // The data transfer has been completed or something went wrong during the transfer (e.g. infinite redirects).
-      XHR_STATES[XHR_STATES["DONE"] = 4] = "DONE";
-  })(XHR_STATES || (XHR_STATES = {}));
-  var XHR_EVENTS = ['readystatechange', 'loadstart', 'progress', 'abort', 'error', 'load', 'timeout', 'loadend'];
-  var XHR_REQUEST_PROPERTIES = ['timeout', 'withCredentials'];
-  var XHR_RESPONSE_PROPERTIES = [
-      'readyState',
-      'responseURL',
-      'status',
-      'statusText',
-      'responseType',
-      'response',
-      'responseText',
-      'responseXML'
-  ];
-  var MockXMLHttpRequest = /** @class */ (function () {
-      function MockXMLHttpRequest() {
-          // 标记当前对象为 MockXMLHttpRequest
-          this.mock = true;
-          // 是否拦截 Ajax 请求
-          this.match = false;
-          this.timeout = 0;
-          this.readyState = XHR_STATES.UNSENT;
-          this.withCredentials = false;
-          this.responseURL = '';
-          this.status = XHR_STATES.UNSENT;
-          this.statusText = '';
-          // '', 'text', 'arraybuffer', 'blob', 'document', 'json'
-          this.responseType = '';
-          this.response = null;
-          this.responseText = '';
-          this.responseXML = '';
-          this.UNSENT = XHR_STATES.UNSENT;
-          this.OPENED = XHR_STATES.OPENED;
-          this.HEADERS_RECEIVED = XHR_STATES.HEADERS_RECEIVED;
-          this.LOADING = XHR_STATES.LOADING;
-          this.DONE = XHR_STATES.DONE;
-          // 初始化 custom 对象，用于存储自定义属性
-          this.custom = {
-              events: {},
-              requestHeaders: {},
-              responseHeaders: {},
-              timeout: 0,
-              options: {},
-              xhr: createNativeXMLHttpRequest(),
-              template: null,
-              async: true
-          };
-          this.upload = this.custom.xhr.upload;
+  // 获取小程序平台标识
+  function getMpPlatform() {
+      var global;
+      var name;
+      if (typeof wx !== 'undefined') {
+          global = wx;
+          name = 'wx';
       }
-      MockXMLHttpRequest.prototype.open = function (method, url, async, username, password) {
-          var _this = this;
-          if (async === void 0) { async = true; }
-          Object.assign(this.custom, {
-              method: method,
-              url: url,
-              async: typeof async === 'boolean' ? async : true,
-              username: username,
-              password: password,
-              options: {
-                  url: url,
-                  type: method
-              }
-          });
-          this.custom.timeout = setting.parseTimeout();
-          // 查找与请求参数匹配的数据模板
-          var options = this.custom.options;
-          var item = mocked.find(options.url, options.type);
-          // 如果未找到匹配的数据模板，则采用原生 XHR 发送请求。
-          if (!item) {
-              var xhr_1 = this.custom.xhr;
-              // 初始化所有事件，用于监听原生 XHR 对象的事件
-              for (var i = 0; i < XHR_EVENTS.length; i++) {
-                  xhr_1.addEventListener(XHR_EVENTS[i], function (event) {
-                      // 同步属性 NativeXMLHttpRequest => MockXMLHttpRequest
-                      for (var i_1 = 0; i_1 < XHR_RESPONSE_PROPERTIES.length; i_1++) {
-                          try {
-                              _this[XHR_RESPONSE_PROPERTIES[i_1]] = xhr_1[XHR_RESPONSE_PROPERTIES[i_1]];
-                          }
-                          catch (e) { }
-                      }
-                      // 触发 MockXMLHttpRequest 上的同名事件
-                      _this.dispatchEvent(createCustomEvent(event.type));
-                  });
-              }
-              // xhr.open()
-              if (username) {
-                  xhr_1.open(method, url, async, username, password);
-              }
-              else {
-                  xhr_1.open(method, url, async);
-              }
-              // 同步属性 MockXMLHttpRequest => NativeXMLHttpRequest
-              for (var i = 0; i < XHR_REQUEST_PROPERTIES.length; i++) {
-                  try {
-                      xhr_1[XHR_REQUEST_PROPERTIES[i]] = this[XHR_REQUEST_PROPERTIES[i]];
-                  }
-                  catch (e) { }
-              }
-              return;
-          }
-          // 找到了匹配的数据模板，开始拦截 XHR 请求
-          this.match = true;
-          this.custom.template = item;
-          this.readyState = XHR_STATES.OPENED;
-          this.dispatchEvent(createCustomEvent('readystatechange'));
-      };
-      // Combines a header in author request headers.
-      MockXMLHttpRequest.prototype.setRequestHeader = function (name, value) {
-          // 原生 XHR
-          if (!this.match) {
-              this.custom.xhr.setRequestHeader(name, value);
-              return;
-          }
-          // 拦截 XHR
-          var requestHeaders = this.custom.requestHeaders;
-          if (requestHeaders[name]) {
-              requestHeaders[name] += ',' + value;
-          }
-          else {
-              requestHeaders[name] = value;
-          }
-      };
-      // Initiates the request.
-      MockXMLHttpRequest.prototype.send = function (data) {
-          var _this = this;
-          this.custom.options.body = data;
-          this.custom.options.headers = this.custom.requestHeaders;
-          // 原生 XHR
-          if (!this.match) {
-              this.custom.xhr.send(data);
-              return;
-          }
-          // 拦截 XHR
-          // X-Requested-With header
-          this.setRequestHeader('X-Requested-With', 'MockXMLHttpRequest');
-          // loadstart The fetch initiates.
-          this.dispatchEvent(createCustomEvent('loadstart'));
-          var done = function () {
-              _this.readyState = XHR_STATES.HEADERS_RECEIVED;
-              _this.dispatchEvent(createCustomEvent('readystatechange'));
-              _this.readyState = XHR_STATES.LOADING;
-              _this.dispatchEvent(createCustomEvent('readystatechange'));
-              _this.status = 200;
-              _this.statusText = 'OK';
-              // fix #92 #93 by @qddegtya
-              var mockResponse = mocked.convert(_this.custom.template, _this.custom.options);
-              _this.response = _this.responseText = JSON.stringify(mockResponse);
-              _this.readyState = XHR_STATES.DONE;
-              _this.dispatchEvent(createCustomEvent('readystatechange'));
-              _this.dispatchEvent(createCustomEvent('load'));
-              _this.dispatchEvent(createCustomEvent('loadend'));
-          };
-          if (this.custom.async) {
-              // 异步
-              setTimeout(done, this.custom.timeout);
-          }
-          else {
-              // 同步
-              done();
-          }
-      };
-      // https://xhr.spec.whatwg.org/#the-abort()-method
-      // Cancels any network activity.
-      MockXMLHttpRequest.prototype.abort = function () {
-          // 原生 XHR
-          if (!this.match) {
-              this.custom.xhr.abort();
-              return;
-          }
-          // 拦截 XHR
-          this.readyState = XHR_STATES.UNSENT;
-          this.dispatchEvent(createCustomEvent('abort', false, false, this));
-          this.dispatchEvent(createCustomEvent('error', false, false, this));
-      };
-      // https://xhr.spec.whatwg.org/#the-getresponseheader()-method
-      MockXMLHttpRequest.prototype.getResponseHeader = function (name) {
-          // 原生 XHR
-          if (!this.match) {
-              return this.custom.xhr.getResponseHeader(name);
-          }
-          // 拦截 XHR
-          return this.custom.responseHeaders[name.toLowerCase()];
-      };
-      // https://xhr.spec.whatwg.org/#the-getallresponseheaders()-method
-      // http://www.utf8-chartable.de/
-      MockXMLHttpRequest.prototype.getAllResponseHeaders = function () {
-          // 原生 XHR
-          if (!this.match) {
-              return this.custom.xhr.getAllResponseHeaders();
-          }
-          // 拦截 XHR
-          var responseHeaders = this.custom.responseHeaders;
-          var headers = '';
-          for (var h in responseHeaders) {
-              if (!responseHeaders.hasOwnProperty(h)) {
-                  continue;
-              }
-              headers += h + ': ' + responseHeaders[h] + '\r\n';
-          }
-          return headers;
-      };
-      MockXMLHttpRequest.prototype.overrideMimeType = function () { };
-      MockXMLHttpRequest.prototype.addEventListener = function (type, handle) {
-          var events = this.custom.events;
-          if (!events[type]) {
-              events[type] = [];
-          }
-          events[type].push(handle);
-      };
-      MockXMLHttpRequest.prototype.removeEventListener = function (type, handle) {
-          var handles = this.custom.events[type] || [];
-          for (var i = 0; i < handles.length; i++) {
-              if (handles[i] === handle) {
-                  handles.splice(i--, 1);
-              }
-          }
-      };
-      MockXMLHttpRequest.prototype.dispatchEvent = function (event) {
-          var handles = this.custom.events[event.type] || [];
-          for (var i = 0; i < handles.length; i++) {
-              handles[i].call(this, event);
-          }
-          var onType = 'on' + event.type;
-          if (this[onType]) {
-              this[onType](event);
-          }
-      };
-      MockXMLHttpRequest.UNSENT = XHR_STATES.UNSENT;
-      MockXMLHttpRequest.OPENED = XHR_STATES.OPENED;
-      MockXMLHttpRequest.HEADERS_RECEIVED = XHR_STATES.HEADERS_RECEIVED;
-      MockXMLHttpRequest.LOADING = XHR_STATES.LOADING;
-      MockXMLHttpRequest.DONE = XHR_STATES.DONE;
-      MockXMLHttpRequest.__MOCK__ = false;
-      return MockXMLHttpRequest;
-  }());
-  // Inspired by jQuery
-  function createNativeXMLHttpRequest() {
-      var isLocal = (function () {
-          var rLocalProtocol = /^(?:about|app|app-storage|.+-extension|file|res|widget):$/;
-          var rUrl = /^([\w.+-]+:)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/;
-          var ajaxLocation = location.href;
-          var ajaxLocParts = rUrl.exec(ajaxLocation.toLowerCase()) || [];
-          return rLocalProtocol.test(ajaxLocParts[1]);
-      })();
-      return window.ActiveXObject ? (!isLocal && createStandardXHR()) || createActiveXHR() : createStandardXHR();
-      function createStandardXHR() {
-          return new _XMLHttpRequest();
+      else if (typeof my !== 'undefined') {
+          global = my;
+          name = 'my';
       }
-      function createActiveXHR() {
-          return new _ActiveXObject('Microsoft.XMLHTTP');
+      else if (typeof tt !== 'undefined') {
+          global = tt;
+          name = 'tt';
       }
+      else if (typeof swan !== 'undefined') {
+          global = swan;
+          name = 'swan';
+      }
+      assert(global && name, 'Invalid mini-program platform, just work in "wx", "my", "tt" or "swan"!');
+      return { global: global, name: name };
   }
-  function overrideXHR() {
-      if (!MockXMLHttpRequest.__MOCK__) {
-          MockXMLHttpRequest.__MOCK__ = true;
-          window.XMLHttpRequest = MockXMLHttpRequest;
-      }
-  }
-
-  var _nativeFetch = fetch;
-  var _nativeRequest = Request;
-  function extendRequest(request, input, init) {
-      if (isString(input)) {
-          request['_actualUrl'] = input;
-      }
-      if (init && init.body) {
-          request['_actualBody'] = init.body;
-      }
-      if (input instanceof _nativeRequest && !init) {
-          request['_actualUrl'] = input['_actualUrl'];
-          request['_actualBody'] = input['_actualBody'];
-      }
-      return request;
-  }
-  var MockRequest;
-  /**
-   * 拦截 window.Request 实例化
-   * 原生 Request 对象被实例化后，对 request.url 取值得到的是拼接后的 url:
-   *   const request = new Request('/path/to')
-   *   console.log(request.url) => 'http://example.com/path/to'
-   * 原生 Request 对象被实例化后，对 request.body 取值得到的是 undefined:
-   *   const request = new Request('/path/to', { method: 'POST', body: 'foo=1' })
-   *   console.log(request.body) => undefined
-   */
-  if (window.Proxy) {
-      MockRequest = new Proxy(_nativeRequest, {
-          construct: function (target, _a) {
-              var input = _a[0], init = _a[1];
-              var request = new target(input, init);
-              return extendRequest(request, input, init);
-          }
-      });
-  }
-  else {
-      MockRequest = function MockRequest(input, init) {
-          var request = new _nativeRequest(input, init);
-          return extendRequest(request, input, init);
-      };
-      MockRequest.prototype = _nativeRequest.prototype;
-  }
-  // 拦截 fetch 方法
-  // https://developer.mozilla.org/zh-CN/docs/Web/API/WindowOrWorkerGlobalScope/fetch
-  function MockFetch(input, init) {
-      var request;
-      if (input instanceof Request && !init) {
-          request = input;
-      }
-      else {
-          request = new Request(input, init);
-      }
-      // 收集请求头
-      var headers = {};
-      request.headers.forEach(function (value, key) {
-          headers[key] = value;
-      });
-      // 优先获取自己扩展的 _actualUrl 和 _actualBody
+  var platform = getMpPlatform();
+  var platformName = platform.name;
+  var platformRequest = platform.global.request;
+  function MockRequest(opts) {
       var options = {
-          url: request['_actualUrl'] || request.url,
-          type: request.method,
-          body: request['_actualBody'] || request.body || null,
-          headers: headers
+          url: opts.url,
+          type: opts.method || 'GET',
+          body: opts.data || null,
+          headers: opts.header || opts.headers || {}
       };
       // 查找与请求参数匹配的数据模板
       var item = mocked.find(options.url, options.type);
-      // 如果未找到匹配的数据模板，则采用原生 fetch 发送请求。
+      // 如果未找到匹配的数据模板，则采用原生 request 发送请求。
       if (!item) {
-          return _nativeFetch(input, init);
+          return platformRequest(opts);
       }
       // 找到了匹配的数据模板，拦截 fetch 请求
-      var body = JSON.stringify(mocked.convert(item, options));
-      var response = new Response(body, {
-          status: 200,
-          statusText: 'ok',
-          headers: request.headers
-      });
-      // 异步返回数据
-      return new Promise(function (resolve) {
+      var responseData = mocked.convert(item, options);
+      var successOptions;
+      if (platformName === 'my') {
+          successOptions = {
+              status: 200,
+              data: responseData,
+              headers: {}
+          };
+      }
+      else {
+          successOptions = {
+              statusCode: 200,
+              data: responseData,
+              header: {}
+          };
+      }
+      if (isFunction(opts.success) || isFunction(opts.complete)) {
           setTimeout(function () {
-              resolve(response);
+              isFunction(opts.success) && opts.success(successOptions);
+              isFunction(opts.complete) && opts.complete(successOptions);
           }, setting.parseTimeout());
-      });
+      }
   }
-  function overrideFetchAndRequest() {
-      if (window.fetch && !MockRequest.__MOCK__) {
-          MockRequest.__MOCK__ = true;
-          window.Request = MockRequest;
-          window.fetch = MockFetch;
+  // 覆盖原生的 request 方法
+  function overrideRequest() {
+      if (!platform.global.request.__MOCK__) {
+          // 小程序 API 做了 setter 限制，不能直接复制
+          Object.defineProperty(platform.global, 'request', {
+              configurable: true,
+              enumerable: true,
+              writable: true,
+              value: MockRequest
+          });
+          platform.global.request.__MOCK__ = true;
       }
   }
 
-  // For browser
+  // For mini-program
   var Mock = {
       Handler: handler$1,
       Random: Random,
       Util: Util,
-      XHR: MockXMLHttpRequest,
       RE: RE,
       toJSONSchema: toJSONSchema,
       valid: valid,
       mock: mock,
-      heredoc: heredoc,
       setup: setting.setup.bind(setting),
       _mocked: mocked.getMocked(),
       version: '0.2.0'
@@ -8630,10 +8323,7 @@
           template = rtype;
           rtype = undefined;
       }
-      // 拦截 XHR
-      overrideXHR();
-      // 拦截fetch
-      overrideFetchAndRequest();
+      overrideRequest();
       var key = String(rurl) + String(rtype);
       mocked.set(key, { rurl: rurl, rtype: rtype, template: template });
       return Mock;

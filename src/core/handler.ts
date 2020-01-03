@@ -336,8 +336,14 @@ const handler = {
       // 应该属于 Window Firefox 30.0 的 BUG
       params = eval('(function(){ return [].splice.call(arguments, 0 ) })(' + paramsInput + ')')
     } catch (error) {
-      // 2. 如果失败，只能解析为字符串
-      params = paramsInput.split(/,\s*/)
+      // 2. 如果失败，先使用 `[]` 包裹，用 JSON.parse 尝试解析
+      try {
+        const paramsString = paramsInput.replace(/'/g, '"')
+        params = JSON.parse(`[${paramsString}]`)
+      } catch (e) {
+        // 3. 逗号 split 方案兜底
+        params = paramsInput.split(/,\s*/)
+      }
     }
     
     // 占位符优先引用数据模板中的属性

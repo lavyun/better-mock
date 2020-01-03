@@ -1,6 +1,6 @@
 /*!
-  * better-mock v0.1.6 (mock.browser.esm.js)
-  * (c) 2019-2019 lavyun@163.com
+  * better-mock v0.2.0 (mock.browser.esm.js)
+  * (c) 2019-2020 lavyun@163.com
   * Released under the MIT License.
   */
 
@@ -7677,8 +7677,15 @@ var handler$1 = {
             params = eval('(function(){ return [].splice.call(arguments, 0 ) })(' + paramsInput + ')');
         }
         catch (error) {
-            // 2. 如果失败，只能解析为字符串
-            params = paramsInput.split(/,\s*/);
+            // 2. 如果失败，先使用 `[]` 包裹，用 JSON.parse 尝试解析
+            try {
+                var paramsString = paramsInput.replace(/'/g, '"');
+                params = JSON.parse("[" + paramsString + "]");
+            }
+            catch (e) {
+                // 3. 逗号 split 方案兜底
+                params = paramsInput.split(/,\s*/);
+            }
         }
         // 占位符优先引用数据模板中的属性
         // { first: '@EMAIL', full: '@first' } =>  { first: 'dsa@163.com', full: 'dsa@163.com' }
@@ -8139,7 +8146,7 @@ var IMocked = /** @class */ (function () {
     IMocked.prototype.set = function (key, value) {
         this._mocked[key] = value;
     };
-    IMocked.prototype.getSource = function () {
+    IMocked.prototype.getMocked = function () {
         return this._mocked;
     };
     // 查找与请求参数匹配的数据模板：URL，Type
@@ -8156,6 +8163,14 @@ var IMocked = /** @class */ (function () {
                 return item;
             }
         }
+    };
+    /**
+     * 数据模板转换成 mock 数据
+     * @param item 发请求时匹配到的 mock 数据源
+     * @param options 包含请求头，请求体，请求方法等
+     */
+    IMocked.prototype.convert = function (item, options) {
+        return isFunction(item.template) ? item.template(options) : handler$1.gen(item.template);
     };
     IMocked.prototype._matchUrl = function (expected, actual) {
         if (isString(expected)) {
@@ -8185,6 +8200,38 @@ var IMocked = /** @class */ (function () {
     return IMocked;
 }());
 var mocked = new IMocked();
+
+var Setting = /** @class */ (function () {
+    function Setting() {
+        this._setting = {
+            timeout: '10-100'
+        };
+    }
+    Setting.prototype.setup = function (setting) {
+        Object.assign(this._setting, setting);
+    };
+    Setting.prototype.get = function () {
+        return this._setting;
+    };
+    Setting.prototype.parseTimeout = function (timeout) {
+        if (timeout === void 0) { timeout = this._setting.timeout; }
+        if (typeof timeout === 'number') {
+            return timeout;
+        }
+        if (typeof timeout === 'string' && timeout.indexOf('-') === -1) {
+            return parseInt(timeout, 10);
+        }
+        if (typeof timeout === 'string' && timeout.indexOf('-') !== -1) {
+            var tmp = timeout.split('-');
+            var min = parseInt(tmp[0], 10);
+            var max = parseInt(tmp[1], 10);
+            return Math.round(Math.random() * (max - min)) + min;
+        }
+        return 0;
+    };
+    return Setting;
+}());
+var setting = new Setting();
 
 // 备份原生 XMLHttpRequest
 var _XMLHttpRequest = XMLHttpRequest;
@@ -8263,21 +8310,7 @@ var MockXMLHttpRequest = /** @class */ (function () {
                 type: method
             }
         });
-        this.custom.timeout = (function (timeout) {
-            if (typeof timeout === 'number') {
-                return timeout;
-            }
-            if (typeof timeout === 'string' && !~timeout.indexOf('-')) {
-                return parseInt(timeout, 10);
-            }
-            if (typeof timeout === 'string' && ~timeout.indexOf('-')) {
-                var tmp = timeout.split('-');
-                var min = parseInt(tmp[0], 10);
-                var max = parseInt(tmp[1], 10);
-                return Math.round(Math.random() * (max - min)) + min;
-            }
-            return 0;
-        })(MockXMLHttpRequest.settings.timeout);
+        this.custom.timeout = setting.parseTimeout();
         // 查找与请求参数匹配的数据模板
         var options = this.custom.options;
         var item = mocked.find(options.url, options.type);
@@ -8359,7 +8392,8 @@ var MockXMLHttpRequest = /** @class */ (function () {
             _this.status = 200;
             _this.statusText = 'OK';
             // fix #92 #93 by @qddegtya
-            _this.response = _this.responseText = JSON.stringify(convert(_this.custom.template, _this.custom.options), null, 4);
+            var mockResponse = mocked.convert(_this.custom.template, _this.custom.options);
+            _this.response = _this.responseText = JSON.stringify(mockResponse);
             _this.readyState = XHR_STATES.DONE;
             _this.dispatchEvent(createCustomEvent('readystatechange'));
             _this.dispatchEvent(createCustomEvent('load'));
@@ -8440,19 +8474,12 @@ var MockXMLHttpRequest = /** @class */ (function () {
             this[onType](event);
         }
     };
-    MockXMLHttpRequest.settings = {
-        timeout: '10-100'
-    };
-    MockXMLHttpRequest.setup = function (settings) {
-        Object.assign(MockXMLHttpRequest.settings, settings);
-        return MockXMLHttpRequest.settings;
-    };
-    MockXMLHttpRequest.Mock = {};
     MockXMLHttpRequest.UNSENT = XHR_STATES.UNSENT;
     MockXMLHttpRequest.OPENED = XHR_STATES.OPENED;
     MockXMLHttpRequest.HEADERS_RECEIVED = XHR_STATES.HEADERS_RECEIVED;
     MockXMLHttpRequest.LOADING = XHR_STATES.LOADING;
     MockXMLHttpRequest.DONE = XHR_STATES.DONE;
+    MockXMLHttpRequest.__MOCK__ = false;
     return MockXMLHttpRequest;
 }());
 // Inspired by jQuery
@@ -8472,9 +8499,11 @@ function createNativeXMLHttpRequest() {
         return new _ActiveXObject('Microsoft.XMLHTTP');
     }
 }
-// 数据模板 ＝> 响应数据
-function convert(item, options) {
-    return isFunction(item.template) ? item.template(options) : MockXMLHttpRequest.Mock.mock(item.template);
+function overrideXHR() {
+    if (!MockXMLHttpRequest.__MOCK__) {
+        MockXMLHttpRequest.__MOCK__ = true;
+        window.XMLHttpRequest = MockXMLHttpRequest;
+    }
 }
 
 var _nativeFetch = fetch;
@@ -8547,17 +8576,25 @@ function MockFetch(input, init) {
         return _nativeFetch(input, init);
     }
     // 找到了匹配的数据模板，拦截 fetch 请求
-    var body = JSON.stringify(convert(item, options));
+    var body = JSON.stringify(mocked.convert(item, options));
     var response = new Response(body, {
         status: 200,
         statusText: 'ok',
         headers: request.headers
     });
-    return Promise.resolve(response);
+    // 异步返回数据
+    return new Promise(function (resolve) {
+        setTimeout(function () {
+            resolve(response);
+        }, setting.parseTimeout());
+    });
 }
-function rewriteFetchAndRequest() {
-    window.Request = MockRequest;
-    window.fetch = MockFetch;
+function overrideFetchAndRequest() {
+    if (window.fetch && !MockRequest.__MOCK__) {
+        MockRequest.__MOCK__ = true;
+        window.Request = MockRequest;
+        window.fetch = MockFetch;
+    }
 }
 
 // For browser
@@ -8571,14 +8608,10 @@ var Mock = {
     valid: valid,
     mock: mock,
     heredoc: heredoc,
-    setup: function (settings) { return MockXMLHttpRequest.setup(settings); },
-    mocked: mocked.getSource(),
-    version: '0.1.6'
+    setup: setting.setup.bind(setting),
+    _mocked: mocked.getMocked(),
+    version: '0.2.0'
 };
-// 避免循环依赖
-if (MockXMLHttpRequest) {
-    MockXMLHttpRequest.Mock = Mock;
-}
 // 根据数据模板生成模拟数据。
 function mock(rurl, rtype, template) {
     assert(arguments.length, 'The mock function needs to pass at least one parameter!');
@@ -8592,11 +8625,9 @@ function mock(rurl, rtype, template) {
         rtype = undefined;
     }
     // 拦截 XHR
-    window.XMLHttpRequest = MockXMLHttpRequest;
+    overrideXHR();
     // 拦截fetch
-    if (window.fetch && isFunction(window.fetch)) {
-        rewriteFetchAndRequest();
-    }
+    overrideFetchAndRequest();
     var key = String(rurl) + String(rtype);
     mocked.set(key, { rurl: rurl, rtype: rtype, template: template });
     return Mock;

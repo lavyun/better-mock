@@ -1,5 +1,5 @@
 // 数据占位符定义（Data Placeholder Definition，DPD）
-const Mock = require('../dist/mock.browser')
+const Mock = require('../../dist/mock.browser')
 const expect = require('chai').expect
 
 describe('Mock.mock', function () {

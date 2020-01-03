@@ -1,8 +1,8 @@
 import { parse } from '../core/parser'
 
-export interface StringObject {
+export type StringObject = {
   [key: string]: string
-} 
+} | {}
 
 export interface MockedItem {
   rurl: string | RegExp | undefined,
@@ -37,7 +37,7 @@ export interface XHRCustom {
 }
 
 export interface Settings {
-  timeout: string
+  timeout: string | number
 }
 
 export interface SchemaResult {

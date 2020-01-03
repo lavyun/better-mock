@@ -1,14 +1,14 @@
 {
   "name": "better-mock",
-  "description": "Forked from Mockjs. Generate random data & Intercept ajax request",
+  "description": "Forked from Mockjs. Generate random data & Intercept ajax request. Support miniprogram.",
   "author": "lavyun@163.com",
-  "version": "0.1.6",
+  "version": "0.2.0",
   "main": "./dist/mock.node.js",
   "module": "./dist/mock.browser.esm.js",
   "browser": "./dist/mock.browser.js",
   "scripts": {
-    "test": "mochify test/**/*.js --timeout=8000",
-    "cover": "nyc --reporter=lcov --instrument false mochify --transform [ babelify --ignore [ test ] --plugins [ babel-plugin-istanbul ] ]",
+    "test": "mochify test/browser/**/*.js --timeout=8000",
+    "cover": "nyc --reporter=lcov --instrument false mochify test/browser/**/*.js --transform [ babelify --ignore [ test ] --plugins [ babel-plugin-istanbul ] ]",
     "coveralls": "cat ./coverage/lcov.info | coveralls",
     "cover:type": "type-coverage --strict --cache --ignore-catch --ignore-files '**/parser.js' --ignore-files '**/color-convert.ts'",
     "build": "rimraf dist && node build/build.js",
@@ -27,7 +27,9 @@
     "xhr",
     "XMLHttpRequest",
     "fetch",
-    "fetch mocking"
+    "fetch mocking",
+    "miniProgram",
+    "mp"
   ],
   "files": [
     "bin",

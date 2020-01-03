@@ -1,6 +1,7 @@
 // image
 import { pick } from './helper'
 import { isNumber, assert } from '../utils'
+import { getMpPlatform } from '../platform/mp/request'
 import Jimp from 'jimp'
 
 // 常见图片尺寸
@@ -76,10 +77,13 @@ export const dataImage = function(size?: string, text?: string): string {
 
   assert(isNumber(width) && isNumber(height), 'Invalid size, expected INTxINT, e.g. 300x400')
 
-  if (process.env.BROWSER) {
+  if (process.env.PLATFORM_BROWSER) {
     return createBrowserDataImage(width, height, background, text!)
-  } else {
+  } else if (process.env.PLATFORM_NODE) {
     return createNodeDataImage(width, height, background, text!)
+  } else {
+    // 小程序无法直接生成 base64 图片，返回空字符串
+    return ''
   }
 }
 

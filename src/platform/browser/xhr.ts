@@ -1,6 +1,7 @@
-import { isFunction, createCustomEvent } from '../../utils'
-import { XHRCustom, MockedItem, Settings, XHRCustomOptions, XHRBody } from '../../types'
+import { createCustomEvent } from '../../utils'
+import { XHRCustom, XHRBody } from '../../types'
 import mocked from '../../core/mocked'
+import setting from '../../core/setting'
 
 // 备份原生 XMLHttpRequest
 const _XMLHttpRequest = XMLHttpRequest
@@ -99,21 +100,7 @@ class MockXMLHttpRequest {
       }
     })
 
-    this.custom.timeout = (function(timeout) {
-      if (typeof timeout === 'number') {
-        return timeout
-      }
-      if (typeof timeout === 'string' && !~timeout.indexOf('-')) {
-        return parseInt(timeout, 10)
-      }
-      if (typeof timeout === 'string' && ~timeout.indexOf('-')) {
-        const tmp = timeout.split('-')
-        const min = parseInt(tmp[0], 10)
-        const max = parseInt(tmp[1], 10)
-        return Math.round(Math.random() * (max - min)) + min
-      }
-      return 0
-    })(MockXMLHttpRequest.settings.timeout)
+    this.custom.timeout = setting.parseTimeout()
 
     // 查找与请求参数匹配的数据模板
     const options = this.custom.options
@@ -206,7 +193,8 @@ class MockXMLHttpRequest {
       this.statusText = 'OK'
 
       // fix #92 #93 by @qddegtya
-      this.response = this.responseText = JSON.stringify(convert(this.custom.template!, this.custom.options), null, 4)
+      const mockResponse = mocked.convert(this.custom.template!, this.custom.options)
+      this.response = this.responseText = JSON.stringify(mockResponse)
 
       this.readyState = XHR_STATES.DONE
       this.dispatchEvent(createCustomEvent('readystatechange'))
@@ -299,22 +287,13 @@ class MockXMLHttpRequest {
     }
   }
 
-  static settings: Settings = {
-    timeout: '10-100'
-  }
-
-  static setup = function(settings: Settings) {
-    Object.assign(MockXMLHttpRequest.settings, settings)
-    return MockXMLHttpRequest.settings
-  }
-
-  static Mock: any = {}
-
   static UNSENT: number = XHR_STATES.UNSENT
   static OPENED: number = XHR_STATES.OPENED
   static HEADERS_RECEIVED: number = XHR_STATES.HEADERS_RECEIVED
   static LOADING: number = XHR_STATES.LOADING
   static DONE: number = XHR_STATES.DONE
+
+  static __MOCK__: boolean = false
 }
 
 // Inspired by jQuery
@@ -338,12 +317,17 @@ function createNativeXMLHttpRequest() {
   }
 }
 
-// 数据模板 ＝> 响应数据
-export function convert(item: MockedItem, options: Partial<XHRCustomOptions>) {
-  return isFunction(item.template) ? item.template(options) : MockXMLHttpRequest.Mock.mock(item.template)
+function overrideXHR () {
+  if (!MockXMLHttpRequest.__MOCK__) {
+    MockXMLHttpRequest.__MOCK__ = true
+    window.XMLHttpRequest = MockXMLHttpRequest as any
+  }
 }
 
-export default MockXMLHttpRequest
+export {
+  MockXMLHttpRequest,
+  overrideXHR
+}
 
 declare global {
   interface Window {

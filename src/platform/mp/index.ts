@@ -1,4 +1,4 @@
-// For browser
+// For mini-program
 import Handler from '../../core/handler'
 import RE from '../../core/regexp'
 import toJSONSchema from '../../core/schema'
@@ -7,19 +7,16 @@ import mocked from '../../core/mocked'
 import setting from '../../core/setting'
 import * as Util from '../../utils'
 import Random from '../../random'
-import { overrideXHR, MockXMLHttpRequest } from './xhr'
-import { overrideFetchAndRequest } from './fetch'
+import { overrideRequest } from './request'
 
 const Mock = {
   Handler,
   Random,
   Util,
-  XHR: MockXMLHttpRequest,
   RE,
   toJSONSchema,
   valid,
   mock,
-  heredoc: Util.heredoc,
   setup: setting.setup.bind(setting),
   _mocked: mocked.getMocked(),
   version: '__VERSION__'
@@ -37,11 +34,9 @@ function mock (rurl: string | RegExp, rtype?: string | RegExp, template?: object
     template = rtype as object | Function
     rtype = undefined
   }
-  // 拦截 XHR
-  overrideXHR()
-  // 拦截fetch
-  overrideFetchAndRequest()
-  
+
+  overrideRequest()
+
   const key = String(rurl) + String(rtype)
   mocked.set(key, { rurl, rtype, template })
 
