@@ -11,7 +11,7 @@
 
 ## 介绍
 
-**Better-Mock** Fork 自 [Mock.js](https://github.com/nuysoft/Mock)，使用方法和 Mock.js 一致，用于 javascript mock 数据生成，它可以拦截 `XHR` 和 `fetch` 请求，并返回自定义的数据类型。
+**better-mock** fork 自 [Mock.js](https://github.com/nuysoft/Mock)，使用方法和 Mock.js 一致，用于 javascript mock 数据生成，它可以拦截 `XHR` 和 `fetch` 请求，并返回自定义的数据类型。并且还支持主流小程序（微信、支付宝、头条、百度）。
 
 [文档介绍](http://lavyun.github.io/better-mock)
 
@@ -28,7 +28,7 @@ Mock.js 是一个很好的库，国内使用者众多，虽然该库几乎已经
 * 更加现代化的构建打包方案。
 * 更加完善的单元测试。
 * 支持对 `fetch` 的拦截。
-* more...
+* 支持主流小程序（微信、支付宝、头条、百度）。
 
 ## 安装
 
