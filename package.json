@@ -8,7 +8,7 @@
   "browser": "./dist/mock.browser.js",
   "scripts": {
     "test": "mochify test/browser/**/*.js --timeout=8000",
-    "cover": "nyc --reporter=lcov --instrument false mochify test/browser/**/*.js --transform [ babelify --ignore [ test ] --plugins [ babel-plugin-istanbul ] ]",
+    "cover": "nyc --reporter=lcov --instrument false mochify test/browser/**/*.js --timeout=8000 --transform [ babelify --ignore [ test ] --plugins [ babel-plugin-istanbul ] ]",
     "coveralls": "cat ./coverage/lcov.info | coveralls",
     "cover:type": "type-coverage --strict --cache --ignore-catch --ignore-files '**/parser.js' --ignore-files '**/color-convert.ts'",
     "build": "rimraf dist && node build/build.js",
