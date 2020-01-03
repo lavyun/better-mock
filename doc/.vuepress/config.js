@@ -30,7 +30,8 @@ module.exports = {
           ]
         },
         ['/document/valid/', 'Mock.valid()'],
-        ['/document/toJSONSchema/', 'Mock.toJSONSchema()']
+        ['/document/toJSONSchema/', 'Mock.toJSONSchema()'],
+        ['/document/miniprogram', '在小程序中使用']
       ],
       '/changelog/': [
         ''

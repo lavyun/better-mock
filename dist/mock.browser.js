@@ -7685,7 +7685,8 @@
           catch (error) {
               // 2. 如果失败，先使用 `[]` 包裹，用 JSON.parse 尝试解析
               try {
-                  params = JSON.parse("[" + paramsInput + "]");
+                  var paramsString = paramsInput.replace(/'/g, '"');
+                  params = JSON.parse("[" + paramsString + "]");
               }
               catch (e) {
                   // 3. 逗号 split 方案兜底
@@ -8151,7 +8152,7 @@
       IMocked.prototype.set = function (key, value) {
           this._mocked[key] = value;
       };
-      IMocked.prototype.getSource = function () {
+      IMocked.prototype.getMocked = function () {
           return this._mocked;
       };
       // 查找与请求参数匹配的数据模板：URL，Type
@@ -8205,6 +8206,38 @@
       return IMocked;
   }());
   var mocked = new IMocked();
+
+  var Setting = /** @class */ (function () {
+      function Setting() {
+          this._setting = {
+              timeout: '10-100'
+          };
+      }
+      Setting.prototype.setup = function (setting) {
+          Object.assign(this._setting, setting);
+      };
+      Setting.prototype.get = function () {
+          return this._setting;
+      };
+      Setting.prototype.parseTimeout = function (timeout) {
+          if (timeout === void 0) { timeout = this._setting.timeout; }
+          if (typeof timeout === 'number') {
+              return timeout;
+          }
+          if (typeof timeout === 'string' && timeout.indexOf('-') === -1) {
+              return parseInt(timeout, 10);
+          }
+          if (typeof timeout === 'string' && timeout.indexOf('-') !== -1) {
+              var tmp = timeout.split('-');
+              var min = parseInt(tmp[0], 10);
+              var max = parseInt(tmp[1], 10);
+              return Math.round(Math.random() * (max - min)) + min;
+          }
+          return 0;
+      };
+      return Setting;
+  }());
+  var setting = new Setting();
 
   // 备份原生 XMLHttpRequest
   var _XMLHttpRequest = XMLHttpRequest;
@@ -8283,21 +8316,7 @@
                   type: method
               }
           });
-          this.custom.timeout = (function (timeout) {
-              if (typeof timeout === 'number') {
-                  return timeout;
-              }
-              if (typeof timeout === 'string' && !~timeout.indexOf('-')) {
-                  return parseInt(timeout, 10);
-              }
-              if (typeof timeout === 'string' && ~timeout.indexOf('-')) {
-                  var tmp = timeout.split('-');
-                  var min = parseInt(tmp[0], 10);
-                  var max = parseInt(tmp[1], 10);
-                  return Math.round(Math.random() * (max - min)) + min;
-              }
-              return 0;
-          })(MockXMLHttpRequest.settings.timeout);
+          this.custom.timeout = setting.parseTimeout();
           // 查找与请求参数匹配的数据模板
           var options = this.custom.options;
           var item = mocked.find(options.url, options.type);
@@ -8461,13 +8480,6 @@
               this[onType](event);
           }
       };
-      MockXMLHttpRequest.settings = {
-          timeout: '10-100'
-      };
-      MockXMLHttpRequest.setup = function (settings) {
-          Object.assign(MockXMLHttpRequest.settings, settings);
-          return MockXMLHttpRequest.settings;
-      };
       MockXMLHttpRequest.UNSENT = XHR_STATES.UNSENT;
       MockXMLHttpRequest.OPENED = XHR_STATES.OPENED;
       MockXMLHttpRequest.HEADERS_RECEIVED = XHR_STATES.HEADERS_RECEIVED;
@@ -8576,7 +8588,12 @@
           statusText: 'ok',
           headers: request.headers
       });
-      return Promise.resolve(response);
+      // 异步返回数据
+      return new Promise(function (resolve) {
+          setTimeout(function () {
+              resolve(response);
+          }, setting.parseTimeout());
+      });
   }
   function overrideFetchAndRequest() {
       if (window.fetch && !MockRequest.__MOCK__) {
@@ -8597,8 +8614,8 @@
       valid: valid,
       mock: mock,
       heredoc: heredoc,
-      setup: function (settings) { return MockXMLHttpRequest.setup(settings); },
-      _mocked: mocked.getSource(),
+      setup: setting.setup.bind(setting),
+      _mocked: mocked.getMocked(),
       version: '0.2.0'
   };
   // 根据数据模板生成模拟数据。

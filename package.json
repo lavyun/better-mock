@@ -1,6 +1,6 @@
 {
   "name": "better-mock",
-  "description": "Forked from Mockjs. Generate random data & Intercept ajax request",
+  "description": "Forked from Mockjs. Generate random data & Intercept ajax request. Support miniprogram.",
   "author": "lavyun@163.com",
   "version": "0.2.0",
   "main": "./dist/mock.node.js",
@@ -27,7 +27,9 @@
     "xhr",
     "XMLHttpRequest",
     "fetch",
-    "fetch mocking"
+    "fetch mocking",
+    "miniProgram",
+    "mp"
   ],
   "files": [
     "bin",
