@@ -4,6 +4,7 @@ import RE from '../../core/regexp'
 import toJSONSchema from '../../core/schema'
 import valid from '../../core/valid'
 import mocked from '../../core/mocked'
+import setting from '../../core/setting'
 import * as Util from '../../utils'
 import Random from '../../random'
 import { overrideRequest } from './request'
@@ -16,8 +17,8 @@ const Mock = {
   toJSONSchema,
   valid,
   mock,
-  heredoc: Util.heredoc,
-  _mocked: mocked.getSource(),
+  setup: setting.setup.bind(setting),
+  _mocked: mocked.getMocked(),
   version: '__VERSION__'
 }
 

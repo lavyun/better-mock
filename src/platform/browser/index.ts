@@ -4,9 +4,9 @@ import RE from '../../core/regexp'
 import toJSONSchema from '../../core/schema'
 import valid from '../../core/valid'
 import mocked from '../../core/mocked'
+import setting from '../../core/setting'
 import * as Util from '../../utils'
 import Random from '../../random'
-import { Settings } from '../../types'
 import { overrideXHR, MockXMLHttpRequest } from './xhr'
 import { overrideFetchAndRequest } from './fetch'
 
@@ -20,8 +20,8 @@ const Mock = {
   valid,
   mock,
   heredoc: Util.heredoc,
-  setup: (settings: Settings) => MockXMLHttpRequest.setup(settings),
-  _mocked: mocked.getSource(),
+  setup: setting.setup.bind(setting),
+  _mocked: mocked.getMocked(),
   version: '__VERSION__'
 }
 

@@ -1,4 +1,5 @@
 import mocked from '../../core/mocked'
+import setting from '../../core/setting'
 import { PlatformName, MpGlobal, WxSuccessCallback, MySuccessCallback, MpRequestOptions } from './types'
 import { XHRCustomOptions } from '../../types'
 import { isFunction, assert } from '../../utils'
@@ -68,12 +69,12 @@ function MockRequest (opts: MpRequestOptions) {
     } as WxSuccessCallback
   }
 
-  if (isFunction(opts.success)) {
-    opts.success(successOptions)
-  }
-
-  if (isFunction(opts.complete)) {
-    opts.complete(successOptions)
+  if (isFunction(opts.success) || isFunction(opts.complete)) {
+    setTimeout(() => {
+      isFunction(opts.success) && opts.success(successOptions)
+      isFunction(opts.complete) && opts.complete(successOptions)
+    }, setting.parseTimeout())
+    
   }
 }
 

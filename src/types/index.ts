@@ -37,7 +37,7 @@ export interface XHRCustom {
 }
 
 export interface Settings {
-  timeout: string
+  timeout: string | number
 }
 
 export interface SchemaResult {

@@ -14,7 +14,7 @@ class IMocked {
     this._mocked[key] = value
   }
 
-  public getSource () {
+  public getMocked () {
     return this._mocked
   }
 

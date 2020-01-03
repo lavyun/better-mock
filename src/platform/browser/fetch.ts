@@ -1,6 +1,7 @@
 import { isString } from '../../utils'
 import { XHRCustomOptions, StringObject } from '../../types'
 import mocked from '../../core/mocked'
+import setting from '../../core/setting'
 
 const _nativeFetch = fetch
 const _nativeRequest = Request
@@ -86,7 +87,12 @@ function MockFetch(input: RequestInfo, init?: RequestInit | undefined): Promise<
     headers: request.headers
   })
 
-  return Promise.resolve(response)
+  // 异步返回数据
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(response)
+    }, setting.parseTimeout())
+  })
 }
 
 function overrideFetchAndRequest() {
