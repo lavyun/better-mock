@@ -1,5 +1,5 @@
 /*!
-  * better-mock v0.2.1 (mock.browser.esm.js)
+  * better-mock v0.2.2 (mock.browser.esm.js)
   * (c) 2019-2020 lavyun@163.com
   * Released under the MIT License.
   */
@@ -506,7 +506,7 @@ var helper = /*#__PURE__*/Object.freeze({
 // image
 // 常见图片尺寸
 var imageSize = [
-    '150x100', '300x200', '400x300', '600x450', '800X600',
+    '150x100', '300x200', '400x300', '600x450', '800x600',
     '100x150', '200x300', '300x400', '450x600', '600x800',
     '100x100', '200x200', '300x300', '450x450', '600x600'
 ];
@@ -8611,7 +8611,7 @@ var Mock = {
     heredoc: heredoc,
     setup: setting.setup.bind(setting),
     _mocked: mocked.getMocked(),
-    version: '0.2.1'
+    version: '0.2.2'
 };
 // 根据数据模板生成模拟数据。
 function mock(rurl, rtype, template) {
