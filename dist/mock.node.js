@@ -1,5 +1,5 @@
 /*!
-  * better-mock v0.2.0 (mock.node.js)
+  * better-mock v0.2.1 (mock.node.js)
   * (c) 2019-2020 lavyun@163.com
   * Released under the MIT License.
   */
@@ -467,11 +467,11 @@ var pick = function (arr, min, max) {
     return shuffle(arr, min, max);
 };
 // 从map中随机选择一个
-var pickMap = function pickMap(map) {
+var pickMap = function (map) {
     return pick(values(map));
 };
 // 打乱数组中元素的顺序，并返回。
-var shuffle = function shuffle(arr, min, max) {
+var shuffle = function (arr, min, max) {
     arr = arr || [];
     var old = arr.slice(0);
     var result = [];
@@ -6694,7 +6694,8 @@ var handler = {
     },
     'invert-charset': function (node, result, cache) {
         var pool = PRINTABLE;
-        for (var i = 0, item = void 0; i < node.body.length; i++) {
+        var item;
+        for (var i = 0; i < node.body.length; i++) {
             item = node.body[i];
             switch (item.type) {
                 case 'literal':
@@ -7844,7 +7845,7 @@ function toJSONSchema(template, name, path) {
 
 // ## valid(template, data)
 var Diff = {
-    diff: function diff(schema, data, name) {
+    diff: function (schema, data, name) {
         var result = [];
         // 先检测名称 name 和类型 type，如果匹配，才有必要继续检测
         if (Diff.name(schema, data, name, result) && Diff.type(schema, data, name, result)) {
@@ -8124,7 +8125,7 @@ var Assert = {
         return item;
     }
 };
-var valid = function valid(template, data) {
+var valid = function (template, data) {
     var schema = toJSONSchema(template);
     return Diff.diff(schema, data);
 };
@@ -8141,7 +8142,7 @@ var Mock = {
     valid: valid,
     mock: mock,
     heredoc: heredoc,
-    version: '0.2.0'
+    version: '0.2.1'
 };
 // Mock.mock( template )
 // 根据数据模板生成模拟数据。
