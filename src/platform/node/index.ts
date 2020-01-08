@@ -21,7 +21,7 @@ const Mock = {
 
 // Mock.mock( template )
 // 根据数据模板生成模拟数据。
-function mock(template: string) {
+function mock (template: string) {
   return Handler.gen(template)
 }
 

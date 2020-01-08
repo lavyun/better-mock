@@ -1,8 +1,6 @@
 // image
 import { pick } from './helper'
 import { isNumber, assert } from '../utils'
-import { getMpPlatform } from '../platform/mp/request'
-import Jimp from 'jimp'
 
 // 常见图片尺寸
 const imageSize: string[] = [
@@ -20,7 +18,7 @@ const imageSize: string[] = [
  * @param format 图片格式
  * @param text 文字
  */
-export const image = function(size?: string, background?: string, foreground?: string, format?: string, text?: string): string {
+export const image = function (size?: string, background?: string, foreground?: string, format?: string, text?: string): string {
   // Random.image( size, background, foreground, text )
   if (arguments.length === 4) {
     text = format
@@ -64,7 +62,7 @@ export const img = image
  * @param size 图片宽高
  * @param text 图片上的文字
  */
-export const dataImage = function(size?: string, text?: string): string {
+export const dataImage = function (size?: string, text?: string): string {
   size = size || pick(imageSize)
   text = text || size
   const background: string = pick([
@@ -109,7 +107,7 @@ function createBrowserDataImage (width: number, height: number, background: stri
 
 // node 端生成 base64 图片
 function createNodeDataImage (width: number, height: number, background: string, text: string) {
-  const Jimp: Jimp = require('jimp')
+  const Jimp = require('jimp')
   const sync = require('promise-synchronizer')
 
   // 计算字体的合适大小

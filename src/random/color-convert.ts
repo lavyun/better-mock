@@ -1,7 +1,7 @@
 // 颜色空间RGB与HSV(HSL)的转换
 // http://blog.csdn.net/idfaya/article/details/6770414
 // https://github.com/harthur/color-convert/blob/master/conversions.js
-export const rgb2hsl = function rgb2hsl(rgb) {
+export const rgb2hsl = function rgb2hsl (rgb) {
   let r = rgb[0] / 255,
     g = rgb[1] / 255,
     b = rgb[2] / 255,
@@ -36,7 +36,7 @@ export const rgb2hsl = function rgb2hsl(rgb) {
   return [h, s * 100, l * 100];
 }
 
-export const rgb2hsv = function rgb2hsv(rgb) {
+export const rgb2hsv = function rgb2hsv (rgb) {
   let r = rgb[0],
     g = rgb[1],
     b = rgb[2],
@@ -69,7 +69,7 @@ export const rgb2hsv = function rgb2hsv(rgb) {
   return [h, s, v];
 }
 
-export const hsl2rgb = function hsl2rgb(hsl) {
+export const hsl2rgb = function hsl2rgb (hsl) {
   let h = hsl[0] / 360,
     s = hsl[1] / 100,
     l = hsl[2] / 100,
@@ -108,7 +108,7 @@ export const hsl2rgb = function hsl2rgb(hsl) {
 }
 
 
-export const hsl2hsv = function hsl2hsv(hsl) {
+export const hsl2hsv = function hsl2hsv (hsl) {
   let h = hsl[0],
     s = hsl[1] / 100,
     l = hsl[2] / 100,
@@ -149,7 +149,7 @@ export const hsv2rgb = function hsv2rgb(hsv) {
   }
 }
 
-export const hsv2hsl = function hsv2hsl(hsv) {
+export const hsv2hsl = function hsv2hsl (hsv) {
   let h = hsv[0],
     s = hsv[1] / 100,
     v = hsv[2] / 100,
@@ -171,9 +171,7 @@ export const rgb2hex = function(
   return "#" + ((256 + a << 8 | b) << 8 | c).toString(16).slice(1)
 }
 
-export const hex2rgb = function(
-  a // take a "#xxxxxx" hex string,
-) {
+export const hex2rgb = function (a) {
   a = '0x' + a.slice(1).replace(a.length > 4 ? a : /./g, '$&$&') as any | 0;
   return [a >> 16, a >> 8 & 255, a & 255]
 }

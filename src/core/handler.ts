@@ -309,7 +309,7 @@ const handler = {
   
   _all: function (): any {
     const re = {}
-    for (let key in random) {
+    for (const key in random) {
       re[key.toLowerCase()] = key
     }
     return re
@@ -320,12 +320,12 @@ const handler = {
     // 1 key, 2 params
     // regexp init
     constant.RE_PLACEHOLDER.exec('')
-    let parts = constant.RE_PLACEHOLDER.exec(placeholder)!
-    let key = parts && parts[1]
-    let lkey = key && key.toLowerCase()
-    let okey = handler._all()[lkey!]
-    let paramsInput: string = (parts && parts[2]) || ''
-    let pathParts = handler.splitPathToArray(key)
+    const parts = constant.RE_PLACEHOLDER.exec(placeholder)!
+    const key = parts && parts[1]
+    const lkey = key && key.toLowerCase()
+    const okey = handler._all()[lkey!]
+    const paramsInput: string = (parts && parts[2]) || ''
+    const pathParts = handler.splitPathToArray(key)
     let params: string[] = []
     
     // 解析占位符的参数
@@ -466,19 +466,19 @@ const handler = {
 export default handler
 
 interface GenerateContext {
-  path: Array<string | number>,
-  templatePath: Array<string | number>,
-  currentContext: any,
-  templateCurrentContext: any,
-  root: any,
-  templateRoot: any
+  path: Array<string | number>;
+  templatePath: Array<string | number>;
+  currentContext: any;
+  templateCurrentContext: any;
+  root: any;
+  templateRoot: any;
 }
 
 interface GenerateOptions {
-  type: string
-  template: any
-  name: string
-  rule: ReturnType<typeof parse>
-  context: GenerateContext
-  parsedName: string
+  type: string;
+  template: any;
+  name: string;
+  rule: ReturnType<typeof parse>;
+  context: GenerateContext;
+  parsedName: string;
 }

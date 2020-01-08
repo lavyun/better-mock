@@ -241,8 +241,9 @@ const handler = {
   },
   
   'invert-charset': function (node, result, cache) {
-    var pool = PRINTABLE
-    for (let i = 0, item; i < node.body.length; i++) {
+    let pool = PRINTABLE
+    let item
+    for (let i = 0; i < node.body.length; i++) {
       item = node.body[i]
       switch (item.type) {
         case 'literal':

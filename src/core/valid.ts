@@ -59,7 +59,7 @@ import toJSONSchema from './schema'
 import { SchemaResult, DiffResult } from '../types'
 
 const Diff = {
-  diff: function diff(schema: SchemaResult, data: string | object, name?: string | number) {
+  diff: function (schema: SchemaResult, data: string | object, name?: string | number) {
     const result: DiffResult[] = []
     
     // 先检测名称 name 和类型 type，如果匹配，才有必要继续检测
@@ -72,14 +72,14 @@ const Diff = {
     return result
   },
   /* jshint unused:false */
-  name: function(schema: SchemaResult, _data, name: string | number | undefined, result: DiffResult[]) {
+  name: function (schema: SchemaResult, _data, name: string | number | undefined, result: DiffResult[]) {
     const length = result.length
     
     Assert.equal('name', schema.path, name + '', schema.name + '', result)
     
     return result.length === length
   },
-  type: function(schema: SchemaResult, data, _name, result: DiffResult[]) {
+  type: function (schema: SchemaResult, data, _name, result: DiffResult[]) {
     const length = result.length
     
     if (isString(schema.template)) {
@@ -110,7 +110,7 @@ const Diff = {
     
     return result.length === length
   },
-  value: function(schema: SchemaResult, data, name, result: DiffResult[]) {
+  value: function (schema: SchemaResult, data, name, result: DiffResult[]) {
     const length = result.length
     
     const rule = schema.rule
@@ -199,7 +199,7 @@ const Diff = {
     
     return result.length === length
   },
-  properties: function(schema: SchemaResult, data, _name, result: DiffResult[]) {
+  properties: function (schema: SchemaResult, data, _name, result: DiffResult[]) {
     const length = result.length
     
     const rule = schema.rule
@@ -256,7 +256,7 @@ const Diff = {
     
     return result.length === length
   },
-  items: function(schema: SchemaResult, data, _name, result: DiffResult[]) {
+  items: function (schema: SchemaResult, data, _name, result: DiffResult[]) {
     const length = result.length
     
     if (!schema.items) {
@@ -332,7 +332,7 @@ const Diff = {
 //   Expect path.name is less than or equal to expected, but path.name is actual.
 //   Expect path.name is greater than or equal to expected, but path.name is actual.
 const Assert = {
-  message: function(item: DiffResult) {
+  message: function (item: DiffResult) {
     if (item.message) {
       return item.message
     }
@@ -344,7 +344,7 @@ const Assert = {
     const actual = item.actual
     return `[${upperType}] Expect ${path}\'${lowerType} ${action} ${expected}, but is ${actual}`
   },
-  equal: function<T extends string | number>(type: string, path: string[], actual: T, expected: T, result: DiffResult[], message?: string) {
+  equal: function<T extends string | number> (type: string, path: string[], actual: T, expected: T, result: DiffResult[], message?: string) {
     if (actual === expected) {
       return true
     }
@@ -358,7 +358,7 @@ const Assert = {
     return false
   },
   // actual matches expected
-  match: function(type: string, path: string[], actual: any, expected: RegExp, result: DiffResult[], message?: string) {
+  match: function (type: string, path: string[], actual: any, expected: RegExp, result: DiffResult[], message?: string) {
     if (expected.test(actual)) {
       return true
     }
@@ -367,7 +367,7 @@ const Assert = {
     ))
     return false
   },
-  greaterThanOrEqualTo: function(type: string, path: string[], actual: number, expected: number, result: DiffResult[], message?: string) {
+  greaterThanOrEqualTo: function (type: string, path: string[], actual: number, expected: number, result: DiffResult[], message?: string) {
     if (actual >= expected) {
       return true
     }
@@ -376,7 +376,7 @@ const Assert = {
     ))
     return false
   },
-  lessThanOrEqualTo: function(type: string, path: string[], actual: number, expected: number, result: DiffResult[], message?: string) {
+  lessThanOrEqualTo: function (type: string, path: string[], actual: number, expected: number, result: DiffResult[], message?: string) {
     if (actual <= expected) {
       return true
     }
@@ -386,7 +386,7 @@ const Assert = {
     ))
     return false
   },
-  createDiffResult (type: string, path: string[], actual: any, expected: any, message: string | undefined, action: string) {
+  createDiffResult: function (type: string, path: string[], actual: any, expected: any, message: string | undefined, action: string) {
     const item = {
       path: path,
       type: type,
@@ -400,7 +400,7 @@ const Assert = {
   }
 }
 
-const valid = function valid(template: string | object, data: string | object) {
+const valid = function (template: string | object, data: string | object) {
   const schema = toJSONSchema(template)
   return Diff.diff(schema, data)
 }

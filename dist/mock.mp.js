@@ -1,5 +1,5 @@
 /*!
-  * better-mock v0.2.0 (mock.mp.js)
+  * better-mock v0.2.1 (mock.mp.js)
   * (c) 2019-2020 lavyun@163.com
   * Released under the MIT License.
   */
@@ -471,11 +471,11 @@
       return shuffle(arr, min, max);
   };
   // 从map中随机选择一个
-  var pickMap = function pickMap(map) {
+  var pickMap = function (map) {
       return pick(values(map));
   };
   // 打乱数组中元素的顺序，并返回。
-  var shuffle = function shuffle(arr, min, max) {
+  var shuffle = function (arr, min, max) {
       arr = arr || [];
       var old = arr.slice(0);
       var result = [];
@@ -6660,7 +6660,8 @@
       },
       'invert-charset': function (node, result, cache) {
           var pool = PRINTABLE;
-          for (var i = 0, item = void 0; i < node.body.length; i++) {
+          var item;
+          for (var i = 0; i < node.body.length; i++) {
               item = node.body[i];
               switch (item.type) {
                   case 'literal':
@@ -7810,7 +7811,7 @@
 
   // ## valid(template, data)
   var Diff = {
-      diff: function diff(schema, data, name) {
+      diff: function (schema, data, name) {
           var result = [];
           // 先检测名称 name 和类型 type，如果匹配，才有必要继续检测
           if (Diff.name(schema, data, name, result) && Diff.type(schema, data, name, result)) {
@@ -8090,7 +8091,7 @@
           return item;
       }
   };
-  var valid = function valid(template, data) {
+  var valid = function (template, data) {
       var schema = toJSONSchema(template);
       return Diff.diff(schema, data);
   };
@@ -8309,7 +8310,7 @@
       mock: mock,
       setup: setting.setup.bind(setting),
       _mocked: mocked.getMocked(),
-      version: '0.2.0'
+      version: '0.2.1'
   };
   // 根据数据模板生成模拟数据。
   function mock(rurl, rtype, template) {

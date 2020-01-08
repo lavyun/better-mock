@@ -6,8 +6,8 @@ import { isFunction, assert } from '../../utils'
 
 // 获取小程序平台标识
 function getMpPlatform (): {
-  name: PlatformName,
-  global: MpGlobal
+  name: PlatformName;
+  global: MpGlobal;
 } {
   let global
   let name

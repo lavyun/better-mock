@@ -2,23 +2,23 @@ import { isArray, isDef, values } from '../utils'
 import * as basic from './basic'
 
 // 把字符串的第一个字母转换为大写。
-export const capitalize = function(word: string): string {
+export const capitalize = function (word: string): string {
   word = word + ''
   return word.charAt(0).toUpperCase() + word.substr(1)
 }
 
 // 把字符串转换为大写。
-export const upper = function(str: string): string {
+export const upper = function (str: string): string {
   return (str + '').toUpperCase()
 }
 
 // 把字符串转换为小写。
-export const lower = function(str: string): string {
+export const lower = function (str: string): string {
   return (str + '').toLowerCase()
 }
 
 // 从数组中随机选取一个元素，并返回。
-export const pick = function(arr: any[], min?: number, max?: number) {
+export const pick = function (arr: any[], min?: number, max?: number) {
   // pick( item1, item2 ... )
   if (!isArray(arr)) {
     arr = [].slice.call(arguments)
@@ -45,12 +45,12 @@ export const pick = function(arr: any[], min?: number, max?: number) {
 }
 
 // 从map中随机选择一个
-export const pickMap = function pickMap(map: object) {
+export const pickMap = function (map: object) {
   return pick(values(map))
 }
 
 // 打乱数组中元素的顺序，并返回。
-export const shuffle = function shuffle(arr: any[], min?: number, max?: number): any {
+export const shuffle = function (arr: any[], min?: number, max?: number): any {
   arr = arr || []
   const old = arr.slice(0)
   const result: any[] = []

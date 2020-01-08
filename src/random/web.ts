@@ -3,12 +3,12 @@ import * as text from './text'
 import * as basic from './basic'
 
 // 随机生成一个 URL。
-export const url = function(_protocol: string = protocol(), host: string = domain()): string {
+export const url = function (_protocol: string = protocol(), host: string = domain()): string {
   return `${_protocol}://${host}/${text.word()}`
 }
 
 // 随机生成一个 URL 协议。
-export const protocol = function(): string {
+export const protocol = function (): string {
   // 协议簇
   const protocols = [
     'http', 'ftp', 'gopher', 'mailto', 'mid', 'cid', 'news', 'nntp',
@@ -18,13 +18,13 @@ export const protocol = function(): string {
 }
 
 // 随机生成一个域名。
-export const domain = function(_tld: string = tld()): string {
+export const domain = function (_tld: string = tld()): string {
   return text.word() + '.' + _tld
 }
 
 // 随机生成一个顶级域名。
 // [域名后缀大全](http://www.163ns.com/zixun/post/4417.html)
-export const tld = function(): string {
+export const tld = function (): string {
   const tlds = (
     // 域名后缀
     'com net org edu gov int mil cn ' +
@@ -41,12 +41,12 @@ export const tld = function(): string {
 }
 
 // 随机生成一个邮件地址。
-export const email = function(_domain: string = domain()): string {
+export const email = function (_domain: string = domain()): string {
   return basic.character('lower') + '.' + text.word() + '@' + _domain
 }
 
 // 随机生成一个 IP 地址。
-export const ip = function(): string {
+export const ip = function (): string {
   return basic.natural(0, 255) + '.' +
     basic.natural(0, 255) + '.' +
     basic.natural(0, 255) + '.' +
