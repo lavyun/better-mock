@@ -11,10 +11,11 @@
     "cover": "nyc --reporter=lcov --instrument false mochify test/browser/**/*.js --timeout=8000 --transform [ babelify --ignore [ test ] --plugins [ babel-plugin-istanbul ] ]",
     "coveralls": "cat ./coverage/lcov.info | coveralls",
     "cover:type": "type-coverage --strict --cache --ignore-catch --ignore-files '**/parser.js' --ignore-files '**/color-convert.ts'",
-    "build": "rimraf dist && node build/build.js",
+    "build": "rimraf dist && npm run lint && node build/build.js",
     "doc:dev": "vuepress dev doc",
     "doc:build": "vuepress build doc",
-    "doc:deploy": "sh doc/deploy.sh"
+    "doc:deploy": "sh doc/deploy.sh",
+    "lint": "eslint 'src/**/*.{js,ts}'"
   },
   "keywords": [
     "mock",
@@ -59,11 +60,14 @@
     "@babel/core": "^7.4.5",
     "@babel/preset-env": "^7.4.5",
     "@types/node": "^12.7.2",
+    "@typescript-eslint/eslint-plugin": "^2.15.0",
+    "@typescript-eslint/parser": "^2.15.0",
     "babel-plugin-istanbul": "^5.2.0",
     "babelify": "^10.0.0",
     "chai": "^4.2.0",
     "commander": "^3.0.0",
     "coveralls": "^3.0.6",
+    "eslint": "^6.8.0",
     "jquery": "^3.4.1",
     "mocha": "^6.2.0",
     "mochify": "^6.4.1",
