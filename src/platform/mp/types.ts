@@ -19,7 +19,7 @@ export interface MpRequestOptions {
 export interface MpGlobal {
   request: MpRequest;
   httpRequest?: MpRequest;
-  [prop: string]: any
+  [prop: string]: any;
 }
 
 // 微信成功时回调函数参数列表

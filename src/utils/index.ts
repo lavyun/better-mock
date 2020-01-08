@@ -1,5 +1,5 @@
 /* type-coverage:ignore-next-line */
-export const type = function(value: any): string {
+export const type = function (value: any): string {
   return isDef(value) 
     ? Object.prototype.toString.call(value).match(/\[object (\w+)\]/)![1].toLowerCase() 
     : String(value)
@@ -35,7 +35,7 @@ export const isFunction = function (value: unknown): value is Function {
 
 export const keys = function (obj: object): string[] {
   const keys: string[] = []
-  for (let key in obj) {
+  for (const key in obj) {
     if (obj.hasOwnProperty(key)) {
       keys.push(key)
     }
@@ -45,7 +45,7 @@ export const keys = function (obj: object): string[] {
 
 export const values = function (obj: object) {
   const values: any[] = []
-  for (let key in obj) {
+  for (const key in obj) {
     if (obj.hasOwnProperty(key)) {
       values.push(obj[key])
     }
@@ -85,10 +85,10 @@ export const assert = function (condition: any, error: string) {
  * @param cancelable 一个布尔值，表示该事件是否可以取消。
  * @param detail 一个任意类型，传递给事件的自定义数据。
  */
-export const createCustomEvent = function<T = any> (type: string, bubbles: boolean = false, cancelable: boolean = false, detail?: T): CustomEvent<T> {
+export const createCustomEvent = function<T = any> (type: string, bubbles = false, cancelable = false, detail?: T): CustomEvent<T> {
   try {
     return new CustomEvent<T>(type, { bubbles, cancelable, detail })
-  } catch(e) {
+  } catch (e) {
     const event: CustomEvent<T> = document.createEvent('CustomEvent')
     event.initCustomEvent(type, bubbles, cancelable, detail!)
     return event

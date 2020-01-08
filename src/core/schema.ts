@@ -4,7 +4,7 @@ import { type, isArray, isObject } from '../utils'
 import { parse } from './parser'
 import { SchemaResult } from '../types'
 
-function toJSONSchema(template: object | string | (string | object)[], name?: string | number, path?: string[]) {
+function toJSONSchema (template: object | string | (string | object)[], name?: string | number, path?: string[]) {
   path = path || []
   const result: SchemaResult = {
     name: typeof name === 'string' ? name.replace(constant.RE_KEY, '$1') : name,
@@ -24,7 +24,7 @@ function toJSONSchema(template: object | string | (string | object)[], name?: st
     })
   } else if (isObject(template)) {
     result.properties = [];
-    for (let key in template) {
+    for (const key in template) {
       result.properties.push(
         toJSONSchema(template[key], key, result.path)
       )

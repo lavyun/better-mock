@@ -72,7 +72,7 @@ class MockXMLHttpRequest {
   LOADING: number = XHR_STATES.LOADING
   DONE: number = XHR_STATES.DONE
   
-  constructor() {
+  constructor () {
     // 初始化 custom 对象，用于存储自定义属性
     this.custom = {
       events: {},
@@ -247,7 +247,7 @@ class MockXMLHttpRequest {
     // 拦截 XHR
     const responseHeaders = this.custom.responseHeaders
     let headers = ''
-    for (let h in responseHeaders) {
+    for (const h in responseHeaders) {
       if (!responseHeaders.hasOwnProperty(h)) {
         continue
       }
@@ -297,8 +297,8 @@ class MockXMLHttpRequest {
 }
 
 // Inspired by jQuery
-function createNativeXMLHttpRequest() {
-  const isLocal: boolean = (function() {
+function createNativeXMLHttpRequest () {
+  const isLocal: boolean = (function () {
     const rLocalProtocol = /^(?:about|app|app-storage|.+-extension|file|res|widget):$/
     const rUrl = /^([\w.+-]+:)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/
     const ajaxLocation = location.href
@@ -308,11 +308,11 @@ function createNativeXMLHttpRequest() {
 
   return window.ActiveXObject ? (!isLocal && createStandardXHR()) || createActiveXHR() : createStandardXHR()
 
-  function createStandardXHR() {
+  function createStandardXHR () {
     return new _XMLHttpRequest()
   }
 
-  function createActiveXHR() {
+  function createActiveXHR () {
     return new _ActiveXObject('Microsoft.XMLHTTP')
   }
 }
@@ -331,7 +331,7 @@ export {
 
 declare global {
   interface Window {
-    ActiveXObject: { new(type: string): XMLHttpRequest }
-    XMLHttpRequest: XMLHttpRequest
+    ActiveXObject: { new(type: string): XMLHttpRequest };
+    XMLHttpRequest: XMLHttpRequest;
   }
 }

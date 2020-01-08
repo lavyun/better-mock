@@ -19,7 +19,7 @@ class IMocked {
   }
 
   // 查找与请求参数匹配的数据模板：URL，Type
-  public find(url: string, type: string): MockedItem | undefined {
+  public find (url: string, type: string): MockedItem | undefined {
     const mockedItems: MockedItem[] = Object.values(this._mocked)
     for (let i = 0; i < mockedItems.length; i++) {
       const item = mockedItems[i]
@@ -39,11 +39,11 @@ class IMocked {
    * @param item 发请求时匹配到的 mock 数据源
    * @param options 包含请求头，请求体，请求方法等
    */
-  public convert(item: MockedItem, options: Partial<XHRCustomOptions>) {
+  public convert (item: MockedItem, options: Partial<XHRCustomOptions>) {
     return isFunction(item.template) ? item.template(options) : handler.gen(item.template)
   }
 
-  private _matchUrl(expected: string | RegExp | undefined, actual: string): boolean {
+  private _matchUrl (expected: string | RegExp | undefined, actual: string): boolean {
     if (isString(expected)) {
       if (expected === actual) {
         return true
@@ -65,7 +65,7 @@ class IMocked {
     return false
   }
 
-  private _matchType(expected: string | RegExp | undefined, actual: string): boolean {
+  private _matchType (expected: string | RegExp | undefined, actual: string): boolean {
     if (isString(expected) || isRegExp(expected)) {
       return new RegExp(expected, 'i').test(actual)
     }

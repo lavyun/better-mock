@@ -1,7 +1,7 @@
 import * as helper from './helper'
 
 // 随机生成一个常见的英文名。
-export const first = function(): string {
+export const first = function (): string {
   const male = [
     "James", "John", "Robert", "Michael", "William",
     "David", "Richard", "Charles", "Joseph", "Thomas",
@@ -24,7 +24,7 @@ export const first = function(): string {
 }
 
 // 随机生成一个常见的英文姓。
-export const last = function(): string {
+export const last = function (): string {
   const names = [
     "Smith", "Johnson", "Williams", "Brown", "Jones",
     "Miller", "Davis", "Garcia", "Rodriguez", "Wilson",
@@ -38,14 +38,14 @@ export const last = function(): string {
 }
 
 // 随机生成一个常见的英文姓名。
-export const name = function(middle: boolean= false): string {
+export const name = function (middle: boolean= false): string {
   return first() + ' ' + (middle ? first() + ' ' : '') + last()
 }
 
 // 随机生成一个常见的中文姓。
 // [世界常用姓氏排行](http://baike.baidu.com/view/1719115.htm)
 // [玄派网 - 网络小说创作辅助平台](http://xuanpai.sinaapp.com/)
-export const cfirst = function(): string {
+export const cfirst = function (): string {
   const names = [
     "王", "李", "张", "刘", "陈", "杨", "赵", "黄",
     "周", "吴", "徐", "孙", "胡", "朱", "高", "林",
@@ -66,7 +66,7 @@ export const cfirst = function(): string {
 
 // 随机生成一个常见的中文名。
 // [中国最常见名字前50名_三九算命网](http://www.name999.net/xingming/xingshi/20131004/48.html)
-export const clast = function(): string {
+export const clast = function (): string {
   const names = [
     "伟", "芳", "娜", "秀英", "敏", "静", "丽", "强",
     "磊", "军", "洋", "勇", "艳", "杰", "娟", "涛",
@@ -76,6 +76,6 @@ export const clast = function(): string {
 }
 
 // 随机生成一个常见的中文姓名。
-export const cname = function(): string {
+export const cname = function (): string {
   return cfirst() + clast()
 }

@@ -105,7 +105,7 @@ export const cword = function (pool: string = '', min?: number, max?: number): s
 // 随机生成一句标题，其中每个单词的首字母大写。
 export const title = function (min?: number, max?: number): string {
   const len = _range(3, 7, min, max)
-  let result: string[] = []
+  const result: string[] = []
   for (let i = 0; i < len; i++) {
     result.push(helper.capitalize(word()))
   }
@@ -115,7 +115,7 @@ export const title = function (min?: number, max?: number): string {
 // 随机生成一句中文标题。
 export const ctitle = function (min?: number, max?: number): string {
   const len = _range(3, 7, min, max)
-  let result: string[] = []
+  const result: string[] = []
   for (let i = 0; i < len; i++) {
     result.push(cword())
   }

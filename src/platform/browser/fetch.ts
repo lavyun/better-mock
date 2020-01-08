@@ -6,7 +6,7 @@ import setting from '../../core/setting'
 const _nativeFetch = fetch
 const _nativeRequest = Request
 
-function extendRequest(request: Request, input: RequestInfo, init?: RequestInit | undefined): Request {
+function extendRequest (request: Request, input: RequestInfo, init?: RequestInit | undefined): Request {
   if (isString(input)) {
     request['_actualUrl'] = input
   }
@@ -34,13 +34,13 @@ let MockRequest: (RequestCtor | Function) & { __MOCK__?: boolean }
  */
 if (window.Proxy) {
   MockRequest = new Proxy(_nativeRequest, {
-    construct(target, [input, init]: [RequestInfo, RequestInit | undefined]): Request {
+    construct (target, [input, init]: [RequestInfo, RequestInit | undefined]): Request {
       const request = new target(input, init)
       return extendRequest(request, input, init)
     }
   })
 } else {
-  MockRequest = function MockRequest(input: RequestInfo, init?: RequestInit | undefined): Request {
+  MockRequest = function MockRequest (input: RequestInfo, init?: RequestInit | undefined): Request {
     const request = new _nativeRequest(input, init)
     return extendRequest(request, input, init)
   }
@@ -49,7 +49,7 @@ if (window.Proxy) {
 
 // 拦截 fetch 方法
 // https://developer.mozilla.org/zh-CN/docs/Web/API/WindowOrWorkerGlobalScope/fetch
-function MockFetch(input: RequestInfo, init?: RequestInit | undefined): Promise<Response> {
+function MockFetch (input: RequestInfo, init?: RequestInit | undefined): Promise<Response> {
   let request: Request
   if (input instanceof Request && !init) {
     request = input
@@ -95,7 +95,7 @@ function MockFetch(input: RequestInfo, init?: RequestInit | undefined): Promise<
   })
 }
 
-function overrideFetchAndRequest() {
+function overrideFetchAndRequest () {
   if (window.fetch && !MockRequest.__MOCK__) {
     MockRequest.__MOCK__ = true
     window.Request = MockRequest as RequestCtor

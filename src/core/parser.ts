@@ -14,7 +14,7 @@
 import constant from '../utils/constant'
 import random from '../random'
 
-export const parse = function(name: string | undefined | number) {
+export const parse = function (name: string | undefined | number) {
   name = name === undefined ? '' : (name + '')
   
   const parameters = name.match(constant.RE_KEY)
@@ -55,7 +55,7 @@ export const parse = function(name: string | undefined | number) {
     dcount
   }
 
-  for (let r in result) {
+  for (const r in result) {
     if (result[r] != undefined) {
       return result
     }
