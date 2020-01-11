@@ -167,6 +167,7 @@ export default {
         margin 0;
         border-bottom 1px solid #E4E5E6;
         border-radius 0;
+        font-size 12px;
 
 
   .page-edit
