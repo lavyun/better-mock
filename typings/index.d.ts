@@ -2,7 +2,7 @@
 // Project: http://github.com/lavyun/better-mock
 // Definitions by: lavyun <https://github.com/lavyun>
 
-declare namespace betterMock {
+declare namespace Mock {
   // Interface for global namespace 'betterMock'
   interface BetterMock {
     mock: Mock;
@@ -515,4 +515,4 @@ declare namespace betterMock {
   let version: number;
 }
 
-export = betterMock;
+export = Mock;
