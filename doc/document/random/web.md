@@ -5,11 +5,11 @@
 
 随机生成一个 URL。
 
-### protocol `可选`
+### protocol <Badge text="可选"/>
 
 指定 URL 协议。例如 `http`。
 
-### host `可选`
+### host <Badge text="可选"/>
 
 指定 URL 域名和端口号。例如 `nuysoft.com`。
 
@@ -62,7 +62,7 @@ Random.tld()
 
 随机生成一个邮件地址。
 
-### domain `可选`
+### domain <Badge text="可选"/>
 
 指定邮件地址的域名。例如 `nuysoft.com`。
 

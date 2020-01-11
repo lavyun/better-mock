@@ -50,15 +50,15 @@ Random.pick(['a', 'e', 'i', 'o', 'u'])
 
 打乱数组中元素的顺序，并返回。
 
-### length `可选`
+### length <Badge text="可选"/>
 
 返回后的数组长度。
 
-### min `可选`
+### min <Badge text="可选"/>
 
 返回后的数组最小长度。
 
-### max `可选`
+### max <Badge text="可选"/>
 
 返回后的数组最大长度。
 

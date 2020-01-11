@@ -27,7 +27,7 @@ Random.province()
 
 随机生成一个（中国）市。
 
-### prefix `可选`
+### prefix <Badge text="可选"/>
 
 布尔值。指示是否生成所属的省。
 
@@ -45,7 +45,7 @@ Random.city(true)
 
 随机生成一个（中国）县。
 
-### prefix `可选`
+### prefix <Badge text="可选"/>
 
 布尔值。指示是否生成所属的省、市。
 
