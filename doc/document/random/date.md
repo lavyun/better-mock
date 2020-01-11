@@ -5,7 +5,7 @@
 
 返回一个随机的日期字符串。
 
-### format `可选`
+### format <Badge text="可选"/>
 
 指示生成的日期字符串的格式。默认值为 `yyyy-MM-dd`。
 
@@ -54,7 +54,7 @@ Random.date('y-M-d')
 
 返回一个随机的时间字符串。
 
-### format `可选`
+### format <Badge text="可选"/>
 
 指示生成的时间字符串的格式。默认值为 `HH:mm:ss`。
 
@@ -80,7 +80,7 @@ Random.time('H:m:s')
 
 返回一个随机的日期和时间字符串。
 
-### format `可选`
+### format <Badge text="可选"/>
 
 指示生成的日期和时间字符串的格式。默认值为 `yyyy-MM-dd HH:mm:ss`。
 
@@ -114,11 +114,11 @@ Random.datetime('y-M-d H:m:s')
 
 返回当前的日期和时间字符串。
 
-### unit `可选`
+### unit <Badge text="可选"/>
 
 表示时间单位，用于对当前日期和时间进行格式化。可选值有：`year`、`month`、`week`、`day`、`hour`、`minute`、`second`、`week`，默认不会格式化。
 
-### format `可选`
+### format <Badge text="可选"/>
 
 指示生成的日期和时间字符串的格式。默认值为 `yyyy-MM-dd HH:mm:ss`。可选的占位符参考自 [Ext.Date](http://docs.sencha.com/ext-js/4-1/#!/api/Ext.Date)，请参见 [Random.date(format)](#date)。
 

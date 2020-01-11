@@ -13,7 +13,7 @@
 **Random.image()** 用于生成高度自定义的图片地址，一般情况下，应该使用更简单的 **Random.dataImage()**
 :::
 
-### size `可选`
+### size <Badge text="可选"/>
 
 指示图片的宽高，格式为 `'宽x高'`。默认从下面的数组中随机读取一个：
 
@@ -25,19 +25,19 @@
 ]
 ```
 
-### background `可选`
+### background <Badge text="可选"/>
 
 指示图片的背景色。默认值为 `'#000000'`。
 
-### foreground `可选`
+### foreground <Badge text="可选"/>
 
 指示图片的前景色（文字）。默认值为 `'#FFFFFF'`。
 
-### format `可选`
+### format <Badge text="可选"/>
 
 指示图片的格式。默认值为 `'png'`，可选值包括：`'png'`、`'gif'`、`'jpg'`。
 
-### text `可选`
+### text <Badge text="可选"/>
 
 指示图片上的文字。默认值为参数 size。
 
@@ -69,7 +69,7 @@ Random.image('200x100', '#ffcc33', '#FFF', 'png', '!')
 - 该方法在小程序端无法使用。
 :::
 
-### size `可选`
+### size <Badge text="可选"/>
 
 指示图片的宽高，格式为 `'宽x高'`。默认从下面的数组中随机读取一个：
 
@@ -81,7 +81,7 @@ Random.image('200x100', '#ffcc33', '#FFF', 'png', '!')
 ]
 ```
 
-### text `可选`
+### text <Badge text="可选"/>
 
 指示图片上的文字。默认值为参数 size。
 

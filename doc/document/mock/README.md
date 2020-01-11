@@ -34,19 +34,19 @@
 
 ### 参数的含义和默认值如下所示:
 
-#### rurl `可选`
+#### rurl <Badge text="可选"/>
 
 表示需要拦截的 URL，可以是 URL 字符串、URL 通配符 或者 URL 正则。例如 `/\/domain\/list\.json/`、`'/domain/list/:id'`、`'/domain/list/*'`、`'/domain/list.json'`。
 
-#### rtype `可选`
+#### rtype <Badge text="可选"/>
 
 表示需要拦截的 Ajax 请求类型。例如 `GET`、`POST`、`PUT`、`DELETE` 等。
 
-#### template `可选`
+#### template <Badge text="可选"/>
 
 表示数据模板，可以是对象或字符串。例如 `{ 'data|1-10':[{}] }`、`'@EMAIL'`。
 
-#### function(options) `可选`
+#### function(options) <Badge text="可选"/>
  
 表示用于生成响应数据的函数。
 

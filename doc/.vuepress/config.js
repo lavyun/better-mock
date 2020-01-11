@@ -1,3 +1,5 @@
+const MonacoWebpackPlugin = require("monaco-editor-webpack-plugin");
+
 module.exports = {
   title: 'Better-Mock',
   description: 'Mock.js plus',
@@ -5,8 +7,9 @@ module.exports = {
   themeConfig: {
     nav: [
       { text: '文档', link: '/document/' },
+      { text: '练习', link: '/playground/' },
       { text: '更新日志', link: '/changelog/' },
-      { text: 'Github', link: 'http://github.com/lavyun/better-mock' }
+      { text: 'Github', link: 'http://github.com/lavyun/better-mock' },
     ],
     sidebar: {
       '/document/': [
@@ -36,6 +39,13 @@ module.exports = {
       '/changelog/': [
         ''
       ]
+    }
+  },
+  configureWebpack: (config, isServer) => {
+    if (!isServer) {
+      config.plugins.push(new MonacoWebpackPlugin({
+        languages: ["typescript", "javascript", "css"],
+      }))
     }
   }
 }

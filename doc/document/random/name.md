@@ -27,7 +27,7 @@ Random.last()
 
 随机生成一个常见的英文姓名。
 
-### middle `可选`
+### middle <Badge text="可选"/>
 
 布尔值。指示是否生成中间名。
 
