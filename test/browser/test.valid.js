@@ -204,11 +204,31 @@ describe('Mock.valid', function () {
 
     doit({
       name: {
-        'age|1-3': 1
+        'age|1-3': {
+          hello: 1
+        }
       }
     }, {
       name: {
-        age: 2
+        age: {
+          hello: 1
+        }
+      }
+    }, 0)
+
+    doit({
+      name: {
+        'age|2': {
+          hello: 1,
+          world: 1
+        }
+      }
+    }, {
+      name: {
+        age: {
+          hello: 1,
+          world: 1
+        }
       }
     }, 0)
   })
@@ -310,6 +330,14 @@ describe('Mock.valid', function () {
       name: '@int'
     }, {
       name: 123
+    }, 0)
+  })
+
+  describe('Value - Function', function () {
+    doit({
+      name: function () {}
+    }, {
+      name: 'nuysoft@gmail.com'
     }, 0)
   })
 })

@@ -9,10 +9,6 @@ class Setting {
     Object.assign(this._setting, setting)
   }
 
-  get () {
-    return this._setting
-  }
-
   parseTimeout (timeout: Settings['timeout'] = this._setting.timeout): number {
     if (typeof timeout === 'number') {
       return timeout

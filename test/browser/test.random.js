@@ -20,6 +20,9 @@ describe('Random', function () {
     doit('Random.boolean()', function (data) {
       expect(data).to.be.a('boolean')
     })
+    doit('Random.boolean(1, 2, true)', function (data) {
+      expect(data).to.be.a('boolean')
+    })
 
     doit('Random.natural()', function (data) {
       expect(data).to.be.a('number').within(0, 9007199254740992)
@@ -123,7 +126,9 @@ describe('Random', function () {
         expect('aeiou').to.include(data[i])
       }
     })
-
+    doit('Random.range()', function (data) {
+      expect(data).to.be.an('array').with.length(0)
+    })
     doit('Random.range(10)', function (data) {
       expect(data).to.be.an('array').with.length(10)
     })
@@ -149,6 +154,10 @@ describe('Random', function () {
 
     doit('Random.time()', function (data) {
       expect(RE_TIME.test(data)).to.be.true
+    })
+
+    doit('Random.time("yyyy")', function (data) {
+      expect(/\d{4}/.test(data)).to.be.true
     })
 
     doit('Random.datetime()', function (data) {
@@ -415,6 +424,9 @@ describe('Random', function () {
     doit('Random.url()', function (data) {
       expect(RE_URL.test(data)).to.be.true
     })
+    doit('Random.url("wss", "im.example.com")', function (data) {
+      expect(RE_URL.test(data)).to.be.true
+    })
     doit('Random.domain()', function (data) {
       expect(data).to.be.ok
     })
@@ -456,6 +468,9 @@ describe('Random', function () {
     })
     doit('Random.zip()', function (data) {
       expect(data).to.be.ok
+    })
+    doit('Random.zip(8)', function (data) {
+      expect(data.length).to.equal(8)
     })
   })
   describe('Helpers', function () {

@@ -216,13 +216,11 @@ const handler = {
       // 'float4|.3-10': 123.123,
       parts[0] = options.rule.range ? options.rule.count : parts[0]
       parts[1] = (parts[1] || '').slice(0, options.rule.dcount)
-      if (options.rule.dcount) {
-        while (parts[1].length < options.rule.dcount) {
-          // 最后一位不能为 0：如果最后一位为 0，会被 JS 引擎忽略掉。
-          parts[1] += parts[1].length < options.rule.dcount - 1 
-            ? random.character('number')
-            : random.character('123456789')
-        }
+      while (parts[1].length < options.rule.dcount!) {
+        // 最后一位不能为 0：如果最后一位为 0，会被 JS 引擎忽略掉。
+        parts[1] += parts[1].length < options.rule.dcount! - 1 
+          ? random.character('number')
+          : random.character('123456789')
       }
       result = parseFloat(parts.join('.'))
     } else {
@@ -381,21 +379,18 @@ const handler = {
     }
     
     const handle = random[key!] || random[lkey!] || random[okey]
-    switch (utils.type(handle)) {
-      case 'array':
-        // 自动从数组中取一个，例如 @areas
-        return random.pick(handle)
-      case 'function':
-        // 执行占位符方法（大多数情况）
-        handle.options = options
-        let re = handle.apply(random, params)
-        // 因为是在字符串中，所以默认为空字符串。
-        if (re === undefined) {
-          re = ''
-        }
-        delete handle.options
-        return re
+    if (utils.isFunction(handle)) {
+      // 执行占位符方法（大多数情况）
+      handle.options = options
+      let ret = handle.apply(random, params)
+      // 因为是在字符串中，所以默认为空字符串。
+      if (ret === undefined) {
+        ret = ''
+      }
+      delete handle.options
+      return ret
     }
+    return ''
   },
   
   getValueByKeyPath: function (key: string, options) {

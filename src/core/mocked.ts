@@ -6,10 +6,6 @@ import rgx from 'regexparam'
 class IMocked {
   private _mocked: Mocked = {}
 
-  public get (key: string) {
-    return this._mocked[key]
-  }
-
   public set (key: string, value: MockedItem) {
     this._mocked[key] = value
   }

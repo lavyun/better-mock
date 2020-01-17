@@ -5,7 +5,6 @@ import setting from '../../core/setting'
 
 // 备份原生 XMLHttpRequest
 const _XMLHttpRequest = XMLHttpRequest
-const _ActiveXObject = window.ActiveXObject
 
 enum XHR_STATES {
   // The object has been constructed.
@@ -80,7 +79,7 @@ class MockXMLHttpRequest {
       responseHeaders: {},
       timeout: 0,
       options: {},
-      xhr: createNativeXMLHttpRequest(),
+      xhr: createNativeXHR()!,
       template: null,
       async: true
     }
@@ -297,23 +296,24 @@ class MockXMLHttpRequest {
 }
 
 // Inspired by jQuery
-function createNativeXMLHttpRequest () {
-  const isLocal: boolean = (function () {
-    const rLocalProtocol = /^(?:about|app|app-storage|.+-extension|file|res|widget):$/
-    const rUrl = /^([\w.+-]+:)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/
-    const ajaxLocation = location.href
-    const ajaxLocParts = rUrl.exec(ajaxLocation.toLowerCase()) || []
-    return rLocalProtocol.test(ajaxLocParts[1])
-  })()
+function createNativeXHR () {
+  const localProtocolRE = /^(?:about|app|app-storage|.+-extension|file|res|widget):$/
+  const isLocal = localProtocolRE.test(location.protocol)
 
-  return window.ActiveXObject ? (!isLocal && createStandardXHR()) || createActiveXHR() : createStandardXHR()
+  return window.ActiveXObject 
+    ? (!isLocal && createStandardXHR()) || createActiveXHR()
+    : createStandardXHR()
 
   function createStandardXHR () {
-    return new _XMLHttpRequest()
+    try {
+      return new _XMLHttpRequest()
+    } catch (e) {}
   }
 
   function createActiveXHR () {
-    return new _ActiveXObject('Microsoft.XMLHTTP')
+    try {
+      return new window.ActiveXObject('Microsoft.XMLHTTP')
+    } catch (e) {}
   }
 }
 

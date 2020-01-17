@@ -58,7 +58,7 @@ describe('Fetch', function() {
 
   describe('Mock.setup', function () {
     it('', async function () {
-      Mock.setup({ timeout: 2000 })
+      Mock.setup({ timeout: '1000' })
       const url = 'http://example.com/mock_setup'
 
       Mock.mock(url, {
@@ -72,7 +72,7 @@ describe('Fetch', function() {
 
       const data = await fetch(url).then(res => res.json())
 
-      expect(Date.now() - timeStart >= 2000).to.ok
+      expect(Date.now() - timeStart >= 1000).to.ok
       dataAssert(data)
     })
 

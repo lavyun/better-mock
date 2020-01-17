@@ -62,7 +62,7 @@ describe('XHR', function () {
 
   describe('Mock.setup', function () {
     it('', async function () {
-      Mock.setup({ timeout: 2000 })
+      Mock.setup({ timeout: 1000 })
       const url = '/mock_setup'
 
       Mock.mock(url, {
@@ -79,7 +79,7 @@ describe('XHR', function () {
         dataType: 'json' 
       })
 
-      expect(Date.now() - timeStart >= 2000).to.ok
+      expect(Date.now() - timeStart >= 1000).to.ok
       expect(data).to.have.property('list').that.be.an('array').with.length.within(1, 10)
       data.list.forEach(function (item, index) {
         if (index > 0) expect(item.id).to.be.equal(data.list[index - 1].id + 1)
@@ -632,6 +632,8 @@ describe('XHR', function () {
         xhr.addEventListener('ready', handler)
         expect(Object.keys(xhr.custom.events).length).to.equal(1)
         expect(xhr.custom.events.ready.length).to.equal(1)
+        xhr.addEventListener('ready', handler)
+        expect(xhr.custom.events.ready.length).to.equal(2)
       })
 
       it('dispatchEvent', () => {
@@ -642,6 +644,8 @@ describe('XHR', function () {
         xhr.removeEventListener('ready', handler)
         expect(Object.keys(xhr.custom.events).length).to.equal(1)
         expect(xhr.custom.events.ready.length).to.equal(0)
+        xhr.removeEventListener('other', () => {})
+        expect(Object.keys(xhr.custom.events).length).to.equal(1)
       })
     })
 
@@ -663,6 +667,49 @@ describe('XHR', function () {
         const xhr = new Mock.XHR()
         xhr.abort()
         expect(xhr.custom.xhr.readyState).to.equal(Mock.XHR.UNSENT)
+      })
+    })
+
+    describe('open sync', () => {
+      it('default is async', () => {
+        const xhr = new XMLHttpRequest()
+        xhr.open('get', 'open_default_async.json', null)
+        expect(xhr.custom.async).to.be.true
+      })
+
+      it('sync', () => {
+        let sync = false
+        Mock.mock('open_sync.json', {
+          'list|1-10': [{
+            'id|+1': 1,
+            'email': '@EMAIL'
+          }]
+        })
+        const xhr = new XMLHttpRequest()
+        xhr.open('get', 'open_sync.json', false)
+        expect(xhr.custom.async).to.be.false
+        xhr.addEventListener('readystatechange', () => {
+          if (xhr.readyState === 4) {
+            expect(sync).to.be.false
+            expect(JSON.parse(xhr.responseText)).to.have.property('list')
+              .that.be.an('array').with.length.within(1, 10)
+            sync = true
+          }
+        })
+        xhr.send()
+        expect(sync).to.be.true
+      })
+    })
+
+    describe('window.ActiveXObject', () => {
+      it('window.ActiveXObject is defined', () => {
+        window.ActiveXObject = function () {
+          return { upload: true }
+        }
+        const mockXHR = new Mock.XHR()
+        const xhr = mockXHR.custom.xhr
+        expect(xhr.upload).to.ok
+        window.ActiveXObject = undefined
       })
     })
   })

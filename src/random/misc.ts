@@ -40,8 +40,8 @@ export const id = function (): string {
 
   _id = district + date.date('yyyyMMdd') + basic.string('number', 3)
   
-  for (let i = 0; i < id.length; i++) {
-    _sum += id[i] * Number(rank[i])
+  for (let i = 0; i < _id.length; i++) {
+    _sum += _id[i] * Number(rank[i])
   }
   _id += last[_sum % 11]
   
