@@ -83,6 +83,7 @@ describe('DPD', function () {
   describe('Complex', function () {
     var tpl = {
       basics: {
+        boolean: '@boolean',
         boolean1: '@BOOLEAN',
         boolean2: '@BOOLEAN(1, 9, true)',
 
@@ -99,6 +100,7 @@ describe('DPD', function () {
         float3: '@FLOAT(60, 100)',
         float4: '@FLOAT(60, 100, 3)',
         float5: '@FLOAT(60, 100, 3, 5)',
+        float6: '@FLOAT(@NATURAL)',
 
         character1: '@CHARACTER',
         character2: '@CHARACTER("lower")',
@@ -227,7 +229,7 @@ describe('DPD', function () {
     }
     it('', function () {
       var data = Mock.mock(tpl)
-      // this.test.title += JSON.stringify(data, null, 4)
+      this.test.title += JSON.stringify(data, null, 2)
       expect(data).to.be.a('object')
     })
   })

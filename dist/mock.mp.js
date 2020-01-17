@@ -1,5 +1,5 @@
 /*!
-  * better-mock v0.2.2 (mock.mp.js)
+  * better-mock v0.2.3 (mock.mp.js)
   * (c) 2019-2020 lavyun@163.com
   * Released under the MIT License.
   */
@@ -6387,8 +6387,8 @@
       var districts = city.districts;
       var district = pick(keys(districts));
       _id = district + date('yyyyMMdd') + string('number', 3);
-      for (var i = 0; i < id.length; i++) {
-          _sum += id[i] * Number(rank[i]);
+      for (var i = 0; i < _id.length; i++) {
+          _sum += _id[i] * Number(rank[i]);
       }
       _id += last[_sum % 11];
       return _id;
@@ -7556,13 +7556,11 @@
               // 'float4|.3-10': 123.123,
               parts[0] = options.rule.range ? options.rule.count : parts[0];
               parts[1] = (parts[1] || '').slice(0, options.rule.dcount);
-              if (options.rule.dcount) {
-                  while (parts[1].length < options.rule.dcount) {
-                      // 最后一位不能为 0：如果最后一位为 0，会被 JS 引擎忽略掉。
-                      parts[1] += parts[1].length < options.rule.dcount - 1
-                          ? Random.character('number')
-                          : Random.character('123456789');
-                  }
+              while (parts[1].length < options.rule.dcount) {
+                  // 最后一位不能为 0：如果最后一位为 0，会被 JS 引擎忽略掉。
+                  parts[1] += parts[1].length < options.rule.dcount - 1
+                      ? Random.character('number')
+                      : Random.character('123456789');
               }
               result = parseFloat(parts.join('.'));
           }
@@ -7706,21 +7704,18 @@
               }
           }
           var handle = Random[key] || Random[lkey] || Random[okey];
-          switch (type(handle)) {
-              case 'array':
-                  // 自动从数组中取一个，例如 @areas
-                  return Random.pick(handle);
-              case 'function':
-                  // 执行占位符方法（大多数情况）
-                  handle.options = options;
-                  var re = handle.apply(Random, params);
-                  // 因为是在字符串中，所以默认为空字符串。
-                  if (re === undefined) {
-                      re = '';
-                  }
-                  delete handle.options;
-                  return re;
+          if (isFunction(handle)) {
+              // 执行占位符方法（大多数情况）
+              handle.options = options;
+              var ret = handle.apply(Random, params);
+              // 因为是在字符串中，所以默认为空字符串。
+              if (ret === undefined) {
+                  ret = '';
+              }
+              delete handle.options;
+              return ret;
           }
+          return '';
       },
       getValueByKeyPath: function (key, options) {
           var originalKey = key;
@@ -8129,9 +8124,6 @@
       function IMocked() {
           this._mocked = {};
       }
-      IMocked.prototype.get = function (key) {
-          return this._mocked[key];
-      };
       IMocked.prototype.set = function (key, value) {
           this._mocked[key] = value;
       };
@@ -8198,9 +8190,6 @@
       }
       Setting.prototype.setup = function (setting) {
           Object.assign(this._setting, setting);
-      };
-      Setting.prototype.get = function () {
-          return this._setting;
       };
       Setting.prototype.parseTimeout = function (timeout) {
           if (timeout === void 0) { timeout = this._setting.timeout; }
@@ -8310,7 +8299,7 @@
       mock: mock,
       setup: setting.setup.bind(setting),
       _mocked: mocked.getMocked(),
-      version: '0.2.2'
+      version: '0.2.3'
   };
   // 根据数据模板生成模拟数据。
   function mock(rurl, rtype, template) {
