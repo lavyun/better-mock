@@ -192,7 +192,7 @@ declare namespace betterMock {
      * @param foreground 图片的前景色（文字）。默认值为 '#FFFFFF'
      * @param text 指示图片上的文字。默认值为参数 size
      */
-    image(size: string, background: string, foreground: string, text: string);
+    image(size: string, background: string, foreground: string, text: string): string;
     
     /**
      * 随机生成一个随机的图片地址
