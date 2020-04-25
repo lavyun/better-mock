@@ -15,7 +15,7 @@
 
 [文档介绍](http://lavyun.gitee.io/better-mock/)
 
-[更新日志](http://lavyun.gitee.io/better-mock//changelog/)
+[更新日志](http://lavyun.gitee.io/better-mock/changelog/)
 
 ## 为什么有 Better-Mock ?
 
