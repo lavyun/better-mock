@@ -1,0 +1,3 @@
+dist/* linguist-vendored
+build/* linguist-vendored
+doc/* linguist-vendored
