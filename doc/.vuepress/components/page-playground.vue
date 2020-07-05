@@ -19,7 +19,9 @@
 import betterMockDTS from 'raw-loader!../../../typings/index.d.ts'
 import axiosDTS from 'raw-loader!../public/dts/axios.d.ts'
 
-const defaultCode = 
+const BM_BACKGROUND_CODE = 'BM_BACKGROUND_CODE'
+
+const DEFAULT_CODE =
 `Mock.mock('http://example.com/path/to', {
     'list|1-10': [{
         'id|+1': 1
@@ -42,7 +44,7 @@ export default {
   methods: {
     runCode () {
       const codes = this.editor.getValue()
-
+      localStorage.setItem(BM_BACKGROUND_CODE, codes)
       const fun = new Function(codes)
 
       fun()
@@ -96,10 +98,12 @@ export default {
       axiosDTS
     )
 
+    const queryCode = this.$route.query.code
+    const cacheCode = localStorage.getItem(BM_BACKGROUND_CODE)
     const editor = monaco.editor.create(document.getElementById('container'), {
       language: 'typescript',
       theme: 'vs-dark',
-      value: defaultCode,
+      value: queryCode || cacheCode || DEFAULT_CODE,
       minimap: {
         enabled: false
       }

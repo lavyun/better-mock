@@ -156,7 +156,7 @@ _占位符_ 的格式为：
 - _占位符_ 也可以引用 _数据模板_ 中的属性。
 - _占位符_ 会优先引用 _数据模板_ 中的属性。
 - _占位符_ 支持 _相对路径_ 和 _绝对路径_。
-- 可以使用 `\` 来转义 `@` 符号。
+- 可以使用 `\\` 来转义 `@` 符号。
 
 ```javascript
 Mock.mock({
@@ -164,7 +164,7 @@ Mock.mock({
     first: '@FIRST',
     middle: '@FIRST',
     last: '@LAST',
-    email: 'example\@gmail.com',
+    email: 'example\\@gmail.com',
     full: '@first @middle @last'
   }
 })
