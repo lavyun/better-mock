@@ -6,41 +6,134 @@
 
 根据数据模板生成模拟数据。
 
-[JSFiddle](http://jsfiddle.net/nuysoft/Y3rg6/7/)
+```js
+Mock.mock({
+  'list|1-10': [{
+    'id|+1': 1,
+    'email': '@EMAIL'
+  }]
+})
+```
 
-### Mock.mock( rurl, template )
+<code-link>
+  <pre>
+  const ret = Mock.mock({
+    'list|1-10': [{
+      'id|+1': 1,
+      'email': '@EMAIL'
+    }]
+  })
+  console.log(ret)
+  </pre>
+</code-link>
 
-记录数据模板。当拦截到匹配 `rurl` 的 Ajax 请求时，将根据数据模板 `template` 生成模拟数据，并作为响应数据返回。
+### Mock.mock( url, template )
 
-[JSFiddle](http://jsfiddle.net/nuysoft/BeENf/6/)
+记录数据模板。当拦截到匹配 `url` 的 Ajax 请求时，将根据数据模板 `template` 生成模拟数据，并作为响应数据返回。
 
-### Mock.mock( rurl, function( options ) )
+```js
+Mock.mock('/mock_url', {
+  'list|1-10': [{
+    'id|+1': 1,
+    'email': '@EMAIL'
+  }]
+})
+```
 
-记录用于生成响应数据的函数。当拦截到匹配 `rurl` 的 Ajax 请求时，函数 `function(options)` 将被执行，并把执行结果作为响应数据返回。
+<code-link>
+  <pre>
+  Mock.mock('/mock_url', {
+    'list|1-10': [{
+      'id|+1': 1,
+      'email': '@EMAIL'
+    }]
+  })
+  axios.get('/mock_url').then(res => {
+    console.log(res.data)
+  })
+  </pre>
+</code-link>
 
-[JSFiddle](http://jsfiddle.net/nuysoft/2s5t5/15/)
+### Mock.mock( url, function( options ) )
 
-### Mock.mock( rurl, rtype, template )
+记录用于生成响应数据的函数。当拦截到匹配 `url` 的 Ajax 请求时，函数 `function(options)` 将被执行，并把执行结果作为响应数据返回。
+
+```js
+Mock.mock('/mock_url', function (options) {
+  return options
+})
+```
+
+<code-link>
+  <pre>
+  Mock.mock('/mock_url', function (options) {
+    return options
+  })
+  axios.get('/mock_url').then(res => {
+    console.log(res.data)
+  })
+  </pre>
+</code-link>
+
+### Mock.mock( url, type, template )
     
-记录数据模板。当拦截到匹配 `rurl` 和 `rtype` 的 Ajax 请求时，将根据数据模板 `template` 生成模拟数据，并作为响应数据返回。
+记录数据模板。当拦截到匹配 `url` 和 `type` 的 Ajax 请求时，将根据数据模板 `template` 生成模拟数据，并作为响应数据返回。
 
-[JSFiddle](http://jsfiddle.net/nuysoft/Eq68p/3/)
+```js
+Mock.mock('/mock_url', 'post', {
+  'list|1-10': [{
+    'id|+1': 1,
+    'email': '@EMAIL'
+  }]
+})
+```
 
-### Mock.mock( rurl, rtype, function( options ) )
+<code-link>
+  <pre>
+  Mock.mock('/mock_url', 'post', {
+    'list|1-10': [{
+      'id|+1': 1,
+      'email': '@EMAIL'
+    }]
+  })
+  axios.post('/mock_url').then(res => {
+    console.log(res.data)
+  })
+  </pre>
+</code-link>
 
-记录用于生成响应数据的函数。当拦截到匹配 `rurl` 和 `rtype` 的 Ajax 请求时，函数 `function(options)` 将被执行，并把执行结果作为响应数据返回。
 
-[JSFiddle](http://jsfiddle.net/nuysoft/6dpV5/5/)
+### Mock.mock( url, type, function( options ) )
+
+记录用于生成响应数据的函数。当拦截到匹配 `url` 和 `type` 的 Ajax 请求时，函数 `function(options)` 将被执行，并把执行结果作为响应数据返回。
+
+```js
+Mock.mock('/mock_url', 'post', function (options) {
+  return options
+})
+```
+
+<code-link>
+  <pre>
+  Mock.mock('/mock_url', 'post', function (options) {
+    return options
+  })
+  axios.post('/mock_url').then(res => {
+    console.log(res.data)
+  })
+  </pre>
+</code-link>
+
 
 ### 参数的含义和默认值如下所示:
 
-#### rurl <Badge text="可选"/>
+#### url <Badge text="可选"/>
 
 表示需要拦截的 URL，可以是 URL 字符串、URL 通配符 或者 URL 正则。例如 `/\/domain\/list\.json/`、`'/domain/list/:id'`、`'/domain/list/*'`、`'/domain/list.json'`。
 
-#### rtype <Badge text="可选"/>
+#### type <Badge text="可选"/>
 
-表示需要拦截的 Ajax 请求类型。例如 `GET`、`POST`、`PUT`、`DELETE` 等。
+表示需要拦截的 Ajax 请求类型。例如 `GET`、`POST`、`PUT`、`DELETE` 等，支持小写。
 
 #### template <Badge text="可选"/>
 
