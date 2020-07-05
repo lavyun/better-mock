@@ -36,17 +36,30 @@ describe('DPD', function () {
     it('\\@EMAIL', function () {
       var data = Mock.mock(this.test.title)
       this.test.title += ' => ' + data
-      expect(data).to.not.equal(this.test.title)
+      expect(data).to.equal('@EMAIL')
     })
     it('\\\@EMAIL', function () {
       var data = Mock.mock(this.test.title)
       this.test.title += ' => ' + data
-      expect(data).to.not.equal(this.test.title)
+      expect(data).to.equal('@EMAIL')
     })
     it('\\\\@EMAIL', function () {
       var data = Mock.mock(this.test.title)
       this.test.title += ' => ' + data
-      expect(data).to.not.equal(this.test.title)
+      expect(data).to.equal('\\@EMAIL')
+    })
+
+    it('\\@EMAIL @EMAIL', function () {
+      var data = Mock.mock(this.test.title)
+      this.test.title += ' => ' + data
+      expect(data.startsWith('@EMAIL ')).to.be.ok
+    })
+
+    it('\\@EMAIL @EMAIL \\@EMAIL', function () {
+      var data = Mock.mock(this.test.title)
+      this.test.title += ' => ' + data
+      expect(data.startsWith('@EMAIL ')).to.be.ok
+      expect(data.endsWith(' @EMAIL')).to.be.ok
     })
   })
   describe('Path', function () {
@@ -227,9 +240,8 @@ describe('DPD', function () {
         shuffle2: '@SHUFFLE(["a", "b", "c"])'
       }
     }
-    it('', function () {
+    it('Complex all', function () {
       var data = Mock.mock(tpl)
-      this.test.title += JSON.stringify(data, null, 2)
       expect(data).to.be.a('object')
     })
   })

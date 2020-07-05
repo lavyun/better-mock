@@ -241,40 +241,48 @@ const handler = {
   },
   
   string: function (options) {
+    let source = ''
     let result = ''
-    let placeholders
-    let ph
-    let phed
+    let match
+    let lastIndex = 0
 
     if (options.template.length) {
       // 'foo': '★',
-      if (options.rule.count == undefined) {
-        result += options.template
-      }
-      
-      // 'star|1-5': '★',
-      for (let i = 0; i < options.rule.count; i++) {
-        result += options.template
+      if (options.rule.count === undefined) {
+        source += options.template
+      } else {
+        // 'star|1-5': '★',
+        for (let i = 0; i < options.rule.count; i++) {
+          source += options.template
+        }
       }
       // 'email|1-10': '@EMAIL, ',
-      placeholders = result.match(constant.RE_PLACEHOLDER) || [] // A-Z_0-9 > \w_
-      for (let i = 0; i < placeholders.length; i++) {
-        ph = placeholders[i]
-        
-        // 遇到转义斜杠，不需要解析占位符
-        if (/^\\/.test(ph)) {
-          placeholders.splice(i--, 1)
-          continue
+      constant.RE_PLACEHOLDER.exec('')
+      while (match = constant.RE_PLACEHOLDER.exec(source)) {
+        const index = match.index
+        const input = match[0]
+        if (index >= lastIndex) {
+          // 遇到转义斜杠，不需要解析占位符
+          if (/^\\/.test(input)) {
+            result += source.slice(lastIndex, index) + input.slice(1)
+            lastIndex = index + input.length
+            continue
+          }
+
+          const replaced = handler.placeholder(input, options.context.currentContext, options.context.templateCurrentContext, options)
+          // 只有一个占位符，并且没有其他字符，例如：'name': '@EMAIL'
+          if (index === 0 && input.length === source.length) {
+            result = replaced
+          } else {
+            result += source.slice(lastIndex, index) + replaced
+          }
+          
+          lastIndex = index + input.length
         }
-        
-        phed = handler.placeholder(ph, options.context.currentContext, options.context.templateCurrentContext, options)
-        
-        // 只有一个占位符，并且没有其他字符
-        if (placeholders.length === 1 && ph === result && typeof phed !== typeof result) {
-          result = phed
-          break
-        }
-        result = result.replace(ph, phed)
+      }
+
+      if (lastIndex < source.length) {
+        result += source.slice(lastIndex)
       }
     } else {
       // 'ASCII|1-10': '',
@@ -410,30 +418,36 @@ const handler = {
       }
     }
     
-    key = keyPathParts[keyPathParts.length - 1]
-    let currentContext = options.context.root
-    let templateCurrentContext = options.context.templateRoot
-    for (let i = 1; i < absolutePathParts.length - 1; i++) {
-      currentContext = currentContext[absolutePathParts[i]]
-      templateCurrentContext = templateCurrentContext[absolutePathParts[i]]
-    }
-    // 引用的值已经计算好
-    if (currentContext && key in currentContext) {
-      return currentContext[key]
-    }
+    try {
+      key = keyPathParts[keyPathParts.length - 1]
+      let currentContext = options.context.root
+      let templateCurrentContext = options.context.templateRoot
+      for (let i = 1; i < absolutePathParts.length - 1; i++) {
+        currentContext = currentContext[absolutePathParts[i]]
+        templateCurrentContext = templateCurrentContext[absolutePathParts[i]]
+      }
+      // 引用的值已经计算好
+      if (currentContext && key in currentContext) {
+        return currentContext[key]
+      }
+
+      // 尚未计算，递归引用数据模板中的属性
+      // fix #15 避免自己依赖自己
+      if (templateCurrentContext && 
+        typeof templateCurrentContext === 'object' && 
+        key in templateCurrentContext && 
+        originalKey !== templateCurrentContext[key]
+      ) {
+        // 先计算被引用的属性值
+        templateCurrentContext[key] = handler.gen(templateCurrentContext[key], key, {
+          currentContext: currentContext,
+          templateCurrentContext: templateCurrentContext
+        })
+        return templateCurrentContext[key]
+      }
+    } catch (e) {}
     
-    // 尚未计算，递归引用数据模板中的属性
-    // fix #15 避免自己依赖自己
-    if (templateCurrentContext && 
-      typeof templateCurrentContext === 'object' && 
-      key in templateCurrentContext && 
-      originalKey !== templateCurrentContext[key]) {
-      // 先计算被引用的属性值
-      templateCurrentContext[key] = handler.gen(templateCurrentContext[key], key, {
-        currentContext: currentContext, templateCurrentContext: templateCurrentContext
-      })
-      return templateCurrentContext[key]
-    }
+    return '@' + keyPathParts.join('/')
   },
   
   // https://github.com/kissyteam/kissy/blob/master/src/path/src/path.js

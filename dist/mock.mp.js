@@ -1,5 +1,5 @@
 /*!
-  * better-mock v0.2.5 (mock.mp.js)
+  * better-mock v0.2.6 (mock.mp.js)
   * (c) 2019-2020 lavyun@163.com
   * Released under the MIT License.
   */
@@ -7580,35 +7580,46 @@
           return result;
       },
       string: function (options) {
+          var source = '';
           var result = '';
-          var placeholders;
-          var ph;
-          var phed;
+          var match;
+          var lastIndex = 0;
           if (options.template.length) {
               // 'foo': '★',
-              if (options.rule.count == undefined) {
-                  result += options.template;
+              if (options.rule.count === undefined) {
+                  source += options.template;
               }
-              // 'star|1-5': '★',
-              for (var i = 0; i < options.rule.count; i++) {
-                  result += options.template;
+              else {
+                  // 'star|1-5': '★',
+                  for (var i = 0; i < options.rule.count; i++) {
+                      source += options.template;
+                  }
               }
               // 'email|1-10': '@EMAIL, ',
-              placeholders = result.match(constant.RE_PLACEHOLDER) || []; // A-Z_0-9 > \w_
-              for (var i = 0; i < placeholders.length; i++) {
-                  ph = placeholders[i];
-                  // 遇到转义斜杠，不需要解析占位符
-                  if (/^\\/.test(ph)) {
-                      placeholders.splice(i--, 1);
-                      continue;
+              constant.RE_PLACEHOLDER.exec('');
+              while (match = constant.RE_PLACEHOLDER.exec(source)) {
+                  var index = match.index;
+                  var input = match[0];
+                  if (index >= lastIndex) {
+                      // 遇到转义斜杠，不需要解析占位符
+                      if (/^\\/.test(input)) {
+                          result += source.slice(lastIndex, index) + input.slice(1);
+                          lastIndex = index + input.length;
+                          continue;
+                      }
+                      var replaced = handler$1.placeholder(input, options.context.currentContext, options.context.templateCurrentContext, options);
+                      // 只有一个占位符，并且没有其他字符，例如：'name': '@EMAIL'
+                      if (index === 0 && input.length === source.length) {
+                          result = replaced;
+                      }
+                      else {
+                          result += source.slice(lastIndex, index) + replaced;
+                      }
+                      lastIndex = index + input.length;
                   }
-                  phed = handler$1.placeholder(ph, options.context.currentContext, options.context.templateCurrentContext, options);
-                  // 只有一个占位符，并且没有其他字符
-                  if (placeholders.length === 1 && ph === result && typeof phed !== typeof result) {
-                      result = phed;
-                      break;
-                  }
-                  result = result.replace(ph, phed);
+              }
+              if (lastIndex < source.length) {
+                  result += source.slice(lastIndex);
               }
           }
           else {
@@ -7733,29 +7744,34 @@
                   absolutePathParts = handler$1.normalizePath(absolutePathParts.concat(keyPathParts));
               }
           }
-          key = keyPathParts[keyPathParts.length - 1];
-          var currentContext = options.context.root;
-          var templateCurrentContext = options.context.templateRoot;
-          for (var i = 1; i < absolutePathParts.length - 1; i++) {
-              currentContext = currentContext[absolutePathParts[i]];
-              templateCurrentContext = templateCurrentContext[absolutePathParts[i]];
+          try {
+              key = keyPathParts[keyPathParts.length - 1];
+              var currentContext = options.context.root;
+              var templateCurrentContext = options.context.templateRoot;
+              for (var i = 1; i < absolutePathParts.length - 1; i++) {
+                  currentContext = currentContext[absolutePathParts[i]];
+                  templateCurrentContext = templateCurrentContext[absolutePathParts[i]];
+              }
+              // 引用的值已经计算好
+              if (currentContext && key in currentContext) {
+                  return currentContext[key];
+              }
+              // 尚未计算，递归引用数据模板中的属性
+              // fix #15 避免自己依赖自己
+              if (templateCurrentContext &&
+                  typeof templateCurrentContext === 'object' &&
+                  key in templateCurrentContext &&
+                  originalKey !== templateCurrentContext[key]) {
+                  // 先计算被引用的属性值
+                  templateCurrentContext[key] = handler$1.gen(templateCurrentContext[key], key, {
+                      currentContext: currentContext,
+                      templateCurrentContext: templateCurrentContext
+                  });
+                  return templateCurrentContext[key];
+              }
           }
-          // 引用的值已经计算好
-          if (currentContext && key in currentContext) {
-              return currentContext[key];
-          }
-          // 尚未计算，递归引用数据模板中的属性
-          // fix #15 避免自己依赖自己
-          if (templateCurrentContext &&
-              typeof templateCurrentContext === 'object' &&
-              key in templateCurrentContext &&
-              originalKey !== templateCurrentContext[key]) {
-              // 先计算被引用的属性值
-              templateCurrentContext[key] = handler$1.gen(templateCurrentContext[key], key, {
-                  currentContext: currentContext, templateCurrentContext: templateCurrentContext
-              });
-              return templateCurrentContext[key];
-          }
+          catch (e) { }
+          return '@' + keyPathParts.join('/');
       },
       // https://github.com/kissyteam/kissy/blob/master/src/path/src/path.js
       normalizePath: function (pathParts) {
@@ -8299,7 +8315,7 @@
       mock: mock,
       setup: setting.setup.bind(setting),
       _mocked: mocked.getMocked(),
-      version: '0.2.5'
+      version: '0.2.6'
   };
   // 根据数据模板生成模拟数据。
   function mock(rurl, rtype, template) {
