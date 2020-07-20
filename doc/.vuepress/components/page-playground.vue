@@ -18,6 +18,8 @@
 <script>
 import betterMockDTS from 'raw-loader!../../../typings/index.d.ts'
 import axiosDTS from 'raw-loader!../public/dts/axios.d.ts'
+import axios from 'axios'
+import Mock from '../../../dist/mock.browser.esm'
 
 const BM_BACKGROUND_CODE = 'BM_BACKGROUND_CODE'
 
@@ -80,11 +82,6 @@ export default {
         })
         originLog.call(null, ...args)
       }
-    },
-    requireRemoteScript (src) {
-      const script = document.createElement('script')
-      script.src = src
-      document.body.appendChild(script)
     }
   },
   mounted() {
@@ -113,8 +110,8 @@ export default {
     
     this.overrideConsole()
 
-    this.requireRemoteScript('https://unpkg.com/better-mock/dist/mock.browser.js')
-    this.requireRemoteScript('https://unpkg.com/axios/dist/axios.min.js')
+    window.axios = axios
+    window.Mock = Mock
   }
 }
 </script>
