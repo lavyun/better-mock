@@ -19,7 +19,6 @@
 import betterMockDTS from 'raw-loader!../../../typings/index.d.ts'
 import axiosDTS from 'raw-loader!../public/dts/axios.d.ts'
 import axios from 'axios'
-import Mock from '../../../dist/mock.browser.esm'
 
 const BM_BACKGROUND_CODE = 'BM_BACKGROUND_CODE'
 
@@ -111,7 +110,7 @@ export default {
     this.overrideConsole()
 
     window.axios = axios
-    window.Mock = Mock
+    require('../../../dist/mock.browser')
   }
 }
 </script>
