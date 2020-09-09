@@ -331,6 +331,11 @@ describe('Mock.valid', function () {
     }, {
       name: 123
     }, 0)
+    doit({
+      name: '@int'
+    }, {
+      name: '123'
+    }, 1)
   })
 
   describe('Value - Function', function () {

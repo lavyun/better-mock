@@ -1,5 +1,5 @@
 /*!
-  * better-mock v0.2.6 (mock.mp.esm.js)
+  * better-mock v0.2.7 (mock.mp.esm.js)
   * (c) 2019-2020 lavyun@163.com
   * Released under the MIT License.
   */
@@ -7835,9 +7835,11 @@ var Diff = {
     type: function (schema, data, _name, result) {
         var length = result.length;
         if (isString(schema.template)) {
-            // 跳过含有『占位符』的属性值，因为『占位符』返回值的类型可能和模板不一致，例如 '@int' 会返回一个整形值
+            // 占位符类型处理
             if (schema.template.match(constant.RE_PLACEHOLDER)) {
-                return true;
+                var actualValue = handler$1.gen(schema.template);
+                Assert.equal('type', schema.path, type(data), type(actualValue), result);
+                return result.length === length;
             }
         }
         else if (isArray(schema.template)) {
@@ -8309,7 +8311,7 @@ var Mock = {
     mock: mock,
     setup: setting.setup.bind(setting),
     _mocked: mocked.getMocked(),
-    version: '0.2.6'
+    version: '0.2.7'
 };
 // 根据数据模板生成模拟数据。
 function mock(rurl, rtype, template) {
