@@ -49,5 +49,9 @@ Mock.mock({
 })
 ```
 
+## 贡献指南
+
+如果你想贡献自己的代码到 `better-mock`，请先仔细阅读这份[贡献指南](https://github.com/lavyun/better-mock/blob/master/.github/CONTRIBUTING.md)。
+
 ## License
 Mock.js is available under the terms of the [MIT License](./LICENSE).
