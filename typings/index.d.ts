@@ -476,11 +476,16 @@ declare namespace Mock {
     phone(): string;
   }
 
+  type RandomExtendSource = {
+    [prop: string]: Function
+  }
   // Mock.Random
   interface Random extends RandomBasic, RandomDate,
     RandomImage, RandomColor, RandomAddress,
     RandomHelper, RandomMiscellaneous, RandomName,
-    RandomText, RandomWeb { }
+    RandomText, RandomWeb {
+      extend(source: RandomExtendSource): Random
+    }
 
   interface ValidRsItem {
     action: string;

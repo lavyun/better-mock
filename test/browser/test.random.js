@@ -1,5 +1,6 @@
 // 数据占位符定义（Data Placeholder Definition，DPD）
-const Random = require('../../dist/mock.browser').Random
+const Mock = require('../../dist/mock.browser')
+const Random = Mock.Random
 const expect = require('chai').expect
 
 describe('Random', function () {
@@ -553,6 +554,29 @@ describe('Random', function () {
       expect(data).to.be.a('string')
       const PHONE_RE = /^[1](([3][0-9])|([4][5-9])|([5][0-3,5-9])|([6][5,6])|([7][0-8])|([8][0-9])|([9][1,8,9]))[0-9]{8}$/
       expect(PHONE_RE.test(data)).to.be.ok
+    })
+  })
+
+  describe('Extend', function () {
+    Random.extend({
+      test: function () {
+        return this.pick(['a', 'e', 'i'])
+      },
+      test1: function (arr) {
+        return this.pick(arr)
+      }
+    })
+    doit('Random.test()', function (data) {
+      expect(['a', 'e', 'i']).to.includes(data)
+    })
+    doit('Mock.mock("@TEST")', function (data) {
+      expect(['a', 'e', 'i']).to.includes(data)
+    })
+    doit(`Random.test1(['a', 'e', 'i'])`, function (data) {
+      expect(['a', 'e', 'i']).to.includes(data)
+    })
+    doit(`Mock.mock('@TEST(["a", "e", "i"])')`, function (data) {
+      expect(['a', 'e', 'i']).to.includes(data)
     })
   })
 })
