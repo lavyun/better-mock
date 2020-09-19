@@ -217,16 +217,22 @@ describe('Random', function () {
 
   describe('Image', function () {
     doit('Random.image()', function (data) {
-      expect(data).to.include('https://dummyimage.com')
+      expect(data).to.include('https://iph.href.lu')
+    })
+    doit('Random.image("300x400")', function (data) {
+      expect(data).to.include('https://iph.href.lu/300x400?bg=&fg=&text=')
     })
     doit('Random.image("300x400", "HelloWorld")', function (data) {
-      expect(data).to.be.equal('https://dummyimage.com/300x400&text=HelloWorld')
+      expect(data).to.be.equal('https://iph.href.lu/300x400?bg=&fg=&text=HelloWorld')
     })
     doit('Random.image("300x400", "#234567", "HelloWorld")', function (data) {
-      expect(data).to.be.equal('https://dummyimage.com/300x400/234567&text=HelloWorld')
+      expect(data).to.be.equal('https://iph.href.lu/300x400?bg=234567&fg=&text=HelloWorld')
     })
     doit('Random.image("300x400", "#234567", "#FFFFFF", "HelloWorld")', function (data) {
-      expect(data).to.be.equal('https://dummyimage.com/300x400/234567/FFFFFF&text=HelloWorld')
+      expect(data).to.be.equal('https://iph.href.lu/300x400?bg=234567&fg=FFFFFF&text=HelloWorld')
+    })
+    doit('Random.image("300x400", "#234567", "#FFFFFF", "png", "HelloWorld")', function (data) {
+      expect(data).to.be.equal('https://dummyimage.com/300x400/234567/FFFFFF.png?text=HelloWorld')
     })
     doit('Random.dataImage()', function (data) {
       expect(data.startsWith('data:image/png;base64,')).to.be.ok

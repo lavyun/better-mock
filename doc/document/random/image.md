@@ -2,7 +2,7 @@
 
 * Random.image()
 * Random.image( size )
-* Random.image( size, background )
+* Random.image( size, text )
 * Random.image( size, background, text )
 * Random.image( size, background, foreground, text )
 * Random.image( size, background, foreground, format, text )
@@ -27,15 +27,15 @@
 
 ### background <Badge text="可选"/>
 
-指示图片的背景色。默认值为 `'#000000'`。
+指示图片的背景色。。
 
 ### foreground <Badge text="可选"/>
 
-指示图片的前景色（文字）。默认值为 `'#FFFFFF'`。
+指示图片的前景色（文字）。。
 
 ### format <Badge text="可选"/>
 
-指示图片的格式。默认值为 `'png'`，可选值包括：`'png'`、`'gif'`、`'jpg'`。
+指示图片的格式。可选值包括：`'png'`、`'gif'`、`'jpg'`。
 
 ### text <Badge text="可选"/>
 
@@ -43,17 +43,17 @@
 
 ```js
 Random.image()
-// => "http://dummyimage.com/125x125"
-Random.image('200x100')
-// => "http://dummyimage.com/200x100"
-Random.image('200x100', '#fb0a2a')
-// => "http://dummyimage.com/200x100/fb0a2a"
-Random.image('200x100', '#02adea', 'Hello')
-// => "http://dummyimage.com/200x100/02adea&text=Hello"
-Random.image('200x100', '#00405d', '#FFF', 'Mock')
-// => "http://dummyimage.com/200x100/00405d/FFF&text=Mock"
-Random.image('200x100', '#ffcc33', '#FFF', 'png', '!')
-// => "http://dummyimage.com/200x100/ffcc33/FFF.png&text=!"
+// => "https://iph.href.lu/450x600?bg=&fg=&text="
+Random.image('300x400')
+// => "https://iph.href.lu/300x400?bg=&fg=&text="
+Random.image('300x400', 'HelloWorld')
+// => "https://iph.href.lu/300x400?bg=&fg=&text=HelloWorld"
+Random.image('300x400', '#234567', 'HelloWorld')
+// => "https://iph.href.lu/300x400?bg=234567&fg=&text=HelloWorld"
+Random.image('300x400', '#234567', '#FFFFFF', 'HelloWorld')
+// => "https://iph.href.lu/300x400?bg=234567&fg=FFFFFF&text=HelloWorld"
+Random.image('300x400', '#234567', '#FFFFFF', 'png', 'HelloWorld')
+// => "http://dummyimage.com/300x400/234567/FFFFFF.png&text=HelloWorld"
 ```
 
 ## Random.dataImage
