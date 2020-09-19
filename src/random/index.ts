@@ -9,6 +9,7 @@ import * as web from './web'
 import * as address from './address'
 import * as helper from './helper'
 import * as misc from './misc'
+import * as choice from './choice'
 
 export default {
   ...basic,
@@ -20,5 +21,6 @@ export default {
   ...web,
   ...address,
   ...helper,
-  ...misc
+  ...misc,
+  ...choice
 }

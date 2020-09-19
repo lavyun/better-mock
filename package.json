@@ -16,7 +16,7 @@
     "doc:dev": "vuepress dev doc",
     "doc:build": "vuepress build doc",
     "doc:deploy": "sh doc/deploy.sh",
-    "lint": "eslint 'src/**/*.{js,ts}'"
+    "lint": "eslint src/**/*.{js,ts}"
   },
   "keywords": [
     "mock",
