@@ -1,37 +1,21 @@
-# Contributing to Better-Mock
-
-The following is a set of guidelines for contributing to `better-mock`. Please spend several minutes in reading these guidelines before you create an issue or pull request.
-
-Anyway, these are just guidelines, not rules, use your best judgment and feel free to propose changes to this document in a pull request.
-
-## Opening an Issue
-
-If you think you have found a bug, or have a new feature idea, please start by making sure it hasn't already been reported or fixed. You can search through existing issues and PRs to see if someone has reported one similar to yours.
-
-Next, create a new issue that briefly explains the problem, and provides a bit of background as to the circumstances that triggered it, and steps to reproduce it.
-
 ## Submitting a Pull Request
 
-It's welcomed to pull request, And there are some tips about that:
+非常感谢您为 `better-mock` 做出贡献，在提交 pull request 前请花几分钟时间阅读一下这篇指南：
 
-- Before working on a large change, it is best to open an issue first to discuss it with the maintainers.
+- 在进行巨大更改之前，先开一个 issue，与维护人员讨论。
 
-- When in doubt, keep your pull requests small. To give a PR the best chance of getting accepted, don't bundle more than one feature or bug fix per pull request. It's always best to create two smaller PRs than one big one.
+- 请保持你的 pr 尽可能的小，不要将多个特性或者多个 bug 修复写到一个 pr 里。
 
-- When adding new features or modifying existing, please attempt to include tests to confirm the new behaviour.
-
-- Rebase before creating a PR to keep commit history clear.
-
-- Add some descriptions and refer relative issues for you PR.
+- 尽可能多的为你的 pr 填写描述信息。
 
 ## Getting started
 
-1. Fork `better-mock`, then clone the repository to your local.
+1. Fork `better-mock`, 然后克隆仓库到本地。
 
-2. Install dependencies.
+2. 基于 `develop` 分支拉取新的分支，在做完更改之后，可以执行 `npm run dev` 进行调试。
 
-3. Execute `npm run build` after you make changes.
+3. 请确保你的更改都通过了 `test/browser/*.js` 下的单元测试。
 
-4. Please complete the unit test to ensure that your changes are covered.
+4. 提交代码，注意不要将 `dist` 目录下的更改提交上去。
 
-5. Submit a Pull-Request to `better-mock`.
+4. 提交 pr 到 `better-mock` 的 `develop` 分支。
