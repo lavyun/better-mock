@@ -17,31 +17,32 @@ export const lower = function (str: string): string {
   return (str + '').toLowerCase()
 }
 
-// 从数组中随机选取一个元素，并返回。
-export const pick = function (arr: any[], min?: number, max?: number) {
+// 从数组中随机选择一个
+export const pickOne = function<T = any> (arr: T[]): T {
+  return arr[basic.natural(0, arr.length - 1)]
+}
+
+// 从源数组中随机选取一个或多个元素。当传入 min、max 时会选择多个元素并组成数组
+export function pick<T = any>(arr: T[]): T;
+export function pick<T = any>(arr: T[], min: number): T[];
+export function pick<T = any>(arr: T[], min: number, max: number): T[];
+export function pick<T = any> (arr: T[], min: number = 1, max?: number): T | T[] {
   // pick( item1, item2 ... )
   if (!isArray(arr)) {
-    arr = [].slice.call(arguments)
-    min = 1
-    max = 1
-  } else {
-    // pick( [ item1, item2 ... ] )
-    if (!isDef(min)) {
-      min = 1
-    }
-    
-    // pick( [ item1, item2 ... ], count )
-    if (!isDef(max)) {
-      max = min
-    }
+    return pickOne<T>(Array.from(arguments))
+  }
+
+  // pick( [ item1, item2 ... ], count )
+  if (!isDef(max)) {
+    max = min
   }
   
   if (min === 1 && max === 1) {
-    return arr[basic.natural(0, arr.length - 1)]
+    return pickOne<T>(arr)
   }
   
   // pick( [ item1, item2 ... ], min, max )
-  return shuffle(arr, min, max)
+  return shuffle<T>(arr, min, max)
 }
 
 // 从map中随机选择一个
@@ -49,28 +50,24 @@ export const pickMap = function (map: object) {
   return pick(values(map))
 }
 
-// 打乱数组中元素的顺序，并返回。
-export const shuffle = function (arr: any[], min?: number, max?: number): any {
-  arr = arr || []
-  const old = arr.slice(0)
-  const result: any[] = []
-  let index = 0
-  const length = old.length;
+// 打乱数组中元素的顺序，并按照 min - max 返回。
+export const shuffle = function<T = any> (arr: T[], min?: number, max?: number): T[] {
+  if (!Array.isArray(arr)) {
+    return []
+  }
+  const copy = arr.slice()
+  const length = arr.length
   for (let i = 0; i < length; i++) {
-    index = basic.natural(0, old.length - 1)
-    result.push(old[index])
-    old.splice(index, 1)
+    const swapIndex = basic.natural(0, length - 1)
+    const swapValue = copy[swapIndex]
+    copy[swapIndex] = copy[i]
+    copy[i] = swapValue
   }
-  switch (arguments.length) {
-    case 0:
-    case 1:
-      return result
-    case 2:
-      max = min
-    // falls through
-    case 3:
-      min = parseInt(min!.toString(), 10)
-      max = parseInt(max!.toString(), 10)
-      return result.slice(0, basic.natural(min, max))
+  if (min && max) {
+    return copy.slice(0, basic.natural(min, max))
   }
+  if (min) {
+    return copy.slice(0, min)
+  }
+  return copy
 }
