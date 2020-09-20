@@ -1,7 +1,6 @@
 import { isDef } from '../utils'
 import * as basic from './basic'
 import * as helper from './helper'
-import {choice} from "./choice";
 import stringToArray from "../utils/lodash/stringToArray";
 
 const _range = function (defaultMin: number, defaultMax: number, min?: number, max?: number): number {
@@ -113,13 +112,17 @@ export const emoji = function (pool?: string|number, min?: number, max?: number)
   if (!['string', 'number', 'undefined'].includes(typeof pool)){
     return ''
   }
-  if (typeof pool === 'string') {
-    return choice(stringToArray(pool), min, max)
-  } else if (typeof pool === 'number'){
-    return choice(emojiArray, pool, min)
-  } else {
-    return choice(emojiArray)
+  let array = emojiArray
+  if (typeof pool === 'string') {  // emoji("😀😁😂"), emoji("😀😂", 2), emoji("😀😂", 2, 3)
+    array = stringToArray(pool)
+  } else if (typeof pool === 'number') {  // emoji(2), emoji(2, 3)
+    max = min
+    min = pool
   }
+  if (min === undefined || min < 2){  // emoji("😀😁😂"), emoji()
+    return helper.pick(array)  // pick(['1', '2']) => "2", pick(['1', '2'], 1) => "2"
+  }
+  return helper.pick(array, min, max).join('')
 }
 
 // 随机生成一句标题，其中每个单词的首字母大写。

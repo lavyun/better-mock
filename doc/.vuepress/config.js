@@ -29,8 +29,7 @@ module.exports = {
             ['/document/random/web', 'web'],
             ['/document/random/address', 'address'],
             ['/document/random/helper', 'helper'],
-            ['/document/random/miscellaneous', 'miscellaneous'],
-            ['/document/random/choice', 'choice']
+            ['/document/random/miscellaneous', 'miscellaneous']
           ]
         },
         ['/document/valid/', 'Mock.valid()'],

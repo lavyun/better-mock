@@ -385,36 +385,6 @@ describe('Random', function () {
       }
     })
 
-    /** 随机 choices 测试*/
-    doit('Random.choices([1, 2, 3])', function (data) {
-      expect(Array.isArray(data)).to.true
-      expect(data.length).to.equal(1)
-      expect([1, 2, 3].includes(data[0])).to.true
-    })
-    doit('Random.choices("123")', function (data) {
-      expect(Array.isArray(data)).to.true
-      expect(data.length).to.equal(1)
-      expect('123'.includes(data[0])).to.true
-    })
-    doit('Random.choices([])', function (data) {
-      expect(Array.isArray(data)).to.true
-      expect(data.length).to.equal(0)
-    })
-    doit('Random.choices()', function (data) {
-      expect(Array.isArray(data)).to.true
-      expect(data.length).to.equal(0)
-    })
-    doit('Random.choices(["a", "b", 1, 2], 2)', function (data) {
-      expect(Array.isArray(data)).to.true
-      expect(data.length).to.equal(2)
-      data.forEach((item)=> expect(["a", "b", 1, 2].includes(item)).to.true)
-    })
-    doit('Random.choices(["a", "b", 1, 2], 2, 4)', function (data) {
-      expect(Array.isArray(data)).to.true
-      expect(data.length).to.within(2, 4)
-      data.forEach((item)=> expect(["a", "b", 1, 2].includes(item)).to.true)
-    })
-
     doit('Random.title()', function (data) {
       const words = data.split(' ')
       words.forEach(function (word) {
