@@ -1,5 +1,5 @@
 /*!
-  * better-mock v0.2.7 (mock.mp.esm.js)
+  * better-mock v0.2.8 (mock.mp.esm.js)
   * (c) 2019-2020 lavyun@163.com
   * Released under the MIT License.
   */
@@ -440,64 +440,57 @@ var upper = function (str) {
 var lower = function (str) {
     return (str + '').toLowerCase();
 };
-// 从数组中随机选取一个元素，并返回。
-var pick = function (arr, min, max) {
+// 从数组中随机选择一个
+var pickOne = function (arr) {
+    return arr[natural(0, arr.length - 1)];
+};
+function pick(arr, min, max) {
+    if (min === void 0) { min = 1; }
     // pick( item1, item2 ... )
     if (!isArray(arr)) {
-        arr = [].slice.call(arguments);
-        min = 1;
-        max = 1;
+        return pickOne(Array.from(arguments));
     }
-    else {
-        // pick( [ item1, item2 ... ] )
-        if (!isDef(min)) {
-            min = 1;
-        }
-        // pick( [ item1, item2 ... ], count )
-        if (!isDef(max)) {
-            max = min;
-        }
+    // pick( [ item1, item2 ... ], count )
+    if (!isDef(max)) {
+        max = min;
     }
     if (min === 1 && max === 1) {
-        return arr[natural(0, arr.length - 1)];
+        return pickOne(arr);
     }
     // pick( [ item1, item2 ... ], min, max )
     return shuffle(arr, min, max);
-};
+}
 // 从map中随机选择一个
 var pickMap = function (map) {
     return pick(values(map));
 };
-// 打乱数组中元素的顺序，并返回。
+// 打乱数组中元素的顺序，并按照 min - max 返回。
 var shuffle = function (arr, min, max) {
-    arr = arr || [];
-    var old = arr.slice(0);
-    var result = [];
-    var index = 0;
-    var length = old.length;
+    if (!Array.isArray(arr)) {
+        return [];
+    }
+    var copy = arr.slice();
+    var length = arr.length;
     for (var i = 0; i < length; i++) {
-        index = natural(0, old.length - 1);
-        result.push(old[index]);
-        old.splice(index, 1);
+        var swapIndex = natural(0, length - 1);
+        var swapValue = copy[swapIndex];
+        copy[swapIndex] = copy[i];
+        copy[i] = swapValue;
     }
-    switch (arguments.length) {
-        case 0:
-        case 1:
-            return result;
-        case 2:
-            max = min;
-        // falls through
-        case 3:
-            min = parseInt(min.toString(), 10);
-            max = parseInt(max.toString(), 10);
-            return result.slice(0, natural(min, max));
+    if (min && max) {
+        return copy.slice(0, natural(min, max));
     }
+    if (min) {
+        return copy.slice(0, min);
+    }
+    return copy;
 };
 
 var helper = /*#__PURE__*/Object.freeze({
   capitalize: capitalize,
   upper: upper,
   lower: lower,
+  pickOne: pickOne,
   pick: pick,
   pickMap: pickMap,
   shuffle: shuffle
@@ -511,8 +504,8 @@ var imageSize = [
     '100x100', '200x200', '300x300', '450x450', '600x600'
 ];
 /**
- * 随机生成一个图片，使用：https://dummyimage.com/，例如：
- * https://dummyimage.com/600x400/cc00cc/470047.png&text=hello
+ * 随机生成一个图片，使用：http://iph.href.lu，例如：
+ * https://iph.href.lu/600x400?fg=cc00cc&bg=470047&text=hello
  * @param size 图片大小
  * @param background 背景色
  * @param foreground 文字颜色
@@ -520,20 +513,25 @@ var imageSize = [
  * @param text 文字
  */
 var image = function (size, background, foreground, format, text) {
+    if (size === void 0) { size = ''; }
+    if (background === void 0) { background = ''; }
+    if (foreground === void 0) { foreground = ''; }
+    if (format === void 0) { format = ''; }
+    if (text === void 0) { text = ''; }
     // Random.image( size, background, foreground, text )
     if (arguments.length === 4) {
         text = format;
-        format = undefined;
+        format = '';
     }
     // Random.image( size, background, text )
     if (arguments.length === 3) {
         text = foreground;
-        foreground = undefined;
+        foreground = '';
     }
     // Random.image( size, text )
     if (arguments.length === 2) {
         text = background;
-        background = undefined;
+        background = '';
     }
     // Random.image()
     size = size || pick(imageSize);
@@ -543,12 +541,14 @@ var image = function (size, background, foreground, format, text) {
     if (foreground && ~foreground.indexOf('#')) {
         foreground = foreground.slice(1);
     }
-    return ('https://dummyimage.com/' +
-        size +
-        (background ? '/' + background : '') +
-        (foreground ? '/' + foreground : '') +
-        (format ? '.' + format : '') +
-        (text ? '&text=' + encodeURIComponent(text) : ''));
+    return format
+        ? ('https://dummyimage.com/' +
+            size +
+            (background ? '/' + background : '') +
+            (foreground ? '/' + foreground : '') +
+            (format ? '.' + format : '') +
+            (text ? '?text=' + encodeURIComponent(text) : ''))
+        : "https://iph.href.lu/" + size + "?bg=" + background + "&fg=" + foreground + "&text=" + text;
 };
 var img = image;
 /**
@@ -710,6 +710,79 @@ var color$1 = /*#__PURE__*/Object.freeze({
   hsl: hsl
 });
 
+/** Used to compose unicode character classes. */
+var rsAstralRange = '\\ud800-\\udfff';
+var rsComboMarksRange = '\\u0300-\\u036f';
+var reComboHalfMarksRange = '\\ufe20-\\ufe2f';
+var rsComboSymbolsRange = '\\u20d0-\\u20ff';
+var rsComboMarksExtendedRange = '\\u1ab0-\\u1aff';
+var rsComboMarksSupplementRange = '\\u1dc0-\\u1dff';
+var rsComboRange = rsComboMarksRange + reComboHalfMarksRange + rsComboSymbolsRange + rsComboMarksExtendedRange + rsComboMarksSupplementRange;
+var rsVarRange = '\\ufe0e\\ufe0f';
+/** Used to compose unicode capture groups. */
+var rsZWJ = '\\u200d';
+var rsAstral = "[" + rsAstralRange + "]";
+var rsCombo = "[" + rsComboRange + "]";
+var rsFitz = '\\ud83c[\\udffb-\\udfff]';
+var rsModifier = "(?:" + rsCombo + "|" + rsFitz + ")";
+var rsNonAstral = "[^" + rsAstralRange + "]";
+var rsRegional = '(?:\\ud83c[\\udde6-\\uddff]){2}';
+var rsSurrPair = '[\\ud800-\\udbff][\\udc00-\\udfff]';
+/** Used to compose unicode regexes. */
+var reOptMod = rsModifier + "?";
+var rsOptVar = "[" + rsVarRange + "]?";
+var rsOptJoin = "(?:" + rsZWJ + "(?:" + [rsNonAstral, rsRegional, rsSurrPair].join('|') + ")" + (rsOptVar + reOptMod) + ")*";
+var rsSeq = rsOptVar + reOptMod + rsOptJoin;
+var rsNonAstralCombo = "" + rsNonAstral + rsCombo + "?";
+var rsSymbol = "(?:" + [rsNonAstralCombo, rsCombo, rsRegional, rsSurrPair, rsAstral].join('|') + ")";
+/** Used to match [string symbols](https://mathiasbynens.be/notes/javascript-unicode). */
+var reUnicode = RegExp(rsFitz + "(?=" + rsFitz + ")|" + (rsSymbol + rsSeq), 'g');
+/** Used to detect strings with [zero-width joiners or code points from the astral planes](http://eev.ee/blog/2015/09/12/dark-corners-of-unicode/). */
+var reHasUnicode = RegExp("[" + (rsZWJ + rsAstralRange + rsComboRange + rsVarRange) + "]");
+/**
+ * Checks if `string` contains Unicode symbols.
+ *
+ * @private
+ * @param {string} string The string to inspect.
+ * @returns {boolean} Returns `true` if a symbol is found, else `false`.
+ */
+function hasUnicode(string) {
+    return reHasUnicode.test(string);
+}
+/**
+ * Converts an ASCII `string` to an array.
+ *
+ * @private
+ * @param {string} string The string to convert.
+ * @returns {Array} Returns the converted array.
+ */
+function asciiToArray(string) {
+    return string.split('');
+}
+/**
+* Converts a Unicode `string` to an array.
+*
+* @private
+* @param {string} string The string to convert.
+* @returns {Array} Returns the converted array.
+*/
+function unicodeToArray(string) {
+    return string.match(reUnicode) || [];
+}
+/**
+ * Converts `string` to an array.
+ *
+ * @private
+ * @param {string} string The string to convert.
+ * @returns {Array} Returns the converted array.
+ */
+/* istanbul ignore next */
+function stringToArray(string) {
+    return hasUnicode(string)
+        ? unicodeToArray(string)
+        : asciiToArray(string);
+}
+
 var _range = function (defaultMin, defaultMax, min, max) {
     return !isDef(min)
         ? natural(defaultMin, defaultMax)
@@ -765,11 +838,11 @@ var word = function (min, max) {
 var cword = function (pool, min, max) {
     if (pool === void 0) { pool = ''; }
     // 最常用的 500 个汉字 http://baike.baidu.com/view/568436.htm
-    var DICT_HANZI = '的一是在不了有和人这中大为上个国我以要他时来用们生到作地于出就分对成会可主发年动同工也能下过子说产种面而方后多定行学法所民得经十三之进着等部度家电力里如水化高自二理起小物现实加量都两体制机当使点从业本去把性好应开它合还因由其些然前外天政四日那社义事平形相全表间样与关各重新线内数正心反你明看原又么利比或但质气第向道命此变条只没结解问意建月公无系军很情者最立代想已通并提直题党程展五果料象员革位入常文总次品式活设及管特件长求老头基资边流路级少图山统接知较将组见计别她手角期根论运农指几九区强放决西被干做必战先回则任取据处队南给色光门即保治北造百规热领七海口东导器压志世金增争济阶油思术极交受联什认六共权收证改清己美再采转更单风切打白教速花带安场身车例真务具万每目至达走积示议声报斗完类八离华名确才科张信马节话米整空元况今集温传土许步群广石记需段研界拉林律叫且究观越织装影算低持音众书布复容儿须际商非验连断深难近矿千周委素技备半办青省列习响约支般史感劳便团往酸历市克何除消构府称太准精值号率族维划选标写存候毛亲快效斯院查江型眼王按格养易置派层片始却专状育厂京识适属圆包火住调满县局照参红细引听该铁价严龙飞';
+    var cnWords = '的一是在不了有和人这中大为上个国我以要他时来用们生到作地于出就分对成会可主发年动同工也能下过子说产种面而方后多定行学法所民得经十三之进着等部度家电力里如水化高自二理起小物现实加量都两体制机当使点从业本去把性好应开它合还因由其些然前外天政四日那社义事平形相全表间样与关各重新线内数正心反你明看原又么利比或但质气第向道命此变条只没结解问意建月公无系军很情者最立代想已通并提直题党程展五果料象员革位入常文总次品式活设及管特件长求老头基资边流路级少图山统接知较将组见计别她手角期根论运农指几九区强放决西被干做必战先回则任取据处队南给色光门即保治北造百规热领七海口东导器压志世金增争济阶油思术极交受联什认六共权收证改清己美再采转更单风切打白教速花带安场身车例真务具万每目至达走积示议声报斗完类八离华名确才科张信马节话米整空元况今集温传土许步群广石记需段研界拉林律叫且究观越织装影算低持音众书布复容儿须际商非验连断深难近矿千周委素技备半办青省列习响约支般史感劳便团往酸历市克何除消构府称太准精值号率族维划选标写存候毛亲快效斯院查江型眼王按格养易置派层片始却专状育厂京识适属圆包火住调满县局照参红细引听该铁价严龙飞';
     var len;
     switch (arguments.length) {
         case 0: // ()
-            pool = DICT_HANZI;
+            pool = cnWords;
             len = 1;
             break;
         case 1: // ( pool )
@@ -779,7 +852,7 @@ var cword = function (pool, min, max) {
             else {
                 // ( length )
                 len = pool;
-                pool = DICT_HANZI;
+                pool = cnWords;
             }
             break;
         case 2:
@@ -790,7 +863,7 @@ var cword = function (pool, min, max) {
             else {
                 // ( min, max )
                 len = natural(parseInt(pool, 10), min);
-                pool = DICT_HANZI;
+                pool = cnWords;
             }
             break;
         case 3:
@@ -802,6 +875,26 @@ var cword = function (pool, min, max) {
         result += pool.charAt(natural(0, pool.length - 1));
     }
     return result;
+};
+// 随机生成一个或多个 emoji 符号
+var emoji = function (pool, min, max) {
+    if (!['string', 'number', 'undefined'].includes(typeof pool)) {
+        return '';
+    }
+    // 常用的 338 个emoji符号 http://www.fhdq.net/emoji.html
+    var emojis = '😀😁😂😃😄😅😆😉😊😋😎😍😘😗😙😚☺😇😐😑😶😏😣😥😮😯😪😫😴😌😛😜😝😒😓😔😕😲😷😖😞😟😤😢😭😦😧😨😬😰😱😳😵😡😠😈👿👹👺💀👻👽👦👧👨👩👴👵👶👱👮👲👳👷👸💂🎅👰👼💆💇🙍🙎🙅🙆💁🙋🙇🙌🙏👤👥🚶🏃👯💃👫👬👭💏💑👪💪👈👉☝👆👇✌✋👌👍👎✊👊👋👏👐✍👣👀👂👃👅👄💋👓👔👕👖👗👘👙👚👛👜👝🎒💼👞👟👠👡👢👑👒🎩🎓💄💅💍🌂🙈🙉🙊🐵🐒🐶🐕🐩🐺🐱😺😸😹😻😼😽🙀😿😾🐈🐯🐅🐆🐴🐎🐮🐂🐃🐄🐷🐖🐗🐽🐏🐑🐐🐪🐫🐘🐭🐁🐀🐹🐰🐇🐻🐨🐼🐾🐔🐓🐣🐤🐥🐦🐧🐸🐊🐢🐍🐲🐉🐳🐋🐬🐟🐠🐡🐙🐚🐌🐛🐜🐝🐞💐🌸💮🌹🌺🌻🌼🌷🌱🌲🌳🌴🌵🌾🌿🍀🍁🍂🍃🌍🌎🌏🌐🌑🌒🌓🌔🌕🌖🌗🌘🌙🌚🌛🌜☀🌝🌞⭐🌟🌠☁⛅☔⚡❄🔥💧🌊💩🍇🍈🍉🍊🍋🍌🍍🍎🍏🍐🍑🍒🍓🍅🍆🌽🍄🌰🍞🍖🍗🍔🍟🍕🍳🍲🍱🍘🍙🍚🍛🍜🍝🍠🍢🍣🍤🍥🍡🍦🍧🍨🍩🍪🎂🍰🍫🍬🍭🍮🍯🍼☕🍵🍶🍷🍸🍹🍺🍻🍴';
+    var array = stringToArray(emojis);
+    if (typeof pool === 'string') { // emoji("😀😁😂"), emoji("😀😂", 2), emoji("😀😂", 2, 3)
+        array = stringToArray(pool);
+    }
+    else if (typeof pool === 'number') { // emoji(2), emoji(2, 3)
+        max = min;
+        min = pool;
+    }
+    if (min === undefined || min < 2) { // emoji("😀😁😂"), emoji()
+        return pick(array); // pick(['1', '2']) => "2", pick(['1', '2'], 1) => "2"
+    }
+    return pick(array, min, max).join('');
 };
 // 随机生成一句标题，其中每个单词的首字母大写。
 var title = function (min, max) {
@@ -829,6 +922,7 @@ var text = /*#__PURE__*/Object.freeze({
   csentence: csentence,
   word: word,
   cword: cword,
+  emoji: emoji,
   title: title,
   ctitle: ctitle
 });
@@ -6324,6 +6418,7 @@ var county = function (prefix) {
     var specialCity = ['460400', '441900', '442000', '620200'];
     var province = pickMap(areas);
     var city = pickMap(province.cities);
+    /* istanbul ignore next */
     if (specialCity.indexOf(city.code) !== -1) {
         return county(prefix);
     }
@@ -6375,6 +6470,7 @@ var id = function () {
     var specialCity = ['460400', '441900', '442000', '620200'];
     var province = pickMap(areas$1);
     var city = pickMap(province.cities);
+    /* istanbul ignore next */
     if (specialCity.indexOf(city.code) !== -1) {
         return id();
     }
@@ -6429,7 +6525,14 @@ var misc = /*#__PURE__*/Object.freeze({
   phone: phone
 });
 
-var Random = __assign(__assign(__assign(__assign(__assign(__assign(__assign(__assign(__assign(__assign({}, basic), date$1), image$1), color$1), text), name$1), web), address), helper), misc);
+var random = __assign(__assign(__assign(__assign(__assign(__assign(__assign(__assign(__assign(__assign({ extend: extendFunc }, basic), date$1), image$1), color$1), text), name$1), web), address), helper), misc);
+function extendFunc(source) {
+    if (isObject(source)) {
+        for (var key in source) {
+            random[key] = source[key];
+        }
+    }
+}
 
 // 解析数据模板（属性名部分）。
 var parse = function (name) {
@@ -6443,7 +6546,7 @@ var parse = function (name) {
     // 如果是 count, 返回 count
     var count = range
         ? range[2]
-            ? Random.integer(Number(min), Number(max))
+            ? random.integer(Number(min), Number(max))
             : parseInt(range[1], 10)
         : undefined;
     var decimal = parameters && parameters[4] && parameters[4].match(constant.RE_RANGE);
@@ -6452,7 +6555,7 @@ var parse = function (name) {
     // int || dmin-dmax
     var dcount = decimal
         ? decimal[2]
-            ? Random.integer(Number(dmin), Number(dmax))
+            ? random.integer(Number(dmin), Number(dmax))
             : parseInt(decimal[1], 10)
         : undefined;
     var result = {
@@ -6509,13 +6612,13 @@ var handler = {
         };
         return handler[node.type] ? handler[node.type](node, result, cache) : handler.token(node);
     },
-    token: function (node) {
+    token: /* istanbul ignore next */ function (node) {
         switch (node.type) {
             case 'start':
             case 'end':
                 return '';
             case 'any-character':
-                return Random.character();
+                return random.character();
             case 'backspace':
                 return '';
             case 'word-boundary': // TODO
@@ -6523,9 +6626,9 @@ var handler = {
             case 'non-word-boundary': // TODO
                 break;
             case 'digit':
-                return Random.pick(NUMBER.split(''));
+                return random.pick(NUMBER.split(''));
             case 'non-digit':
-                return Random.pick((LOWER + UPPER + OTHER).split(''));
+                return random.pick((LOWER + UPPER + OTHER).split(''));
             case 'form-feed':
                 break;
             case 'line-feed':
@@ -6533,17 +6636,17 @@ var handler = {
             case 'carriage-return':
                 break;
             case 'white-space':
-                return Random.pick(SPACE.split(''));
+                return random.pick(SPACE.split(''));
             case 'non-white-space':
-                return Random.pick((LOWER + UPPER + NUMBER).split(''));
+                return random.pick((LOWER + UPPER + NUMBER).split(''));
             case 'tab':
                 break;
             case 'vertical-tab':
                 break;
             case 'word': // \w [a-zA-Z0-9]
-                return Random.pick((LOWER + UPPER + NUMBER).split(''));
+                return random.pick((LOWER + UPPER + NUMBER).split(''));
             case 'non-word': // \W [^a-zA-Z0-9]
-                return Random.pick(OTHER.replace('_', '').split(''));
+                return random.pick(OTHER.replace('_', '').split(''));
             case 'null-character':
                 break;
         }
@@ -6562,7 +6665,7 @@ var handler = {
     // }
     alternate: function (node, result, cache) {
         // node.left/right {}
-        return handler.gen(Random.boolean() ? node.left : node.right, result, cache);
+        return handler.gen(random.boolean() ? node.left : node.right, result, cache);
     },
     // {
     //   type: 'match',
@@ -6640,8 +6743,8 @@ var handler = {
     // }
     quantifier: function (node) {
         var min = Math.max(node.min, 0);
-        var max = isFinite(node.max) ? node.max : min + Random.integer(3, 7);
-        return Random.integer(min, max);
+        var max = isFinite(node.max) ? node.max : min + random.integer(3, 7);
+        return random.integer(min, max);
     },
     charset: function (node, result, cache) {
         // node.invert
@@ -6649,7 +6752,7 @@ var handler = {
             return handler['invert-charset'](node, result, cache);
         }
         // node.body []
-        var literal = Random.pick(node.body);
+        var literal = random.pick(node.body);
         return handler.gen(literal, result, cache);
     },
     'invert-charset': function (node, result, cache) {
@@ -6677,13 +6780,13 @@ var handler = {
                     }
             }
         }
-        return Random.pick(pool.split(''));
+        return random.pick(pool.split(''));
     },
     range: function (node, result, cache) {
         // node.start, node.end
         var min = handler.gen(node.start, result, cache).charCodeAt();
         var max = handler.gen(node.end, result, cache).charCodeAt();
-        return String.fromCharCode(Random.integer(min, max));
+        return String.fromCharCode(random.integer(min, max));
     },
     literal: function (node) {
         return node.escaped ? node.body : node.text;
@@ -6781,6 +6884,7 @@ function ControlCharacter (n) {
   Token.call(this, 'control-character'), this.code = n.toUpperCase();
 }
 
+/* istanbul ignore next */
 var parser = function () {
   function n (n, l) {
     function u () {
@@ -7236,7 +7340,6 @@ var parser = function () {
           null !== t ? (Lt = l, u = bu(t), null === u ? (qt = l, l = u) : l = u) : (qt = l,
             l = il)) : (qt = l, l = il), l
     }
-
     var rl, el = arguments.length > 1 ? arguments[1] : {}, ol = {
         regexp: c
       }, cl = c, il = null, al = '', fl = '|', sl = '"|"', hl = function (n, l) {
@@ -7421,7 +7524,7 @@ var handler$1 = {
                 // fix Mock.js#17
                 options.context.path.push(options.name);
                 options.context.templatePath.push(options.name);
-                result = Random.pick(handler$1.gen(options.template, undefined, {
+                result = random.pick(handler$1.gen(options.template, undefined, {
                     path: options.context.path,
                     templatePath: options.context.templatePath,
                     currentContext: result,
@@ -7485,7 +7588,7 @@ var handler$1 = {
         // 'obj|min-max': {}
         if (options.rule.min != undefined) {
             keys$1 = keys(options.template);
-            keys$1 = Random.shuffle(keys$1);
+            keys$1 = random.shuffle(keys$1);
             keys$1 = keys$1.slice(0, options.rule.count);
             for (i = 0; i < keys$1.length; i++) {
                 key = keys$1[i];
@@ -7553,8 +7656,8 @@ var handler$1 = {
             while (parts[1].length < options.rule.dcount) {
                 // 最后一位不能为 0：如果最后一位为 0，会被 JS 引擎忽略掉。
                 parts[1] += parts[1].length < options.rule.dcount - 1
-                    ? Random.character('number')
-                    : Random.character('123456789');
+                    ? random.character('number')
+                    : random.character('123456789');
             }
             result = parseFloat(parts.join('.'));
         }
@@ -7569,7 +7672,7 @@ var handler$1 = {
         // 'prop|multiple': false, 当前值是相反值的概率倍数
         // 'prop|probability-probability': false, 当前值与相反值的概率
         var result = options.rule.parameters
-            ? Random.bool(Number(options.rule.min), Number(options.rule.max), options.template)
+            ? random.bool(Number(options.rule.min), Number(options.rule.max), options.template)
             : options.template;
         return result;
     },
@@ -7619,7 +7722,7 @@ var handler$1 = {
         else {
             // 'ASCII|1-10': '',
             // 'ASCII': '',
-            result = options.rule.range ? Random.string(options.rule.count) : options.template;
+            result = options.rule.range ? random.string(options.rule.count) : options.template;
         }
         return result;
     },
@@ -7643,7 +7746,7 @@ var handler$1 = {
     },
     _all: function () {
         var re = {};
-        for (var key in Random) {
+        for (var key in random) {
             re[key.toLowerCase()] = key;
         }
         return re;
@@ -7698,7 +7801,7 @@ var handler$1 = {
             return templateContext[key];
         }
         // 如果未找到，则原样返回
-        if (!(key in Random) && !(lkey in Random) && !(okey in Random)) {
+        if (!(key in random) && !(lkey in random) && !(okey in random)) {
             return placeholder;
         }
         // 递归解析参数中的占位符
@@ -7708,11 +7811,11 @@ var handler$1 = {
                 params[i] = handler$1.placeholder(params[i], obj, templateContext, options);
             }
         }
-        var handle = Random[key] || Random[lkey] || Random[okey];
+        var handle = random[key] || random[lkey] || random[okey];
         if (isFunction(handle)) {
             // 执行占位符方法（大多数情况）
             handle.options = options;
-            var ret = handle.apply(Random, params);
+            var ret = handle.apply(random, params);
             // 因为是在字符串中，所以默认为空字符串。
             if (ret === undefined) {
                 ret = '';
@@ -8303,7 +8406,7 @@ function overrideRequest() {
 // For mini-program
 var Mock = {
     Handler: handler$1,
-    Random: Random,
+    Random: random,
     Util: Util,
     RE: RE,
     toJSONSchema: toJSONSchema,
@@ -8311,7 +8414,7 @@ var Mock = {
     mock: mock,
     setup: setting.setup.bind(setting),
     _mocked: mocked.getMocked(),
-    version: '0.2.7'
+    version: '0.2.8'
 };
 // 根据数据模板生成模拟数据。
 function mock(rurl, rtype, template) {
