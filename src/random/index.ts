@@ -20,5 +20,5 @@ export default {
   ...web,
   ...address,
   ...helper,
-  ...misc
+  ...misc,
 }

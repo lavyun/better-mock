@@ -1,6 +1,7 @@
 // 数据占位符定义（Data Placeholder Definition，DPD）
 const Random = require('../../dist/mock.browser').Random
 const expect = require('chai').expect
+const toArray = require('lodash/toArray')
 
 describe('Random', function () {
   function stringify (json) {
@@ -350,6 +351,37 @@ describe('Random', function () {
       expect(HANZI_RE.test(data)).to.true
       for (let i = 0; i < data.length; i++) {
         expect('临兵斗者皆阵列在前'.includes(data[i])).to.true
+      }
+    })
+
+    /** 随机 emoji 生成测试*/
+    const EMOJI_RE = /((\ud83c[\udf00-\udfff])|(\ud83d[\udc00-\ude4f\ude80-\udeff])|[\u2600-\u2B55])+/
+    doit('Random.emoji()', function (data) {
+      expect(toArray(data).length).to.equal(1)
+      expect(EMOJI_RE.test(data)).to.true
+    })
+    doit('Random.emoji(5)', function (data) {
+      expect(toArray(data).length).to.equal(5)
+      expect(EMOJI_RE.test(data)).to.true
+    })
+
+    doit('Random.emoji(2, 5)', function (data) {
+      expect(toArray(data).length).to.within(2, 5)
+      expect(EMOJI_RE.test(data)).to.true
+    })
+    doit('Random.emoji("😀😁😂😃😄", 3, 5)', function (data) {
+      const array = toArray(data)
+      expect(array.length).to.within(3, 5)
+      expect(EMOJI_RE.test(data)).to.true
+      for (let i = 0; i < array.length; i++) {
+        expect('😀😁😂😃😄'.includes(array[i])).to.true
+      }
+    })
+    doit('Random.emoji("😀123😁abc😃", 4, 5)', function (data) {
+      const array = toArray(data)
+      expect(array.length).to.within(4, 5)
+      for (let i = 0; i < array.length; i++) {
+        expect('😀123😁😂abc😃😄'.includes(array[i])).to.true
       }
     })
 

@@ -8,7 +8,7 @@
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
   (global = global || self, global.Mock = factory());
-}(this, function () { 'use strict';
+}(this, (function () { 'use strict';
 
   var constant = {
       GUID: 1,
@@ -105,6 +105,7 @@
   };
 
   var Util = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     type: type,
     isDef: isDef,
     isString: isString,
@@ -282,6 +283,7 @@
   };
 
   var basic = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     boolean: boolean,
     bool: bool,
     natural: natural,
@@ -426,6 +428,7 @@
   };
 
   var date$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     date: date,
     time: time,
     datetime: datetime,
@@ -501,6 +504,7 @@
   };
 
   var helper = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     capitalize: capitalize,
     upper: upper,
     lower: lower,
@@ -579,6 +583,7 @@
   };
 
   var image$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     image: image,
     img: img,
     dataImage: dataImage
@@ -709,11 +714,125 @@
   };
 
   var color$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     color: color,
     hex: hex,
     rgb: rgb,
     rgba: rgba,
     hsl: hsl
+  });
+
+  /**
+   * Converts an ASCII `string` to an array.
+   *
+   * @private
+   * @param {string} string The string to convert.
+   * @returns {Array} Returns the converted array.
+   */
+  function asciiToArray(string) {
+      return string.split('');
+  }
+
+  /** Used to compose unicode character classes. */
+  var rsAstralRange = '\\ud800-\\udfff';
+  var rsComboMarksRange = '\\u0300-\\u036f';
+  var reComboHalfMarksRange = '\\ufe20-\\ufe2f';
+  var rsComboSymbolsRange = '\\u20d0-\\u20ff';
+  var rsComboMarksExtendedRange = '\\u1ab0-\\u1aff';
+  var rsComboMarksSupplementRange = '\\u1dc0-\\u1dff';
+  var rsComboRange = rsComboMarksRange + reComboHalfMarksRange + rsComboSymbolsRange + rsComboMarksExtendedRange + rsComboMarksSupplementRange;
+  var rsVarRange = '\\ufe0e\\ufe0f';
+  /** Used to compose unicode capture groups. */
+  var rsZWJ = '\\u200d';
+  /** Used to detect strings with [zero-width joiners or code points from the astral planes](http://eev.ee/blog/2015/09/12/dark-corners-of-unicode/). */
+  var reHasUnicode = RegExp("[" + (rsZWJ + rsAstralRange + rsComboRange + rsVarRange) + "]");
+  /**
+   * Checks if `string` contains Unicode symbols.
+   *
+   * @private
+   * @param {string} string The string to inspect.
+   * @returns {boolean} Returns `true` if a symbol is found, else `false`.
+   */
+  function hasUnicode(string) {
+      return reHasUnicode.test(string);
+  }
+
+  /** Used to compose unicode character classes. */
+  var rsAstralRange$1 = '\\ud800-\\udfff';
+  var rsComboMarksRange$1 = '\\u0300-\\u036f';
+  var reComboHalfMarksRange$1 = '\\ufe20-\\ufe2f';
+  var rsComboSymbolsRange$1 = '\\u20d0-\\u20ff';
+  var rsComboMarksExtendedRange$1 = '\\u1ab0-\\u1aff';
+  var rsComboMarksSupplementRange$1 = '\\u1dc0-\\u1dff';
+  var rsComboRange$1 = rsComboMarksRange$1 + reComboHalfMarksRange$1 + rsComboSymbolsRange$1 + rsComboMarksExtendedRange$1 + rsComboMarksSupplementRange$1;
+  var rsVarRange$1 = '\\ufe0e\\ufe0f';
+  /** Used to compose unicode capture groups. */
+  var rsAstral = "[" + rsAstralRange$1 + "]";
+  var rsCombo = "[" + rsComboRange$1 + "]";
+  var rsFitz = '\\ud83c[\\udffb-\\udfff]';
+  var rsModifier = "(?:" + rsCombo + "|" + rsFitz + ")";
+  var rsNonAstral = "[^" + rsAstralRange$1 + "]";
+  var rsRegional = '(?:\\ud83c[\\udde6-\\uddff]){2}';
+  var rsSurrPair = '[\\ud800-\\udbff][\\udc00-\\udfff]';
+  var rsZWJ$1 = '\\u200d';
+  /** Used to compose unicode regexes. */
+  var reOptMod = rsModifier + "?";
+  var rsOptVar = "[" + rsVarRange$1 + "]?";
+  var rsOptJoin = "(?:" + rsZWJ$1 + "(?:" + [rsNonAstral, rsRegional, rsSurrPair].join('|') + ")" + (rsOptVar + reOptMod) + ")*";
+  var rsSeq = rsOptVar + reOptMod + rsOptJoin;
+  var rsNonAstralCombo = "" + rsNonAstral + rsCombo + "?";
+  var rsSymbol = "(?:" + [rsNonAstralCombo, rsCombo, rsRegional, rsSurrPair, rsAstral].join('|') + ")";
+  /** Used to match [string symbols](https://mathiasbynens.be/notes/javascript-unicode). */
+  var reUnicode = RegExp(rsFitz + "(?=" + rsFitz + ")|" + (rsSymbol + rsSeq), 'g');
+  /**
+   * Converts a Unicode `string` to an array.
+   *
+   * @private
+   * @param {string} string The string to convert.
+   * @returns {Array} Returns the converted array.
+   */
+  function unicodeToArray(string) {
+      return string.match(reUnicode) || [];
+  }
+
+  /**
+   * Converts `string` to an array.
+   *
+   * @private
+   * @param {string} string The string to convert.
+   * @returns {Array} Returns the converted array.
+   */
+  function stringToArray(string) {
+      return hasUnicode(string)
+          ? unicodeToArray(string)
+          : asciiToArray(string);
+  }
+
+  // 随机选择一个或多个字符串或数组的元素
+  var choices = function (pool, min, max) {
+      if (!pool || !(typeof pool === 'string' || Array.isArray(pool)) || pool.length === 0) {
+          return [];
+      }
+      if (typeof pool === 'string') {
+          // 使用 lodash 的 stringToArray 可以处理像 emoji 这样的4个字节码的特殊字符
+          pool = stringToArray(pool);
+      }
+      var len = !min ? 1 : !max ? min : integer(min, max);
+      var result = [];
+      for (var i = 0; i < len; i++) {
+          result.push(pool[integer(0, pool.length - 1)]);
+      }
+      return result;
+  };
+  // 随机选择一个或多个字符串或数组的元素组成字符串
+  var choice = function (pool, min, max) {
+      return choices(pool, min, max).join('');
+  };
+
+  var choice$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    choices: choices,
+    choice: choice
   });
 
   var _range = function (defaultMin, defaultMax, min, max) {
@@ -809,6 +928,24 @@
       }
       return result;
   };
+  // 常用的 338 个emoji符号 http://www.fhdq.net/emoji.html
+  var EMOJI = '😀😁😂😃😄😅😆😉😊😋😎😍😘😗😙😚☺😇😐😑😶😏😣😥😮😯😪😫😴😌😛😜😝😒😓😔😕😲😷😖😞😟😤😢😭😦😧😨😬😰😱😳😵😡😠😈👿👹👺💀👻👽👦👧👨👩👴👵👶👱👮👲👳👷👸💂🎅👰👼💆💇🙍🙎🙅🙆💁🙋🙇🙌🙏👤👥🚶🏃👯💃👫👬👭💏💑👪💪👈👉☝👆👇✌✋👌👍👎✊👊👋👏👐✍👣👀👂👃👅👄💋👓👔👕👖👗👘👙👚👛👜👝🎒💼👞👟👠👡👢👑👒🎩🎓💄💅💍🌂🙈🙉🙊🐵🐒🐶🐕🐩🐺🐱😺😸😹😻😼😽🙀😿😾🐈🐯🐅🐆🐴🐎🐮🐂🐃🐄🐷🐖🐗🐽🐏🐑🐐🐪🐫🐘🐭🐁🐀🐹🐰🐇🐻🐨🐼🐾🐔🐓🐣🐤🐥🐦🐧🐸🐊🐢🐍🐲🐉🐳🐋🐬🐟🐠🐡🐙🐚🐌🐛🐜🐝🐞💐🌸💮🌹🌺🌻🌼🌷🌱🌲🌳🌴🌵🌾🌿🍀🍁🍂🍃🌍🌎🌏🌐🌑🌒🌓🌔🌕🌖🌗🌘🌙🌚🌛🌜☀🌝🌞⭐🌟🌠☁⛅☔⚡❄🔥💧🌊💩🍇🍈🍉🍊🍋🍌🍍🍎🍏🍐🍑🍒🍓🍅🍆🌽🍄🌰🍞🍖🍗🍔🍟🍕🍳🍲🍱🍘🍙🍚🍛🍜🍝🍠🍢🍣🍤🍥🍡🍦🍧🍨🍩🍪🎂🍰🍫🍬🍭🍮🍯🍼☕🍵🍶🍷🍸🍹🍺🍻🍴';
+  var emojiArray = stringToArray(EMOJI);
+  // 随机生成一个或多个 emoji 符号
+  var emoji = function (pool, min, max) {
+      if (!['string', 'number', 'undefined'].includes(typeof pool)) {
+          return '';
+      }
+      if (typeof pool === 'string') {
+          return choice(stringToArray(pool), min, max);
+      }
+      else if (typeof pool === 'number') {
+          return choice(emojiArray, pool, min);
+      }
+      else {
+          return choice(emojiArray);
+      }
+  };
   // 随机生成一句标题，其中每个单词的首字母大写。
   var title = function (min, max) {
       var len = _range(3, 7, min, max);
@@ -829,12 +966,14 @@
   };
 
   var text = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     paragraph: paragraph,
     cparagraph: cparagraph,
     sentence: sentence,
     csentence: csentence,
     word: word,
     cword: cword,
+    emoji: emoji,
     title: title,
     ctitle: ctitle
   });
@@ -916,6 +1055,7 @@
   };
 
   var name$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     first: first,
     last: last,
     name: name,
@@ -974,6 +1114,7 @@
   };
 
   var web = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     url: url,
     protocol: protocol,
     domain: domain,
@@ -6350,6 +6491,7 @@
   };
 
   var address = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     region: region,
     province: province,
     city: city,
@@ -6426,6 +6568,7 @@
   };
 
   var misc = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     guid: guid,
     uuid: uuid,
     id: id,
@@ -6435,7 +6578,7 @@
     phone: phone
   });
 
-  var Random = __assign(__assign(__assign(__assign(__assign(__assign(__assign(__assign(__assign(__assign({}, basic), date$1), image$1), color$1), text), name$1), web), address), helper), misc);
+  var Random = __assign(__assign(__assign(__assign(__assign(__assign(__assign(__assign(__assign(__assign(__assign({}, basic), date$1), image$1), color$1), text), name$1), web), address), helper), misc), choice$1);
 
   // 解析数据模板（属性名部分）。
   var parse = function (name) {
@@ -6492,13 +6635,15 @@
   var SPACE = ' \f\n\r\t\v\u00A0\u2028\u2029';
   var CHARACTER_CLASSES = {
       '\\w': LOWER + UPPER + NUMBER + '_',
-      '\\W': OTHER.replace('_', ''), '\\s': SPACE, '\\S': function () {
+      '\\W': OTHER.replace('_', ''), '\\s': SPACE,
+      '\\S': function () {
           var result = PRINTABLE;
           for (var i = 0; i < SPACE.length; i++) {
               result = result.replace(SPACE[i], '');
           }
           return result;
-      }(), '\\d': NUMBER, '\\D': LOWER + UPPER + OTHER
+      }(),
+      '\\d': NUMBER, '\\D': LOWER + UPPER + OTHER
   };
   function ascii(from, to) {
       var result = '';
@@ -6550,8 +6695,6 @@
                   return Random.pick((LOWER + UPPER + NUMBER).split(''));
               case 'non-word': // \W [^a-zA-Z0-9]
                   return Random.pick(OTHER.replace('_', '').split(''));
-              case 'null-character':
-                  break;
           }
           return node.body || node.text;
       },
@@ -8339,4 +8482,4 @@
 
   return Mock;
 
-}));
+})));
