@@ -25,7 +25,7 @@ export const pickOne = function<T = any> (arr: T[]): T {
 // 从源数组中随机选取一个或多个元素。当传入 min、max 时会选择多个元素并组成数组
 export function pick<T = any>(arr: T[]): T;
 export function pick<T = any>(arr: T[], min: number): T[];
-export function pick<T = any>(arr: T[], min: number, max: number): T[];
+export function pick<T = any>(arr: T[], min: number, max?: number): T[];
 export function pick<T = any> (arr: T[], min: number = 1, max?: number): T | T[] {
   // pick( item1, item2 ... )
   if (!isArray(arr)) {
