@@ -61,6 +61,7 @@ function ControlCharacter (n) {
   Token.call(this, 'control-character'), this.code = n.toUpperCase()
 }
 
+/* istanbul ignore next */
 var parser = function () {
   function n (n, l) {
     function u () {
@@ -516,7 +517,6 @@ var parser = function () {
           null !== t ? (Lt = l, u = bu(t), null === u ? (qt = l, l = u) : l = u) : (qt = l,
             l = il)) : (qt = l, l = il), l
     }
-
     var rl, el = arguments.length > 1 ? arguments[1] : {}, ol = {
         regexp: c
       }, cl = c, il = null, al = '', fl = '|', sl = '"|"', hl = function (n, l) {

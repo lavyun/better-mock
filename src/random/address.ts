@@ -35,6 +35,7 @@ export const county = function (prefix: boolean = false): string {
   const specialCity = ['460400', '441900', '442000', '620200']
   const province = helper.pickMap(areas)
   const city = helper.pickMap(province.cities)
+  /* istanbul ignore next */
   if (specialCity.indexOf(city.code) !== -1) {
     return county(prefix)
   }

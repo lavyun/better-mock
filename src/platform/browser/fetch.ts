@@ -39,7 +39,7 @@ if (window.Proxy) {
       return extendRequest(request, input, init)
     }
   })
-} else {
+} /* istanbul ignore next */ else {
   MockRequest = function MockRequest (input: RequestInfo, init?: RequestInit | undefined): Request {
     const request = new _nativeRequest(input, init)
     return extendRequest(request, input, init)
