@@ -1,6 +1,8 @@
 // 数据占位符定义（Data Placeholder Definition，DPD）
-const Random = require('../../dist/mock.browser').Random
+const Mock = require('../../dist/mock.browser')
+const Random = Mock.Random
 const expect = require('chai').expect
+const toArray = require('lodash/toArray')
 
 describe('Random', function () {
   function stringify (json) {
@@ -217,16 +219,22 @@ describe('Random', function () {
 
   describe('Image', function () {
     doit('Random.image()', function (data) {
-      expect(data).to.include('https://dummyimage.com')
+      expect(data).to.include('https://iph.href.lu')
+    })
+    doit('Random.image("300x400")', function (data) {
+      expect(data).to.include('https://iph.href.lu/300x400?bg=&fg=&text=')
     })
     doit('Random.image("300x400", "HelloWorld")', function (data) {
-      expect(data).to.be.equal('https://dummyimage.com/300x400&text=HelloWorld')
+      expect(data).to.be.equal('https://iph.href.lu/300x400?bg=&fg=&text=HelloWorld')
     })
     doit('Random.image("300x400", "#234567", "HelloWorld")', function (data) {
-      expect(data).to.be.equal('https://dummyimage.com/300x400/234567&text=HelloWorld')
+      expect(data).to.be.equal('https://iph.href.lu/300x400?bg=234567&fg=&text=HelloWorld')
     })
     doit('Random.image("300x400", "#234567", "#FFFFFF", "HelloWorld")', function (data) {
-      expect(data).to.be.equal('https://dummyimage.com/300x400/234567/FFFFFF&text=HelloWorld')
+      expect(data).to.be.equal('https://iph.href.lu/300x400?bg=234567&fg=FFFFFF&text=HelloWorld')
+    })
+    doit('Random.image("300x400", "#234567", "#FFFFFF", "png", "HelloWorld")', function (data) {
+      expect(data).to.be.equal('https://dummyimage.com/300x400/234567/FFFFFF.png?text=HelloWorld')
     })
     doit('Random.dataImage()', function (data) {
       expect(data.startsWith('data:image/png;base64,')).to.be.ok
@@ -350,6 +358,37 @@ describe('Random', function () {
       expect(HANZI_RE.test(data)).to.true
       for (let i = 0; i < data.length; i++) {
         expect('临兵斗者皆阵列在前'.includes(data[i])).to.true
+      }
+    })
+
+    /** 随机 emoji 生成测试*/
+    const EMOJI_RE = /((\ud83c[\udf00-\udfff])|(\ud83d[\udc00-\ude4f\ude80-\udeff])|[\u2600-\u2B55])+/
+    doit('Random.emoji()', function (data) {
+      expect(toArray(data).length).to.equal(1)
+      expect(EMOJI_RE.test(data)).to.true
+    })
+    doit('Random.emoji(5)', function (data) {
+      expect(toArray(data).length).to.equal(5)
+      expect(EMOJI_RE.test(data)).to.true
+    })
+
+    doit('Random.emoji(2, 5)', function (data) {
+      expect(toArray(data).length).to.within(2, 5)
+      expect(EMOJI_RE.test(data)).to.true
+    })
+    doit('Random.emoji("😀😁😂😃😄", 3, 5)', function (data) {
+      const array = toArray(data)
+      expect(array.length).to.within(3, 5)
+      expect(EMOJI_RE.test(data)).to.true
+      for (let i = 0; i < array.length; i++) {
+        expect('😀😁😂😃😄'.includes(array[i])).to.true
+      }
+    })
+    doit('Random.emoji("😀123😁abc😃", 4, 5)', function (data) {
+      const array = toArray(data)
+      expect(array.length).to.within(4, 5)
+      for (let i = 0; i < array.length; i++) {
+        expect('😀123😁😂abc😃😄'.includes(array[i])).to.true
       }
     })
 
@@ -547,6 +586,29 @@ describe('Random', function () {
       expect(data).to.be.a('string')
       const PHONE_RE = /^[1](([3][0-9])|([4][5-9])|([5][0-3,5-9])|([6][5,6])|([7][0-8])|([8][0-9])|([9][1,8,9]))[0-9]{8}$/
       expect(PHONE_RE.test(data)).to.be.ok
+    })
+  })
+
+  describe('Extend', function () {
+    Random.extend({
+      test: function () {
+        return this.pick(['a', 'e', 'i'])
+      },
+      test1: function (arr) {
+        return this.pick(arr)
+      }
+    })
+    doit('Random.test()', function (data) {
+      expect(['a', 'e', 'i']).to.includes(data)
+    })
+    doit('Mock.mock("@TEST")', function (data) {
+      expect(['a', 'e', 'i']).to.includes(data)
+    })
+    doit(`Random.test1(['a', 'e', 'i'])`, function (data) {
+      expect(['a', 'e', 'i']).to.includes(data)
+    })
+    doit(`Mock.mock('@TEST(["a", "e", "i"])')`, function (data) {
+      expect(['a', 'e', 'i']).to.includes(data)
     })
   })
 })

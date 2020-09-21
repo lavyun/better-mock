@@ -29,7 +29,8 @@ module.exports = {
             ['/document/random/web', 'web'],
             ['/document/random/address', 'address'],
             ['/document/random/helper', 'helper'],
-            ['/document/random/miscellaneous', 'miscellaneous']
+            ['/document/random/miscellaneous', 'miscellaneous'],
+            ['/document/random/extend', '自定义扩展']
           ]
         },
         ['/document/valid/', 'Mock.valid()'],

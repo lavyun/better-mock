@@ -10,29 +10,29 @@ const imageSize: string[] = [
 ]
 
 /**
- * 随机生成一个图片，使用：https://dummyimage.com/，例如：
- * https://dummyimage.com/600x400/cc00cc/470047.png&text=hello
+ * 随机生成一个图片，使用：http://iph.href.lu，例如：
+ * https://iph.href.lu/600x400?fg=cc00cc&bg=470047&text=hello
  * @param size 图片大小
  * @param background 背景色
  * @param foreground 文字颜色
  * @param format 图片格式
  * @param text 文字
  */
-export const image = function (size?: string, background?: string, foreground?: string, format?: string, text?: string): string {
+export const image = function (size = '', background = '', foreground = '', format = '', text = ''): string {
   // Random.image( size, background, foreground, text )
   if (arguments.length === 4) {
     text = format
-    format = undefined
+    format = ''
   }
   // Random.image( size, background, text )
   if (arguments.length === 3) {
     text = foreground
-    foreground = undefined
+    foreground = ''
   }
   // Random.image( size, text )
   if (arguments.length === 2) {
     text = background
-    background = undefined
+    background = ''
   }
   // Random.image()
   size = size || pick(imageSize)
@@ -45,14 +45,16 @@ export const image = function (size?: string, background?: string, foreground?: 
     foreground = foreground.slice(1)
   }
 
-  return (
-    'https://dummyimage.com/' +
-    size +
-    (background ? '/' + background : '') +
-    (foreground ? '/' + foreground : '') +
-    (format ? '.' + format : '') +
-    (text ? '&text=' + encodeURIComponent(text) : '')
-  )
+  return format 
+    ? (
+      'https://dummyimage.com/' +
+      size +
+      (background ? '/' + background : '') +
+      (foreground ? '/' + foreground : '') +
+      (format ? '.' + format : '') +
+      (text ? '?text=' + encodeURIComponent(text) : '')
+    )
+    : `https://iph.href.lu/${size}?bg=${background}&fg=${foreground}&text=${text}`
 }
 
 export const img = image

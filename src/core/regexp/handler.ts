@@ -86,8 +86,7 @@ const handler = {
     }
     return handler[node.type] ? handler[node.type](node, result, cache) : handler.token(node)
   },
-  
-  token: function (node) {
+  token: /* istanbul ignore next */ function (node) {
     switch (node.type) {
       case 'start':
       case 'end':

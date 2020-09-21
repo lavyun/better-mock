@@ -242,6 +242,7 @@ describe('DPD', function () {
     }
     it('Complex all', function () {
       var data = Mock.mock(tpl)
+      this.test.title += ' => ' + JSON.stringify(data, null, 2)
       expect(data).to.be.a('object')
     })
   })

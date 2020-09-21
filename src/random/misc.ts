@@ -32,6 +32,7 @@ export const id = function (): string {
 
   const province = helper.pickMap(areas)
   const city = helper.pickMap(province.cities)
+  /* istanbul ignore next */
   if (specialCity.indexOf(city.code) !== -1) {
     return id()
   }

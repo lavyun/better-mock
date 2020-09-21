@@ -9,8 +9,10 @@ import * as web from './web'
 import * as address from './address'
 import * as helper from './helper'
 import * as misc from './misc'
+import { isObject } from '../utils'
 
-export default {
+const random = {
+  extend: extendFunc,
   ...basic,
   ...date,
   ...image,
@@ -22,3 +24,13 @@ export default {
   ...helper,
   ...misc
 }
+
+function extendFunc (source: object) {
+  if (isObject(source)) {
+    for (const key in source) {
+      random[key] = source[key]
+    }
+  }
+}
+
+export default random
