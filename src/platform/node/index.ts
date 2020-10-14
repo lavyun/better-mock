@@ -3,6 +3,7 @@ import Handler from '../../core/handler'
 import toJSONSchema from '../../core/schema'
 import RE from '../../core/regexp'
 import valid from '../../core/valid'
+import setting from '../../core/setting'
 import * as Util from '../../utils'
 import Random from '../../random'
 
@@ -15,6 +16,7 @@ const Mock = {
   valid,
   mock,
   heredoc: Util.heredoc,
+  setup: setting.setup.bind(setting),
   version: '__VERSION__'
 }
 

@@ -28,14 +28,14 @@ describe('Fetch', function() {
       }
     })
 
-    it('success', async () => {
-      await fetch('https://cnodejs.org/api/v1/topics')
-        .then(res => res.json())
-        .then(res => {
-          expect(res.success).to.be.ok
-          expect(res.data).to.be.an('array')
-        })
-    })
+    // it('success', async () => {
+    //   await fetch('https://cnodejs.org/api/v1/topics')
+    //     .then(res => res.json())
+    //     .then(res => {
+    //       expect(res.success).to.be.ok
+    //       expect(res.data).to.be.an('array')
+    //     })
+    // })
 
     it('input is a request, init is undefined', async () => {
       Mock.mock('http://example.com', 'get', {
