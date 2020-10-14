@@ -1,5 +1,5 @@
 /*!
-  * better-mock v0.2.8 (mock.mp.esm.js)
+  * better-mock v0.2.9 (mock.mp.esm.js)
   * (c) 2019-2020 lavyun@163.com
   * Released under the MIT License.
   */
@@ -8414,7 +8414,7 @@ var Mock = {
     mock: mock,
     setup: setting.setup.bind(setting),
     _mocked: mocked.getMocked(),
-    version: '0.2.8'
+    version: '0.2.9'
 };
 // 根据数据模板生成模拟数据。
 function mock(rurl, rtype, template) {

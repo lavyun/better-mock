@@ -1,5 +1,5 @@
 /*!
-  * better-mock v0.2.8 (mock.node.js)
+  * better-mock v0.2.9 (mock.node.js)
   * (c) 2019-2020 lavyun@163.com
   * Released under the MIT License.
   */
@@ -8248,6 +8248,35 @@ var valid = function (template, data) {
 valid.Diff = Diff;
 valid.Assert = Assert;
 
+var Setting = /** @class */ (function () {
+    function Setting() {
+        this._setting = {
+            timeout: '10-100'
+        };
+    }
+    Setting.prototype.setup = function (setting) {
+        Object.assign(this._setting, setting);
+    };
+    Setting.prototype.parseTimeout = function (timeout) {
+        if (timeout === void 0) { timeout = this._setting.timeout; }
+        if (typeof timeout === 'number') {
+            return timeout;
+        }
+        if (typeof timeout === 'string' && timeout.indexOf('-') === -1) {
+            return parseInt(timeout, 10);
+        }
+        if (typeof timeout === 'string' && timeout.indexOf('-') !== -1) {
+            var tmp = timeout.split('-');
+            var min = parseInt(tmp[0], 10);
+            var max = parseInt(tmp[1], 10);
+            return Math.round(Math.random() * (max - min)) + min;
+        }
+        return 0;
+    };
+    return Setting;
+}());
+var setting = new Setting();
+
 // For Node.js
 var Mock = {
     Handler: handler$1,
@@ -8258,7 +8287,8 @@ var Mock = {
     valid: valid,
     mock: mock,
     heredoc: heredoc,
-    version: '0.2.8'
+    setup: setting.setup.bind(setting),
+    version: '0.2.9'
 };
 // Mock.mock( template )
 // 根据数据模板生成模拟数据。
