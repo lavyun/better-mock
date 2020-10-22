@@ -1,6 +1,7 @@
 ---
 home: true
 heroImage: /images/logo-hor.png
+tagline: 已全局引入 better-mock, 打开控制台进行调试！
 actionText: 快速上手 →
 actionLink: /document/
 features:
