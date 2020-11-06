@@ -463,9 +463,45 @@ describe('DTD', function () {
     })
   })
 
+  describe('Transfer', function () {
+    it('built-in transfers', function () {
+      const data = Mock.mock({
+        'name1': '1',
+        'name2#number': '1',
+        'name3#boolean': '1',
+        'name4#bool': '1',
+        'name5|3#number': '1',
+        'name6|1-3#number': '1',
+        'name7|1-3.2-4#string': 1,
+        'name8#number': '@PHONE'
+      })
+      expect(data.name1).equal('1')
+      expect(data.name2).equal(1)
+      expect(data.name3).equal(true)
+      expect(data.name4).equal('1')
+      expect(typeof data.name6).equal('number')
+      expect(typeof data.name7).equal('string')
+      expect(typeof data.name8).equal('number')
+      this.test.title += ' => \n' + JSON.stringify(data, null, 2)
+    })
+
+    it('extends transfers', function () {
+      Mock.Transfer.extend({
+        json (value) {
+          return JSON.parse(value)
+        }
+      })
+      const data = Mock.mock({
+        'name#json': '{}'
+      })
+      expect(typeof data.name).equal('object')
+      this.test.title += ' => \n' + JSON.stringify(data, null, 2)
+    })
+  })
+
   /*
-   按照 http://www.regexr.com/ 的 Reference 设计测试用例。
-   https://github.com/nuysoft/Mock/blob/7c1e3a686bcc515855f1f583d70ae0ee89acc65e/test/regexp.js#L120
+  按照 http://www.regexr.com/ 的 Reference 设计测试用例。
+  https://github.com/nuysoft/Mock/blob/7c1e3a686bcc515855f1f583d70ae0ee89acc65e/test/regexp.js#L120
    */
   describe('RegExp', function () {
     function validRegExp (regexp) {
