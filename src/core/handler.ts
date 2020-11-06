@@ -4,6 +4,7 @@ import constant from '../utils/constant'
 import * as utils from '../utils'
 import { parse } from './parser'
 import random from '../random'
+import transfer from '../transfer'
 import RE from './regexp'
 
 const handler = {
@@ -140,24 +141,21 @@ const handler = {
   
   object: function (options: GenerateOptions) {
     const result = {}
-    let keys
-    let fnKeys
-    let key
-    let parsedKey
-    let inc
-    let i
-    
     // 'obj|min-max': {}
     if (options.rule.min != undefined) {
-      keys = utils.keys(options.template)
+      let keys = utils.keys(options.template)
       keys = random.shuffle(keys)
       keys = keys.slice(0, options.rule.count)
-      for (i = 0; i < keys.length; i++) {
-        key = keys[i]
-        parsedKey = key.replace(constant.RE_KEY, '$1')
+      for (let i = 0; i < keys.length; i++) {
+        const key = keys[i]
+        let parsedKey = key.replace(constant.RE_KEY, '$1')
+        const transferTypeCtor = handler.getTransferTypeCtor(key)
+        if (transferTypeCtor) {
+          parsedKey = parsedKey.replace(constant.RE_TRANSFER_TYPE, '')
+        }
         options.context.path.push(parsedKey)
         options.context.templatePath.push(key)
-        result[parsedKey] = handler.gen(options.template[key], key, {
+        const generatedValue = handler.gen(options.template[key], key, {
           path: options.context.path,
           templatePath: options.context.templatePath,
           currentContext: result,
@@ -165,25 +163,30 @@ const handler = {
           root: options.context.root || result,
           templateRoot: options.context.templateRoot || options.template
         })
+        result[parsedKey] = transferTypeCtor(generatedValue)
         options.context.path.pop()
         options.context.templatePath.pop()
       }
     } else {
       // 'obj': {}
-      keys = []
-      fnKeys = [] // Mock.js#25 改变了非函数属性的顺序，查找起来不方便
-      for (key in options.template) {
+      let keys: string[] = []
+      const fnKeys: string[] = [] // Mock.js#25 改变了非函数属性的顺序，查找起来不方便
+      for (const key in options.template) {
         const target = typeof options.template[key] === 'function' ? fnKeys : keys
         target.push(key)
       }
       keys = keys.concat(fnKeys)
       
-      for (i = 0; i < keys.length; i++) {
-        key = keys[i]
-        parsedKey = key.replace(constant.RE_KEY, '$1')
+      for (let i = 0; i < keys.length; i++) {
+        const key = keys[i]
+        let parsedKey = key.replace(constant.RE_KEY, '$1')
+        const transferTypeCtor = handler.getTransferTypeCtor(key)
+        if (transferTypeCtor) {
+          parsedKey = parsedKey.replace(constant.RE_TRANSFER_TYPE, '')
+        }
         options.context.path.push(parsedKey)
         options.context.templatePath.push(key)
-        result[parsedKey] = handler.gen(options.template[key], key, {
+        const generatedValue = handler.gen(options.template[key], key, {
           path: options.context.path,
           templatePath: options.context.templatePath,
           currentContext: result,
@@ -191,10 +194,11 @@ const handler = {
           root: options.context.root || result,
           templateRoot: options.context.templateRoot || options.template
         })
+        result[parsedKey] = transferTypeCtor(generatedValue)
         options.context.path.pop()
         options.context.templatePath.pop()
         // 'id|+1': 1
-        inc = key.match(constant.RE_KEY)
+        const inc = key.match(constant.RE_KEY)
         if (inc && inc[2] && utils.type(options.template[key]) === 'number') {
           options.template[key] += parseInt(inc[2], 10)
         }
@@ -268,7 +272,7 @@ const handler = {
             lastIndex = index + input.length
             continue
           }
-
+          // console.log(input, options.context.currentContext, options.context.templateCurrentContext, options)
           const replaced = handler.placeholder(input, options.context.currentContext, options.context.templateCurrentContext, options)
           // 只有一个占位符，并且没有其他字符，例如：'name': '@EMAIL'
           if (index === 0 && input.length === source.length) {
@@ -323,6 +327,7 @@ const handler = {
   
   // 处理占位符，转换为最终值
   placeholder: function (placeholder: string, obj, templateContext, options) {
+    debugger
     // 1 key, 2 params
     // regexp init
     constant.RE_PLACEHOLDER.exec('')
@@ -469,6 +474,15 @@ const handler = {
   
   splitPathToArray: function (path: string): string[] {
     return path.split(/\/+/).filter(_ => _)
+  },
+
+  getTransferTypeCtor (key: string) { 
+    const matched = key.match(constant.RE_TRANSFER_TYPE)
+    const type = matched && matched[1]
+    if (type && transfer.hasOwnProperty(type) && type !== 'extend') {
+      return transfer[type]
+    }
+    return (value) => value
   }
 }
 

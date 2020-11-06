@@ -7,12 +7,14 @@ import mocked from '../../core/mocked'
 import setting from '../../core/setting'
 import * as Util from '../../utils'
 import Random from '../../random'
+import Transfer from '../../transfer'
 import { overrideXHR, MockXMLHttpRequest } from './xhr'
 import { overrideFetchAndRequest } from './fetch'
 
 const Mock = {
   Handler,
   Random,
+  Transfer,
   Util,
   XHR: MockXMLHttpRequest,
   RE,
