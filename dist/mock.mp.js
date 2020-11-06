@@ -1,5 +1,5 @@
 /*!
-  * better-mock v0.2.9 (mock.mp.js)
+  * better-mock v0.3.0 (mock.mp.js)
   * (c) 2019-2020 lavyun@163.com
   * Released under the MIT License.
   */
@@ -13,6 +13,7 @@
   var constant = {
       GUID: 1,
       RE_KEY: /(.+)\|(?:\+(\d+)|([\+\-]?\d+-?[\+\-]?\d*)?(?:\.(\d+-?\d*))?)/,
+      RE_TRANSFER_TYPE: /#(.*)$/,
       RE_RANGE: /([\+\-]?\d+)-?([\+\-]?\d+)?/,
       RE_PLACEHOLDER: /\\*@([^@#%&()\?\s]+)(?:\((.*?)\))?/g
   };
@@ -6585,6 +6586,23 @@
       return {};
   };
 
+  var number = Number;
+  var boolean$1 = Boolean;
+  var string$1 = String;
+  var transfer = {
+      number: number,
+      boolean: boolean$1,
+      string: string$1,
+      extend: extend
+  };
+  function extend(source) {
+      if (isObject(source)) {
+          for (var key in source) {
+              transfer[key] = source[key];
+          }
+      }
+  }
+
   // ## RegExp Handler
   // ASCII printable code chart
   var LOWER = ascii(97, 122);
@@ -7585,23 +7603,21 @@
       },
       object: function (options) {
           var result = {};
-          var keys$1;
-          var fnKeys;
-          var key;
-          var parsedKey;
-          var inc;
-          var i;
           // 'obj|min-max': {}
           if (options.rule.min != undefined) {
-              keys$1 = keys(options.template);
+              var keys$1 = keys(options.template);
               keys$1 = random.shuffle(keys$1);
               keys$1 = keys$1.slice(0, options.rule.count);
-              for (i = 0; i < keys$1.length; i++) {
-                  key = keys$1[i];
-                  parsedKey = key.replace(constant.RE_KEY, '$1');
+              for (var i = 0; i < keys$1.length; i++) {
+                  var key = keys$1[i];
+                  var parsedKey = key.replace(constant.RE_KEY, '$1');
+                  var transferTypeCtor = handler$1.getTransferTypeCtor(key);
+                  if (transferTypeCtor) {
+                      parsedKey = parsedKey.replace(constant.RE_TRANSFER_TYPE, '');
+                  }
                   options.context.path.push(parsedKey);
                   options.context.templatePath.push(key);
-                  result[parsedKey] = handler$1.gen(options.template[key], key, {
+                  var generatedValue = handler$1.gen(options.template[key], key, {
                       path: options.context.path,
                       templatePath: options.context.templatePath,
                       currentContext: result,
@@ -7609,25 +7625,30 @@
                       root: options.context.root || result,
                       templateRoot: options.context.templateRoot || options.template
                   });
+                  result[parsedKey] = transferTypeCtor(generatedValue);
                   options.context.path.pop();
                   options.context.templatePath.pop();
               }
           }
           else {
               // 'obj': {}
-              keys$1 = [];
-              fnKeys = []; // Mock.js#25 改变了非函数属性的顺序，查找起来不方便
-              for (key in options.template) {
+              var keys$1 = [];
+              var fnKeys = []; // Mock.js#25 改变了非函数属性的顺序，查找起来不方便
+              for (var key in options.template) {
                   var target = typeof options.template[key] === 'function' ? fnKeys : keys$1;
                   target.push(key);
               }
               keys$1 = keys$1.concat(fnKeys);
-              for (i = 0; i < keys$1.length; i++) {
-                  key = keys$1[i];
-                  parsedKey = key.replace(constant.RE_KEY, '$1');
+              for (var i = 0; i < keys$1.length; i++) {
+                  var key = keys$1[i];
+                  var parsedKey = key.replace(constant.RE_KEY, '$1');
+                  var transferTypeCtor = handler$1.getTransferTypeCtor(key);
+                  if (transferTypeCtor) {
+                      parsedKey = parsedKey.replace(constant.RE_TRANSFER_TYPE, '');
+                  }
                   options.context.path.push(parsedKey);
                   options.context.templatePath.push(key);
-                  result[parsedKey] = handler$1.gen(options.template[key], key, {
+                  var generatedValue = handler$1.gen(options.template[key], key, {
                       path: options.context.path,
                       templatePath: options.context.templatePath,
                       currentContext: result,
@@ -7635,10 +7656,11 @@
                       root: options.context.root || result,
                       templateRoot: options.context.templateRoot || options.template
                   });
+                  result[parsedKey] = transferTypeCtor(generatedValue);
                   options.context.path.pop();
                   options.context.templatePath.pop();
                   // 'id|+1': 1
-                  inc = key.match(constant.RE_KEY);
+                  var inc = key.match(constant.RE_KEY);
                   if (inc && inc[2] && type(options.template[key]) === 'number') {
                       options.template[key] += parseInt(inc[2], 10);
                   }
@@ -7710,6 +7732,7 @@
                           lastIndex = index + input.length;
                           continue;
                       }
+                      // console.log(input, options.context.currentContext, options.context.templateCurrentContext, options)
                       var replaced = handler$1.placeholder(input, options.context.currentContext, options.context.templateCurrentContext, options);
                       // 只有一个占位符，并且没有其他字符，例如：'name': '@EMAIL'
                       if (index === 0 && input.length === source.length) {
@@ -7759,6 +7782,7 @@
       },
       // 处理占位符，转换为最终值
       placeholder: function (placeholder, obj, templateContext, options) {
+          debugger;
           // 1 key, 2 params
           // regexp init
           constant.RE_PLACEHOLDER.exec('');
@@ -7894,6 +7918,14 @@
       },
       splitPathToArray: function (path) {
           return path.split(/\/+/).filter(function (_) { return _; });
+      },
+      getTransferTypeCtor: function (key) {
+          var matched = key.match(constant.RE_TRANSFER_TYPE);
+          var type = matched && matched[1];
+          if (type && transfer.hasOwnProperty(type) && type !== 'extend') {
+              return transfer[type];
+          }
+          return function (value) { return value; };
       }
   };
 
@@ -8413,6 +8445,7 @@
   var Mock = {
       Handler: handler$1,
       Random: random,
+      Transfer: transfer,
       Util: Util,
       RE: RE,
       toJSONSchema: toJSONSchema,
@@ -8420,7 +8453,7 @@
       mock: mock,
       setup: setting.setup.bind(setting),
       _mocked: mocked.getMocked(),
-      version: '0.2.9'
+      version: '0.3.0'
   };
   // 根据数据模板生成模拟数据。
   function mock(rurl, rtype, template) {

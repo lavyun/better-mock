@@ -6,10 +6,12 @@ import valid from '../../core/valid'
 import setting from '../../core/setting'
 import * as Util from '../../utils'
 import Random from '../../random'
+import Transfer from '../../transfer'
 
 const Mock = {
   Handler,
   Random,
+  Transfer,
   Util,
   RE,
   toJSONSchema,
