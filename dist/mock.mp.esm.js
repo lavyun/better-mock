@@ -1,6 +1,6 @@
 /*!
-  * better-mock v0.3.0 (mock.mp.esm.js)
-  * (c) 2019-2020 lavyun@163.com
+  * better-mock v0.3.1 (mock.mp.esm.js)
+  * (c) 2019-2021 lavyun@163.com
   * Released under the MIT License.
   */
 
@@ -7776,7 +7776,6 @@ var handler$1 = {
     },
     // 处理占位符，转换为最终值
     placeholder: function (placeholder, obj, templateContext, options) {
-        debugger;
         // 1 key, 2 params
         // regexp init
         constant.RE_PLACEHOLDER.exec('');
@@ -8447,7 +8446,7 @@ var Mock = {
     mock: mock,
     setup: setting.setup.bind(setting),
     _mocked: mocked.getMocked(),
-    version: '0.3.0'
+    version: '0.3.1'
 };
 // 根据数据模板生成模拟数据。
 function mock(rurl, rtype, template) {
