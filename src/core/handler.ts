@@ -327,7 +327,6 @@ const handler = {
   
   // 处理占位符，转换为最终值
   placeholder: function (placeholder: string, obj, templateContext, options) {
-    debugger
     // 1 key, 2 params
     // regexp init
     constant.RE_PLACEHOLDER.exec('')
