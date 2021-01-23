@@ -117,7 +117,7 @@ export const emoji = function (pool?: string | number, min?: number, max?: numbe
     max = min
     min = pool
   }
-  if (min === undefined || min < 2){  // emoji("😀😁😂"), emoji()
+  if (min === undefined || min < 1){  // emoji("😀😁😂"), emoji()
     return helper.pick(array)  // pick(['1', '2']) => "2", pick(['1', '2'], 1) => "2"
   }
   return helper.pick(array, min, max).join('')
