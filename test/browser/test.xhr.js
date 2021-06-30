@@ -1,6 +1,7 @@
 const Mock = require('../../dist/mock.browser')
 const expect = require('chai').expect
 const $ = require('jquery')
+const axios = require('axios')
 
 describe('XHR', function () {
   function stringify (json) {
@@ -698,6 +699,15 @@ describe('XHR', function () {
         })
         xhr.send()
         expect(sync).to.be.true
+      })
+    })
+
+    describe('bolb responseType', () => {
+      it('response is Blob type', async () => {
+        const { data } = await axios.get('http://localhost:14000/logo.png', {
+          responseType: 'blob'
+        })
+        expect(data instanceof Blob)
       })
     })
 

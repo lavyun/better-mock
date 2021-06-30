@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>Mocha</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../node_modules/mocha/mocha.css">
+    <link rel="stylesheet" href="../../node_modules/mocha/mocha.css">
   </head>
   <body>
     <div id="mocha"></div>
@@ -12,8 +12,9 @@
     <script src="../../node_modules/mocha/mocha.js"></script>
     <script src="../../dist/mock.browser.js"></script>
     <script src="../../node_modules/chai/chai.js"></script>
+    <script src="../../node_modules/axios/dist/axios.js"></script>
     <script>mocha.setup('bdd');</script>
-    <script src="./test.valid.js"></script>
+    <script src="./test.xhr.js"></script>
     <script>
       const expect = chai.expect
       mocha.run();

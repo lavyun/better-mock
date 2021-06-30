@@ -20,13 +20,12 @@ enum XHR_STATES {
 }
 
 const XHR_EVENTS = ['readystatechange', 'loadstart', 'progress', 'abort', 'error', 'load', 'timeout', 'loadend']
-const XHR_REQUEST_PROPERTIES = ['timeout', 'withCredentials']
+const XHR_REQUEST_PROPERTIES = ['timeout', 'withCredentials', 'responseType']
 const XHR_RESPONSE_PROPERTIES = [
   'readyState',
   'responseURL',
   'status',
   'statusText',
-  'responseType',
   'response',
   'responseText',
   'responseXML'
@@ -113,11 +112,11 @@ class MockXMLHttpRequest {
       for (let i = 0; i < XHR_EVENTS.length; i++) {
         xhr.addEventListener(XHR_EVENTS[i], (event) => {
           // 同步属性 NativeXMLHttpRequest => MockXMLHttpRequest
-          for (let i = 0; i < XHR_RESPONSE_PROPERTIES.length; i++) {
+          XHR_RESPONSE_PROPERTIES.forEach(prop => {
             try {
-              this[XHR_RESPONSE_PROPERTIES[i]] = xhr[XHR_RESPONSE_PROPERTIES[i]]
+              this[prop] = xhr[prop]
             } catch (e) {}
-          }
+          })
           // 触发 MockXMLHttpRequest 上的同名事件
           this.dispatchEvent(createCustomEvent(event.type))
         })
@@ -128,13 +127,6 @@ class MockXMLHttpRequest {
         xhr.open(method, url, async, username, password)
       } else {
         xhr.open(method, url, async)
-      }
-
-      // 同步属性 MockXMLHttpRequest => NativeXMLHttpRequest
-      for (let i = 0; i < XHR_REQUEST_PROPERTIES.length; i++) {
-        try {
-          xhr[XHR_REQUEST_PROPERTIES[i]] = this[XHR_REQUEST_PROPERTIES[i]]
-        } catch (e) {}
       }
 
       return
@@ -171,6 +163,12 @@ class MockXMLHttpRequest {
 
     // 原生 XHR
     if (!this.match) {
+      // 同步属性 MockXMLHttpRequest => NativeXMLHttpRequest
+      XHR_REQUEST_PROPERTIES.forEach(prop => {
+        try {
+          this.custom.xhr[prop] = this[prop]
+        } catch (e) {}
+      })
       this.custom.xhr!.send(data)
       return
     }
