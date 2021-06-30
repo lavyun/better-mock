@@ -7,7 +7,7 @@
   "module": "./dist/mock.browser.esm.js",
   "browser": "./dist/mock.browser.js",
   "scripts": {
-    "test": "node ./test/fixtures/server.js & mochify test/browser/**/*.js --timeout=20000",
+    "test": "mochify test/browser/**/*.js --timeout=20000",
     "cover": "nyc --reporter=lcov --instrument false mochify test/browser/**/*.js --timeout=20000 --transform [ babelify --ignore [ test ] --plugins [ babel-plugin-istanbul ] ]",
     "coveralls": "cat ./coverage/lcov.info | coveralls",
     "cover:type": "type-coverage --strict --cache --ignore-catch --ignore-files '**/parser.js' --ignore-files '**/color-convert.ts'",
