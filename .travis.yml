@@ -4,6 +4,7 @@ node_js:
 branches:
   only:
     - master
+    - fix-78
 install:
   - npm install
 

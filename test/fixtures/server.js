@@ -22,7 +22,3 @@ const server = http.createServer((request, response) => {
 server.listen(14000, () => {
   console.log('Running at http://localhost:14000');
 });
-
-setTimeout(() => {
-  server.close();
-}, 20000)
