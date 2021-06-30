@@ -1,5 +1,5 @@
 /*!
-  * better-mock v0.3.1 (mock.browser.js)
+  * better-mock v0.3.2 (mock.browser.js)
   * (c) 2019-2021 lavyun@163.com
   * Released under the MIT License.
   */
@@ -8,7 +8,7 @@
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
   (global = global || self, global.Mock = factory());
-}(this, function () { 'use strict';
+}(this, (function () { 'use strict';
 
   var constant = {
       GUID: 1,
@@ -106,6 +106,7 @@
   };
 
   var Util = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     type: type,
     isDef: isDef,
     isString: isString,
@@ -283,6 +284,7 @@
   };
 
   var basic = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     boolean: boolean,
     bool: bool,
     natural: natural,
@@ -427,6 +429,7 @@
   };
 
   var date$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     date: date,
     time: time,
     datetime: datetime,
@@ -494,6 +497,7 @@
   };
 
   var helper = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     capitalize: capitalize,
     upper: upper,
     lower: lower,
@@ -598,6 +602,7 @@
   }
 
   var image$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     image: image,
     img: img,
     dataImage: dataImage
@@ -728,6 +733,7 @@
   };
 
   var color$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     color: color,
     hex: hex,
     rgb: rgb,
@@ -941,6 +947,7 @@
   };
 
   var text = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     paragraph: paragraph,
     cparagraph: cparagraph,
     sentence: sentence,
@@ -1029,6 +1036,7 @@
   };
 
   var name$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     first: first,
     last: last,
     name: name,
@@ -1087,6 +1095,7 @@
   };
 
   var web = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     url: url,
     protocol: protocol,
     domain: domain,
@@ -6464,6 +6473,7 @@
   };
 
   var address = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     region: region,
     province: province,
     city: city,
@@ -6541,6 +6551,7 @@
   };
 
   var misc = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     guid: guid,
     uuid: uuid,
     id: id,
@@ -6631,13 +6642,15 @@
   var SPACE = ' \f\n\r\t\v\u00A0\u2028\u2029';
   var CHARACTER_CLASSES = {
       '\\w': LOWER + UPPER + NUMBER + '_',
-      '\\W': OTHER.replace('_', ''), '\\s': SPACE, '\\S': function () {
+      '\\W': OTHER.replace('_', ''), '\\s': SPACE,
+      '\\S': function () {
           var result = PRINTABLE;
           for (var i = 0; i < SPACE.length; i++) {
               result = result.replace(SPACE[i], '');
           }
           return result;
-      }(), '\\d': NUMBER, '\\D': LOWER + UPPER + OTHER
+      }(),
+      '\\d': NUMBER, '\\D': LOWER + UPPER + OTHER
   };
   function ascii(from, to) {
       var result = '';
@@ -6689,8 +6702,6 @@
                   return random.pick((LOWER + UPPER + NUMBER).split(''));
               case 'non-word': // \W [^a-zA-Z0-9]
                   return random.pick(OTHER.replace('_', '').split(''));
-              case 'null-character':
-                  break;
           }
           return node.body || node.text;
       },
@@ -8397,13 +8408,12 @@
       XHR_STATES[XHR_STATES["DONE"] = 4] = "DONE";
   })(XHR_STATES || (XHR_STATES = {}));
   var XHR_EVENTS = ['readystatechange', 'loadstart', 'progress', 'abort', 'error', 'load', 'timeout', 'loadend'];
-  var XHR_REQUEST_PROPERTIES = ['timeout', 'withCredentials'];
+  var XHR_REQUEST_PROPERTIES = ['timeout', 'withCredentials', 'responseType'];
   var XHR_RESPONSE_PROPERTIES = [
       'readyState',
       'responseURL',
       'status',
       'statusText',
-      'responseType',
       'response',
       'responseText',
       'responseXML'
@@ -8468,12 +8478,12 @@
               for (var i = 0; i < XHR_EVENTS.length; i++) {
                   xhr_1.addEventListener(XHR_EVENTS[i], function (event) {
                       // 同步属性 NativeXMLHttpRequest => MockXMLHttpRequest
-                      for (var i_1 = 0; i_1 < XHR_RESPONSE_PROPERTIES.length; i_1++) {
+                      XHR_RESPONSE_PROPERTIES.forEach(function (prop) {
                           try {
-                              _this[XHR_RESPONSE_PROPERTIES[i_1]] = xhr_1[XHR_RESPONSE_PROPERTIES[i_1]];
+                              _this[prop] = xhr_1[prop];
                           }
                           catch (e) { }
-                      }
+                      });
                       // 触发 MockXMLHttpRequest 上的同名事件
                       _this.dispatchEvent(createCustomEvent(event.type));
                   });
@@ -8484,13 +8494,6 @@
               }
               else {
                   xhr_1.open(method, url, async);
-              }
-              // 同步属性 MockXMLHttpRequest => NativeXMLHttpRequest
-              for (var i = 0; i < XHR_REQUEST_PROPERTIES.length; i++) {
-                  try {
-                      xhr_1[XHR_REQUEST_PROPERTIES[i]] = this[XHR_REQUEST_PROPERTIES[i]];
-                  }
-                  catch (e) { }
               }
               return;
           }
@@ -8523,6 +8526,13 @@
           this.custom.options.headers = this.custom.requestHeaders;
           // 原生 XHR
           if (!this.match) {
+              // 同步属性 MockXMLHttpRequest => NativeXMLHttpRequest
+              XHR_REQUEST_PROPERTIES.forEach(function (prop) {
+                  try {
+                      _this.custom.xhr[prop] = _this[prop];
+                  }
+                  catch (e) { }
+              });
               this.custom.xhr.send(data);
               return;
           }
@@ -8761,7 +8771,7 @@
       heredoc: heredoc,
       setup: setting.setup.bind(setting),
       _mocked: mocked.getMocked(),
-      version: '0.3.1'
+      version: '0.3.2'
   };
   // 根据数据模板生成模拟数据。
   function mock(rurl, rtype, template) {
@@ -8786,4 +8796,4 @@
 
   return Mock;
 
-}));
+})));

@@ -1,5 +1,5 @@
 /*!
-  * better-mock v0.3.1 (mock.mp.esm.js)
+  * better-mock v0.3.2 (mock.mp.esm.js)
   * (c) 2019-2021 lavyun@163.com
   * Released under the MIT License.
   */
@@ -100,6 +100,7 @@ var createCustomEvent = function (type, bubbles, cancelable, detail) {
 };
 
 var Util = /*#__PURE__*/Object.freeze({
+  __proto__: null,
   type: type,
   isDef: isDef,
   isString: isString,
@@ -277,6 +278,7 @@ var range = function (start, stop, step) {
 };
 
 var basic = /*#__PURE__*/Object.freeze({
+  __proto__: null,
   boolean: boolean,
   bool: bool,
   natural: natural,
@@ -421,6 +423,7 @@ var now = function (unit, format) {
 };
 
 var date$1 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
   date: date,
   time: time,
   datetime: datetime,
@@ -488,6 +491,7 @@ var shuffle = function (arr, min, max) {
 };
 
 var helper = /*#__PURE__*/Object.freeze({
+  __proto__: null,
   capitalize: capitalize,
   upper: upper,
   lower: lower,
@@ -574,6 +578,7 @@ var dataImage = function (size, text) {
 };
 
 var image$1 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
   image: image,
   img: img,
   dataImage: dataImage
@@ -704,6 +709,7 @@ var _goldenRatioColor = function (saturation, value) {
 };
 
 var color$1 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
   color: color,
   hex: hex,
   rgb: rgb,
@@ -917,6 +923,7 @@ var ctitle = function (min, max) {
 };
 
 var text = /*#__PURE__*/Object.freeze({
+  __proto__: null,
   paragraph: paragraph,
   cparagraph: cparagraph,
   sentence: sentence,
@@ -1005,6 +1012,7 @@ var cname = function () {
 };
 
 var name$1 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
   first: first,
   last: last,
   name: name,
@@ -1063,6 +1071,7 @@ var ip = function () {
 };
 
 var web = /*#__PURE__*/Object.freeze({
+  __proto__: null,
   url: url,
   protocol: protocol,
   domain: domain,
@@ -6440,6 +6449,7 @@ var zip = function (len) {
 };
 
 var address = /*#__PURE__*/Object.freeze({
+  __proto__: null,
   region: region,
   province: province,
   city: city,
@@ -6517,6 +6527,7 @@ var phone = function () {
 };
 
 var misc = /*#__PURE__*/Object.freeze({
+  __proto__: null,
   guid: guid,
   uuid: uuid,
   id: id,
@@ -6607,13 +6618,15 @@ var PRINTABLE = ascii(32, 126);
 var SPACE = ' \f\n\r\t\v\u00A0\u2028\u2029';
 var CHARACTER_CLASSES = {
     '\\w': LOWER + UPPER + NUMBER + '_',
-    '\\W': OTHER.replace('_', ''), '\\s': SPACE, '\\S': function () {
+    '\\W': OTHER.replace('_', ''), '\\s': SPACE,
+    '\\S': function () {
         var result = PRINTABLE;
         for (var i = 0; i < SPACE.length; i++) {
             result = result.replace(SPACE[i], '');
         }
         return result;
-    }(), '\\d': NUMBER, '\\D': LOWER + UPPER + OTHER
+    }(),
+    '\\d': NUMBER, '\\D': LOWER + UPPER + OTHER
 };
 function ascii(from, to) {
     var result = '';
@@ -6665,8 +6678,6 @@ var handler = {
                 return random.pick((LOWER + UPPER + NUMBER).split(''));
             case 'non-word': // \W [^a-zA-Z0-9]
                 return random.pick(OTHER.replace('_', '').split(''));
-            case 'null-character':
-                break;
         }
         return node.body || node.text;
     },
@@ -8446,7 +8457,7 @@ var Mock = {
     mock: mock,
     setup: setting.setup.bind(setting),
     _mocked: mocked.getMocked(),
-    version: '0.3.1'
+    version: '0.3.2'
 };
 // 根据数据模板生成模拟数据。
 function mock(rurl, rtype, template) {
