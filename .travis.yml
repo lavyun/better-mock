@@ -9,7 +9,7 @@ install:
   - npm install
 
 before-script:
-  - node ./test/fixtures/server.js
+  - node ./test/fixtures/server.js &
 script:
   - npm run build
   - npm run cover -- --allow-chrome-as-root
