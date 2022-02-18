@@ -1,6 +1,6 @@
 /*!
-  * better-mock v0.3.2 (mock.node.js)
-  * (c) 2019-2021 lavyun@163.com
+  * better-mock v0.3.3 (mock.node.js)
+  * (c) 2019-2022 lavyun@163.com
   * Released under the MIT License.
   */
 
@@ -8331,7 +8331,7 @@ var Mock = {
     mock: mock,
     heredoc: heredoc,
     setup: setting.setup.bind(setting),
-    version: '0.3.2'
+    version: '0.3.3'
 };
 // Mock.mock( template )
 // 根据数据模板生成模拟数据。

@@ -110,7 +110,7 @@ export default {
     this.overrideConsole()
 
     window.axios = axios
-    require('../../../dist/mock.browser')
+    window.Mock = require('../../../dist/mock.browser')
   }
 }
 </script>
