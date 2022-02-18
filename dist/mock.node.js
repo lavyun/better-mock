@@ -1,6 +1,6 @@
 /*!
   * better-mock v0.3.2 (mock.node.js)
-  * (c) 2019-2021 lavyun@163.com
+  * (c) 2019-2022 lavyun@163.com
   * Released under the MIT License.
   */
 

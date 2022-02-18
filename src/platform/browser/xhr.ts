@@ -180,7 +180,7 @@ class MockXMLHttpRequest {
     // loadstart The fetch initiates.
     this.dispatchEvent(createCustomEvent('loadstart'))
   
-    const done = () => {
+    const done = async () => {
       this.readyState = XHR_STATES.HEADERS_RECEIVED
       this.dispatchEvent(createCustomEvent('readystatechange'))
       this.readyState = XHR_STATES.LOADING
@@ -190,7 +190,7 @@ class MockXMLHttpRequest {
       this.statusText = 'OK'
 
       // fix #92 #93 by @qddegtya
-      const mockResponse = mocked.convert(this.custom.template!, this.custom.options)
+      const mockResponse = await mocked.convert(this.custom.template!, this.custom.options)
       this.response = this.responseText = JSON.stringify(mockResponse)
 
       this.readyState = XHR_STATES.DONE

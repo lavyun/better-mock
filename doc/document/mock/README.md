@@ -125,6 +125,37 @@ Mock.mock('/mock_url', 'post', function (options) {
 </code-link>
 
 
+函数可以返回一个 promise，用于异步生成数据。
+
+```js
+Mock.mock('/mock_url', 'post', function (options) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve({
+        value: Math.random()
+      })
+    }, 1000)
+  })
+})
+```
+
+<code-link>
+  <pre>
+  Mock.mock('/mock_url', 'post', function (options) {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve({
+          value: Math.random()
+        })
+      }, 1000)
+    })
+  })
+  axios.post('/mock_url').then(res => {
+    console.log(res.data)
+  })
+  </pre>
+</code-link>
+
 ### 参数的含义和默认值如下所示:
 
 #### url <Badge text="可选"/>
