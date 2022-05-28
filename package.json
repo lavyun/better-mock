@@ -2,16 +2,19 @@
   "name": "better-mock",
   "description": "Forked from Mockjs. Generate random data & Intercept ajax request. Support miniprogram.",
   "author": "lavyun@163.com",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "main": "./dist/mock.node.js",
   "module": "./dist/mock.browser.esm.js",
   "browser": "./dist/mock.browser.js",
   "scripts": {
     "test": "mochify test/browser/**/*.js --timeout=20000",
+    "test:node": "mocha test/node/**/*.js --timeout=20000",
     "cover": "nyc --reporter=lcov --instrument false mochify test/browser/**/*.js --timeout=20000 --transform [ babelify --ignore [ test ] --plugins [ babel-plugin-istanbul ] ]",
     "coveralls": "cat ./coverage/lcov.info | coveralls",
     "cover:type": "type-coverage --strict --cache --ignore-catch --ignore-files '**/parser.js' --ignore-files '**/color-convert.ts'",
-    "dev": "node build/dev.js browser",
+    "dev": "npm run dev:browser & npm run dev:node",
+    "dev:browser": "node build/dev.js browser",
+    "dev:node": "node build/dev.js node",
     "build": "rimraf dist/*.js && npm run lint && node build/build.js",
     "doc:dev": "vuepress dev doc",
     "doc:build": "vuepress build doc",
@@ -53,8 +56,6 @@
   },
   "dependencies": {
     "china-location": "^2.0.0",
-    "jimp": "^0.8.5",
-    "promise-synchronizer": "^1.1.4",
     "regexparam": "^1.3.0"
   },
   "devDependencies": {
