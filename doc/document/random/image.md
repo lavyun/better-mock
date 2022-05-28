@@ -65,7 +65,7 @@ Random.image('300x400', '#234567', '#FFFFFF', 'png', 'HelloWorld')
 生成一段随机的 Base64 图片编码。
 
 ::: warning
-- 该方法在 Node 端不支持传入中文 text 。
+- 该方法参考了 [faker.js](https://github.com/faker-js/faker/blob/main/src/modules/image/index.ts#L336) faker.jsfaker.js的实现，在 Node 端生成的是 svg 格式的 base64 图片。
 - 该方法在小程序端无法使用。
 :::
 

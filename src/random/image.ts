@@ -108,42 +108,13 @@ function createBrowserDataImage (width: number, height: number, background: stri
 }
 
 // node 端生成 base64 图片
+// 从 faker.js 借鉴
 function createNodeDataImage (width: number, height: number, background: string, text: string) {
-  const Jimp = require('jimp')
-  const sync = require('promise-synchronizer')
-
-  // 计算字体的合适大小
-  const jimpFontSizePool = [128, 64, 32, 16]
-  const expectFontSize = Math.min(width, height) / 3
-  const expectFontSizePool = jimpFontSizePool.filter(size => expectFontSize - size >= 0)
-  const fontSize = expectFontSizePool[0] || 16
-  const fontPath = Jimp[`FONT_SANS_${fontSize}_WHITE`]
-
-  const generateImage = new Promise((resolve, reject) => {
-    new Jimp(width, height, background, (err, image) => {
-      if (err) {
-        reject(err)
-      } else {
-        Jimp.loadFont(fontPath).then(font => {
-          // 文字的真实宽高
-          const measureWidth = Jimp.measureText(font, text)
-          const measureHeight = Jimp.measureTextHeight(font, text, width)
-          // 文字在画布上的目标 x, y
-          const targetX = width <= measureWidth ? 0 : (width - measureWidth) / 2
-          const targetY = height <= measureHeight ? 0 : (height - measureHeight) / 2
-          
-          image.print(font, targetX, targetY, text)
-          image.getBufferAsync(Jimp.MIME_PNG).then(buffer => {
-            resolve('data:image/png;base64,' + buffer.toString('base64'))
-          })
-        })
-      }
-    })
-  })
-
-  try {
-    return sync(generateImage)
-  } catch (err) {
-    throw err
-  }
+  const svgString = [
+    `<svg xmlns="http://www.w3.org/2000/svg" version="1.1" baseProfile="full" width="${width}" height="${height}">`,
+    `<rect width="100%" height="100%" fill="${background}" />`,
+    text ? `<text x="${width / 2}" y="${height / 2}" font-size="20" alignment-baseline="middle" text-anchor="middle" fill="white">${text}</text>` : '',
+    `</svg>`
+  ].join('');
+  return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svgString);
 }

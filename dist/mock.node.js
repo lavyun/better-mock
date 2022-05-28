@@ -1,5 +1,5 @@
 /*!
-  * better-mock v0.3.3 (mock.node.js)
+  * better-mock v0.3.4 (mock.node.js)
   * (c) 2019-2022 lavyun@163.com
   * Released under the MIT License.
   */
@@ -579,42 +579,15 @@ var dataImage = function (size, text) {
     }
 };
 // node 端生成 base64 图片
+// 从 faker.js 借鉴
 function createNodeDataImage(width, height, background, text) {
-    var Jimp = require('jimp');
-    var sync = require('promise-synchronizer');
-    // 计算字体的合适大小
-    var jimpFontSizePool = [128, 64, 32, 16];
-    var expectFontSize = Math.min(width, height) / 3;
-    var expectFontSizePool = jimpFontSizePool.filter(function (size) { return expectFontSize - size >= 0; });
-    var fontSize = expectFontSizePool[0] || 16;
-    var fontPath = Jimp["FONT_SANS_" + fontSize + "_WHITE"];
-    var generateImage = new Promise(function (resolve, reject) {
-        new Jimp(width, height, background, function (err, image) {
-            if (err) {
-                reject(err);
-            }
-            else {
-                Jimp.loadFont(fontPath).then(function (font) {
-                    // 文字的真实宽高
-                    var measureWidth = Jimp.measureText(font, text);
-                    var measureHeight = Jimp.measureTextHeight(font, text, width);
-                    // 文字在画布上的目标 x, y
-                    var targetX = width <= measureWidth ? 0 : (width - measureWidth) / 2;
-                    var targetY = height <= measureHeight ? 0 : (height - measureHeight) / 2;
-                    image.print(font, targetX, targetY, text);
-                    image.getBufferAsync(Jimp.MIME_PNG).then(function (buffer) {
-                        resolve('data:image/png;base64,' + buffer.toString('base64'));
-                    });
-                });
-            }
-        });
-    });
-    try {
-        return sync(generateImage);
-    }
-    catch (err) {
-        throw err;
-    }
+    var svgString = [
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" baseProfile=\"full\" width=\"" + width + "\" height=\"" + height + "\">",
+        "<rect width=\"100%\" height=\"100%\" fill=\"" + background + "\" />",
+        text ? "<text x=\"" + width / 2 + "\" y=\"" + height / 2 + "\" font-size=\"20\" alignment-baseline=\"middle\" text-anchor=\"middle\" fill=\"white\">" + text + "</text>" : '',
+        "</svg>"
+    ].join('');
+    return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svgString);
 }
 
 var image$1 = /*#__PURE__*/Object.freeze({
@@ -8331,7 +8304,7 @@ var Mock = {
     mock: mock,
     heredoc: heredoc,
     setup: setting.setup.bind(setting),
-    version: '0.3.3'
+    version: '0.3.4'
 };
 // Mock.mock( template )
 // 根据数据模板生成模拟数据。
