@@ -30,6 +30,14 @@ Mock.js 是一个很好的库，国内使用者众多，虽然该库几乎已经
 * 支持对 `fetch` 的拦截。
 * 支持主流小程序（微信、支付宝、头条、百度）。
 
+
+## 谁在使用
+- [react-admin](https://github.com/pansyjs/react-admin)
+  基于 react/ts/antd 的前端模板.
+- [mockm](https://github.com/wll8/mockm)
+  帮助前端快速生成或拦截基于 server 的接口和数据.
+- [查看更多...](https://github.com/lavyun/better-mock/network/dependents)
+
 ## 安装
 
 ```shell
