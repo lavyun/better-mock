@@ -414,6 +414,36 @@ describe('Fetch', function() {
       }
     })
   })
+
+  describe('Mock.mock( rurl, rtype, function(options) ) + callback is a async function', () => {
+    it('', async function() {
+      const url = 'http://example.com/callback_is_a_async_function'
+
+      Mock.mock(url, 'GET', function(options) {
+        expect(options).to.not.equal(undefined)
+        expect(options.url).to.be.equal(url + '?foo=1')
+        expect(options.type).to.be.equal('GET')
+        expect(options.body).to.be.equal(null)
+
+        return new Promise(resolve => {
+          setTimeout(() => {
+            resolve({
+              type: 'get'
+            })
+          }, 1000)
+        })
+        
+      })
+
+      try {
+        const data = await fetch(url + '?' + $.param({ foo: 1 })).then(res => res.json())
+        this.test.title += url + ' => ' + stringify(data)
+        expect(data).to.have.property('type', 'get')
+      } catch (err) {
+        console.error(err)
+      }
+    })
+  })
 })
 
 describe('window.Request', () => {
