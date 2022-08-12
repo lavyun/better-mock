@@ -739,7 +739,7 @@ describe('XHR', function () {
 
     describe('bolb responseType', () => {
       it('response is Blob type', async () => {
-        const { data } = await axios.get('http://localhost:14000/logo.png', {
+        const { data } = await axios.get('http://httpbin.org/image/png', {
           responseType: 'blob'
         })
         expect(data instanceof Blob)
