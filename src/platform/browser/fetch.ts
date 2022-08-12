@@ -49,7 +49,7 @@ if (window.Proxy) {
 
 // 拦截 fetch 方法
 // https://developer.mozilla.org/zh-CN/docs/Web/API/WindowOrWorkerGlobalScope/fetch
-function MockFetch (input: RequestInfo, init?: RequestInit | undefined): Promise<Response> {
+async function MockFetch (input: RequestInfo, init?: RequestInit | undefined): Promise<Response> {
   let request: Request
   if (input instanceof Request && !init) {
     request = input
@@ -80,7 +80,8 @@ function MockFetch (input: RequestInfo, init?: RequestInit | undefined): Promise
   }
 
   // 找到了匹配的数据模板，拦截 fetch 请求
-  const body = JSON.stringify(mocked.convert(item, options))
+  const result = await mocked.convert(item, options)
+  const body = JSON.stringify(result)
   const response = new Response(body, {
     status: 200,
     statusText: 'ok',

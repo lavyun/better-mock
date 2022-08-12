@@ -1,5 +1,5 @@
 /*!
-  * better-mock v0.3.4 (mock.browser.esm.js)
+  * better-mock v0.3.5 (mock.browser.esm.js)
   * (c) 2019-2022 lavyun@163.com
   * Released under the MIT License.
   */
@@ -8749,43 +8749,49 @@ else {
 // 拦截 fetch 方法
 // https://developer.mozilla.org/zh-CN/docs/Web/API/WindowOrWorkerGlobalScope/fetch
 function MockFetch(input, init) {
-    var request;
-    if (input instanceof Request && !init) {
-        request = input;
-    }
-    else {
-        request = new Request(input, init);
-    }
-    // 收集请求头
-    var headers = {};
-    request.headers.forEach(function (value, key) {
-        headers[key] = value;
-    });
-    // 优先获取自己扩展的 _actualUrl 和 _actualBody
-    var options = {
-        url: request['_actualUrl'] || request.url,
-        type: request.method,
-        body: request['_actualBody'] || request.body || null,
-        headers: headers
-    };
-    // 查找与请求参数匹配的数据模板
-    var item = mocked.find(options.url, options.type);
-    // 如果未找到匹配的数据模板，则采用原生 fetch 发送请求。
-    if (!item) {
-        return _nativeFetch(input, init);
-    }
-    // 找到了匹配的数据模板，拦截 fetch 请求
-    var body = JSON.stringify(mocked.convert(item, options));
-    var response = new Response(body, {
-        status: 200,
-        statusText: 'ok',
-        headers: request.headers
-    });
-    // 异步返回数据
-    return new Promise(function (resolve) {
-        setTimeout(function () {
-            resolve(response);
-        }, setting.parseTimeout());
+    return __awaiter(this, void 0, void 0, function () {
+        var request, headers, options, item, result, body, response;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    if (input instanceof Request && !init) {
+                        request = input;
+                    }
+                    else {
+                        request = new Request(input, init);
+                    }
+                    headers = {};
+                    request.headers.forEach(function (value, key) {
+                        headers[key] = value;
+                    });
+                    options = {
+                        url: request['_actualUrl'] || request.url,
+                        type: request.method,
+                        body: request['_actualBody'] || request.body || null,
+                        headers: headers
+                    };
+                    item = mocked.find(options.url, options.type);
+                    // 如果未找到匹配的数据模板，则采用原生 fetch 发送请求。
+                    if (!item) {
+                        return [2 /*return*/, _nativeFetch(input, init)];
+                    }
+                    return [4 /*yield*/, mocked.convert(item, options)];
+                case 1:
+                    result = _a.sent();
+                    body = JSON.stringify(result);
+                    response = new Response(body, {
+                        status: 200,
+                        statusText: 'ok',
+                        headers: request.headers
+                    });
+                    // 异步返回数据
+                    return [2 /*return*/, new Promise(function (resolve) {
+                            setTimeout(function () {
+                                resolve(response);
+                            }, setting.parseTimeout());
+                        })];
+            }
+        });
     });
 }
 function overrideFetchAndRequest() {
@@ -8810,7 +8816,7 @@ var Mock = {
     heredoc: heredoc,
     setup: setting.setup.bind(setting),
     _mocked: mocked.getMocked(),
-    version: '0.3.4'
+    version: '0.3.5'
 };
 // 根据数据模板生成模拟数据。
 function mock(rurl, rtype, template) {
