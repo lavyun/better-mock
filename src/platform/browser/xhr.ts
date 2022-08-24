@@ -118,7 +118,7 @@ class MockXMLHttpRequest {
             } catch (e) {}
           })
           // 触发 MockXMLHttpRequest 上的同名事件
-          this.dispatchEvent(createCustomEvent(event.type))
+          this.dispatchEvent(createCustomEvent(event.type, event.bubbles, event.cancelable, event.detail))
         })
       }
 
