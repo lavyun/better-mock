@@ -737,7 +737,35 @@ describe('XHR', function () {
     //   })
     // })
 
-    describe('bolb responseType', () => {
+    describe('native xhr event', () => {
+      it('use ProcessEvent', (done) => {
+        const xhr = new Mock.XHR();
+
+        function handleProcessEvent (eventName) {
+          return new Promise(resolve => {
+            xhr.addEventListener(eventName, (e) => {
+              expect(e.lengthComputable).to.be.a('boolean');
+              expect(e.loaded).to.be.a('number');
+              expect(e.total).to.be.a('number');
+              resolve();
+            });
+          })
+        }
+
+        Promise.all([
+          handleProcessEvent('loadstart'),
+          handleProcessEvent('load'),
+          handleProcessEvent('loadend'),
+          handleProcessEvent('progress'),
+        ]).finally(done)
+
+        xhr.open("GET", 'http://httpbin.org/image/png');
+        xhr.send();
+      })
+
+    })
+
+    describe('blob responseType', () => {
       it('response is Blob type', async () => {
         const { data } = await axios.get('http://httpbin.org/image/png', {
           responseType: 'blob'

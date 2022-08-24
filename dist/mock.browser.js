@@ -1,5 +1,5 @@
 /*!
-  * better-mock v0.3.5 (mock.browser.js)
+  * better-mock v0.3.6 (mock.browser.js)
   * (c) 2019-2022 lavyun@163.com
   * Released under the MIT License.
   */
@@ -8522,7 +8522,7 @@
                           catch (e) { }
                       });
                       // 触发 MockXMLHttpRequest 上的同名事件
-                      _this.dispatchEvent(createCustomEvent(event.type));
+                      _this.dispatchEvent(event);
                   });
               }
               // xhr.open()
@@ -8822,7 +8822,7 @@
       heredoc: heredoc,
       setup: setting.setup.bind(setting),
       _mocked: mocked.getMocked(),
-      version: '0.3.5'
+      version: '0.3.6'
   };
   // 根据数据模板生成模拟数据。
   function mock(rurl, rtype, template) {
