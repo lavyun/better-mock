@@ -434,8 +434,10 @@ declare namespace Mock {
     /**
      * 从数组中随机选取一个元素
      * @param arr 数组
+     * @param min 返回的数组的最小长度
+     * @param max 返回的数组的最大长度
      */
-    pick<T = any>(arr: T[]): T;
+    pick<T = any>(arr: T[], min?: number, max?: number): T;
 
     /**
      * 打乱数组中元素的顺序，并返回
